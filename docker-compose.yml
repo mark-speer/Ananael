@@ -1,0 +1,50 @@
+services:
+  mongo:
+    image: mongo:latest
+    container_name: ananael-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    # Port exposed only on the Compose network by default; publish if you need host access
+    expose:
+      - "27017"
+    networks:
+      - ananael-net
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: ananael-server
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      PORT: "5000"
+      MONGO_URI: mongodb://mongo:27017/ananael
+      JWT_SECRET: ${JWT_SECRET:-ananael-dev-change-me-in-production}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost}
+    ports:
+      - "5000:5000"
+    networks:
+      - ananael-net
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: ananael-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "80:80"
+    networks:
+      - ananael-net
+
+volumes:
+  mongo_data:
+
+networks:
+  ananael-net:
+    driver: bridge
