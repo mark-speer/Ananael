@@ -23,7 +23,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | I Ching              | Active | 3            |
 | Tree of Life         | Active | 4a           |
 | Ritual Space Planner | Active | 4b           |
-| Solomonic Circles    | Active | 5            |
+| Solomonic Circles    | Active | 5–6          |
 
 ---
 
@@ -118,15 +118,15 @@ Parametric SVG circle builder (same UX family as Ritual Space: preview, PNG/JSON
 
 ---
 
-## Phase 6 — Solomonic Circles (Goetia conjuration) — Planned
+## Phase 6 — Solomonic Circles (Goetia conjuration) — Shipped
 
-Same sidebar module (`solomonic`); deepen Phase 5 canvas:
+Same sidebar module (`solomonic`); deepens Phase 5 canvas:
 
 - Ars Goetia spirit catalog (static: number, name, rank, seal reference)
 - Triangle of Art geometry + placement relative to the circle
-- Seal/sigil slot for the selected spirit
-- Conjuration layout templates; optional deeper Heptameron day/hour coupling
-- Extend save schema with `spiritId`, triangle, and seal fields
+- Seal/sigil slot for the selected spirit (labeled frame + `sealRef`)
+- Conjuration layout template on spirit select; triangle bearing (N/E/S/W)
+- Save schema extended inside `config`: `spiritId`, `showTriangle`, `triangleBearing`, `showSeal`
 
 **Done when:** pick a spirit → circle + Triangle of Art + seal layout; save/reload includes spirit fields.
 

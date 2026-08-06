@@ -34,7 +34,15 @@ interface SanitizedConfig {
   centerGlyph: 'none' | 'hexagram' | 'pentagram';
   showInnerSquare: boolean;
   useHebrew: boolean;
+  spiritId: string | null;
+  showTriangle: boolean;
+  triangleBearing: number;
+  showSeal: boolean;
 }
+
+const DEFAULT_TRIANGLE_BEARING = 90;
+/** Accept goetia-01 … goetia-72 style ids without importing the full catalog. */
+const SPIRIT_ID_RE = /^goetia-(0[1-9]|[1-6][0-9]|7[0-2])$/;
 
 function sanitizeConfig(raw: unknown): SanitizedConfig | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -85,6 +93,21 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
       ? c.centerGlyph
       : 'none';
 
+  let spiritId: string | null = null;
+  if (
+    tradition === 'goetia' &&
+    typeof c.spiritId === 'string' &&
+    c.spiritId.trim()
+  ) {
+    const id = c.spiritId.trim().slice(0, 64);
+    if (SPIRIT_ID_RE.test(id)) spiritId = id;
+  }
+
+  const triangleBearing =
+    typeof c.triangleBearing === 'number' && Number.isFinite(c.triangleBearing)
+      ? ((c.triangleBearing % 360) + 360) % 360
+      : DEFAULT_TRIANGLE_BEARING;
+
   return {
     tradition,
     weekday,
@@ -93,6 +116,10 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
     centerGlyph,
     showInnerSquare: Boolean(c.showInnerSquare),
     useHebrew: Boolean(c.useHebrew),
+    spiritId,
+    showTriangle: tradition === 'goetia' ? Boolean(c.showTriangle) : false,
+    triangleBearing,
+    showSeal: tradition === 'goetia' ? Boolean(c.showSeal) : false,
   };
 }
 

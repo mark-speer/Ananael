@@ -1,8 +1,10 @@
 /**
  * Solomonic Circles — tradition presets, name banks, and layout builder.
- * Phase 5: magician's protective circle (parametric). Phase 6 will add spirits.
+ * Phase 5: magician's protective circle (parametric).
+ * Phase 6: Goetia conjuration (spirit + Triangle of Art + seal slot).
  */
 
+import { getSpiritById } from './arsGoetia';
 import { MAX_RADIUS } from '../lib/solomonicGeometry';
 
 export type TraditionId = 'goetia' | 'heptameron' | 'generic';
@@ -42,6 +44,14 @@ export interface CircleConfig {
   showInnerSquare: boolean;
   /** Prefer Hebrew strings when applying Goetia presets. */
   useHebrew: boolean;
+  /** Selected Ars Goetia spirit id, or null for circle-only. */
+  spiritId: string | null;
+  /** Draw Triangle of Art outside the circle. */
+  showTriangle: boolean;
+  /** Compass degrees from circle center to triangle (0 = North). */
+  triangleBearing: number;
+  /** Labeled seal frame inside the triangle. */
+  showSeal: boolean;
 }
 
 export interface CircleLayoutDocument {
@@ -82,6 +92,9 @@ export const CENTER_GLYPH_LABELS: Record<CenterGlyph, string> = {
   hexagram: 'Hexagram',
   pentagram: 'Pentagram',
 };
+
+/** Default triangle bearing: East (classic outer placement relative to operator). */
+export const DEFAULT_TRIANGLE_BEARING = 90;
 
 function uid(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -169,6 +182,18 @@ export function defaultWeekday(): Weekday {
   return WEEKDAYS[d] ?? 'sunday';
 }
 
+function conjurationDefaults(): Pick<
+  CircleConfig,
+  'spiritId' | 'showTriangle' | 'triangleBearing' | 'showSeal'
+> {
+  return {
+    spiritId: null,
+    showTriangle: false,
+    triangleBearing: DEFAULT_TRIANGLE_BEARING,
+    showSeal: false,
+  };
+}
+
 export function applyTraditionPreset(
   tradition: TraditionId,
   opts?: {
@@ -177,13 +202,34 @@ export function applyTraditionPreset(
     showCompass?: boolean;
     centerGlyph?: CenterGlyph;
     showInnerSquare?: boolean;
+    spiritId?: string | null;
+    showTriangle?: boolean;
+    triangleBearing?: number;
+    showSeal?: boolean;
   }
 ): CircleConfig {
   const weekday = opts?.weekday ?? defaultWeekday();
   const useHebrew = opts?.useHebrew ?? tradition === 'goetia';
   const showCompass = opts?.showCompass ?? true;
-  const centerGlyph = opts?.centerGlyph ?? (tradition === 'goetia' ? 'hexagram' : 'none');
+  const centerGlyph =
+    opts?.centerGlyph ?? (tradition === 'goetia' ? 'hexagram' : 'none');
   const showInnerSquare = opts?.showInnerSquare ?? tradition !== 'generic';
+  const conj = conjurationDefaults();
+  const spiritId =
+    tradition === 'goetia'
+      ? opts?.spiritId !== undefined
+        ? opts.spiritId
+        : conj.spiritId
+      : null;
+  const showTriangle =
+    tradition === 'goetia' ? (opts?.showTriangle ?? conj.showTriangle) : false;
+  const triangleBearing =
+    typeof opts?.triangleBearing === 'number' &&
+    Number.isFinite(opts.triangleBearing)
+      ? ((opts.triangleBearing % 360) + 360) % 360
+      : conj.triangleBearing;
+  const showSeal =
+    tradition === 'goetia' ? (opts?.showSeal ?? conj.showSeal) : false;
 
   if (tradition === 'goetia') {
     const bank = useHebrew ? GOETIA_HEBREW : GOETIA_LATIN;
@@ -195,6 +241,10 @@ export function applyTraditionPreset(
       showCompass,
       centerGlyph,
       showInnerSquare,
+      spiritId,
+      showTriangle,
+      triangleBearing,
+      showSeal,
       rings: [
         ring('Outer ring', 1, bank.outer, script, true),
         ring('Middle ring', 0.78, bank.middle, script, true),
@@ -212,6 +262,10 @@ export function applyTraditionPreset(
       showCompass,
       centerGlyph: opts?.centerGlyph ?? 'pentagram',
       showInnerSquare,
+      spiritId: null,
+      showTriangle: false,
+      triangleBearing,
+      showSeal: false,
       rings: [
         ring('Outer ring', 1, bank.outer, 'latin', true),
         ring('Middle ring', 0.76, bank.middle, 'latin', true),
@@ -228,12 +282,49 @@ export function applyTraditionPreset(
     showCompass,
     centerGlyph: opts?.centerGlyph ?? 'none',
     showInnerSquare: opts?.showInnerSquare ?? false,
+    spiritId: null,
+    showTriangle: false,
+    triangleBearing,
+    showSeal: false,
     rings: [
       ring('Outer ring', 1, '', 'latin', true),
       ring('Middle ring', 0.75, '', 'latin', true),
       ring('Inner ring', 0.5, '', 'latin', false),
     ],
   };
+}
+
+/**
+ * Apply a Goetia conjuration layout for a spirit: Goetia rings + triangle + seal.
+ * Preserves Hebrew toggle and weekday from `base` when provided.
+ */
+export function applyConjurationTemplate(
+  spiritId: string,
+  base?: Partial<
+    Pick<
+      CircleConfig,
+      | 'weekday'
+      | 'useHebrew'
+      | 'showCompass'
+      | 'centerGlyph'
+      | 'showInnerSquare'
+      | 'triangleBearing'
+    >
+  >
+): CircleConfig | null {
+  const spirit = getSpiritById(spiritId);
+  if (!spirit) return null;
+  return applyTraditionPreset('goetia', {
+    weekday: base?.weekday,
+    useHebrew: base?.useHebrew ?? true,
+    showCompass: base?.showCompass,
+    centerGlyph: base?.centerGlyph ?? 'hexagram',
+    showInnerSquare: base?.showInnerSquare ?? true,
+    spiritId: spirit.id,
+    showTriangle: true,
+    triangleBearing: base?.triangleBearing ?? DEFAULT_TRIANGLE_BEARING,
+    showSeal: true,
+  });
 }
 
 /** Absolute radius in SVG units for a relative ring radius. */
@@ -244,11 +335,26 @@ export function absoluteRadius(relative: number): number {
 
 /**
  * Build a serializable layout snapshot from config.
- * (Identity for Phase 5 — kept for a stable API / future Phase 6 enrichment.)
  */
 export function buildCircleLayout(config: CircleConfig): CircleConfig {
+  const bearing =
+    typeof config.triangleBearing === 'number' &&
+    Number.isFinite(config.triangleBearing)
+      ? ((config.triangleBearing % 360) + 360) % 360
+      : DEFAULT_TRIANGLE_BEARING;
+
+  let spiritId: string | null = null;
+  if (typeof config.spiritId === 'string' && config.spiritId.trim()) {
+    const id = config.spiritId.trim().slice(0, 64);
+    spiritId = getSpiritById(id) ? id : null;
+  }
+
   return {
     ...config,
+    spiritId,
+    showTriangle: Boolean(config.showTriangle),
+    triangleBearing: bearing,
+    showSeal: Boolean(config.showSeal),
     rings: config.rings.map((r) => ({
       ...r,
       radius: Math.max(0.08, Math.min(1, r.radius)),
@@ -308,6 +414,21 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
       ? c.centerGlyph
       : 'none';
 
+  let spiritId: string | null = null;
+  if (
+    tradition === 'goetia' &&
+    typeof c.spiritId === 'string' &&
+    c.spiritId.trim()
+  ) {
+    const id = c.spiritId.trim().slice(0, 64);
+    if (getSpiritById(id)) spiritId = id;
+  }
+
+  const triangleBearing =
+    typeof c.triangleBearing === 'number' && Number.isFinite(c.triangleBearing)
+      ? ((c.triangleBearing % 360) + 360) % 360
+      : DEFAULT_TRIANGLE_BEARING;
+
   return {
     tradition,
     weekday,
@@ -316,5 +437,9 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
     centerGlyph,
     showInnerSquare: Boolean(c.showInnerSquare),
     useHebrew: Boolean(c.useHebrew),
+    spiritId,
+    showTriangle: Boolean(c.showTriangle),
+    triangleBearing,
+    showSeal: Boolean(c.showSeal),
   };
 }

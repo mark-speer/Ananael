@@ -10,6 +10,16 @@ export const SVG_VIEWBOX = `0 0 ${SVG_SIZE} ${SVG_SIZE}`;
 /** Max drawable radius in SVG user units (margin for labels). */
 export const MAX_RADIUS = 280;
 
+/** Extra margin when Triangle of Art is shown outside the circle. */
+export const TRIANGLE_MARGIN = 120;
+
+/** Classic divine names on the three sides of the Triangle of Art (Goetia). */
+export const TRIANGLE_SIDE_NAMES = [
+  'ANAPHAXETON',
+  'PRIMEUMATON',
+  'TETRAGRAMMATON',
+] as const;
+
 export function polarToCartesian(
   cx: number,
   cy: number,
@@ -114,4 +124,92 @@ export function cardinalPositions(
     { label: 'S', ...polarToCartesian(cx, cy, radius, 180) },
     { label: 'W', ...polarToCartesian(cx, cy, radius, 270) },
   ];
+}
+
+export interface TriangleOfArtResult {
+  /** Three vertices as SVG polygon points string. */
+  points: string;
+  /** Vertices as coordinates (apex toward circle, then L/R outer). */
+  vertices: { x: number; y: number }[];
+  /** Centroid — seal placement. */
+  center: { x: number; y: number };
+  /** Midpoints of each side for divine-name labels. */
+  sideMids: { x: number; y: number; angle: number }[];
+}
+
+/**
+ * Equilateral Triangle of Art placed outside the magician's circle.
+ * One vertex points toward the circle center; the opposite side faces outward.
+ */
+export function triangleOfArt(
+  cx: number,
+  cy: number,
+  circleRadius: number,
+  bearingDeg: number,
+  sideLength: number
+): TriangleOfArtResult {
+  const gap = 18;
+  // Circumradius of an equilateral triangle with the given side length.
+  const R = sideLength / Math.sqrt(3);
+  // Centroid sits just outside the circle along the bearing.
+  const centroidDist = circleRadius + gap + R * 0.5;
+  const center = polarToCartesian(cx, cy, centroidDist, bearingDeg);
+
+  // Vertex 0 toward the circle; 1 and 2 form the outer base.
+  const vertices = [
+    polarToCartesian(center.x, center.y, R, (bearingDeg + 180) % 360),
+    polarToCartesian(center.x, center.y, R, (bearingDeg + 60) % 360),
+    polarToCartesian(center.x, center.y, R, (bearingDeg - 60 + 360) % 360),
+  ];
+
+  const mid = (
+    a: { x: number; y: number },
+    b: { x: number; y: number }
+  ) => ({
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+    angle: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI,
+  });
+
+  const sideMids = [
+    mid(vertices[0], vertices[1]),
+    mid(vertices[1], vertices[2]),
+    mid(vertices[2], vertices[0]),
+  ];
+
+  return {
+    points: vertices.map((p) => `${p.x},${p.y}`).join(' '),
+    vertices,
+    center,
+    sideMids,
+  };
+}
+
+/**
+ * ViewBox string expanded toward the triangle bearing so the Triangle of Art fits.
+ * Circle stays at (cx, cy) in the original coordinate system.
+ */
+export function conjurationViewBox(
+  bearingDeg: number,
+  expand = TRIANGLE_MARGIN
+): string {
+  const rad = ((bearingDeg - 90) * Math.PI) / 180;
+  const dx = Math.cos(rad);
+  const dy = Math.sin(rad);
+  // Expand the side of the viewBox the triangle sits on.
+  const left = dx < -0.2 ? expand : 0;
+  const right = dx > 0.2 ? expand : 0;
+  const top = dy < -0.2 ? expand : 0;
+  const bottom = dy > 0.2 ? expand : 0;
+  // Also expand a little on near-cardinal diagonals for safety.
+  const padL = left || (Math.abs(dx) < 0.2 ? expand * 0.15 : 0);
+  const padR = right || (Math.abs(dx) < 0.2 ? expand * 0.15 : 0);
+  const padT = top || (Math.abs(dy) < 0.2 ? expand * 0.15 : 0);
+  const padB = bottom || (Math.abs(dy) < 0.2 ? expand * 0.15 : 0);
+
+  const x = -padL;
+  const y = -padT;
+  const w = SVG_SIZE + padL + padR;
+  const h = SVG_SIZE + padT + padB;
+  return `${x} ${y} ${w} ${h}`;
 }

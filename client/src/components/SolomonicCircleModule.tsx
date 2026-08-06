@@ -6,10 +6,17 @@ import {
 } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
+  GOETIA_RANK_LABELS,
+  GOETIA_SPIRITS,
+  getSpiritById,
+} from '../data/arsGoetia';
+import {
   absoluteRadius,
+  applyConjurationTemplate,
   applyTraditionPreset,
-  buildCircleLayout,
   CENTER_GLYPH_LABELS,
+  DEFAULT_TRIANGLE_BEARING,
+  buildCircleLayout,
   sanitizeCircleConfig,
   TRADITION_LABELS,
   WEEKDAY_LABELS,
@@ -24,11 +31,14 @@ import {
   SVG_CENTER,
   SVG_SIZE,
   SVG_VIEWBOX,
+  TRIANGLE_SIDE_NAMES,
   cardinalPositions,
   circleArcPath,
+  conjurationViewBox,
   hexagramTriangles,
   inscribedSquarePoints,
   pentagramPoints,
+  triangleOfArt,
 } from '../lib/solomonicGeometry';
 
 function ringPx(relative: number): number {
@@ -45,8 +55,8 @@ interface SavedCircle {
 }
 
 /**
- * Solomonic Circles — Phase 5 magician's circle builder.
- * Parametric SVG from tradition presets + editable ring text.
+ * Solomonic Circles — Phase 5 circle builder + Phase 6 Goetia conjuration.
+ * Parametric SVG from tradition presets, spirit picker, Triangle of Art + seal.
  */
 export default function SolomonicCircleModule() {
   const { isAuthenticated, token } = useAuth();
@@ -63,10 +73,14 @@ export default function SolomonicCircleModule() {
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [spiritFilter, setSpiritFilter] = useState('');
 
   const layout = buildCircleLayout(config);
   const cx = SVG_CENTER;
   const cy = SVG_CENTER;
+  const selectedSpirit = layout.spiritId
+    ? getSpiritById(layout.spiritId)
+    : undefined;
 
   const loadHistory = useCallback(async () => {
     if (!token) {
@@ -128,6 +142,7 @@ export default function SolomonicCircleModule() {
     setSavedId(null);
     setDirty(false);
     setSaveStatus(null);
+    setSpiritFilter('');
   };
 
   const onTraditionChange = (tradition: TraditionId) => {
@@ -148,6 +163,32 @@ export default function SolomonicCircleModule() {
       return;
     }
     updateConfig({ weekday });
+  };
+
+  const onSpiritSelect = (spiritId: string) => {
+    if (!spiritId) {
+      updateConfig({
+        spiritId: null,
+        showTriangle: false,
+        showSeal: false,
+      });
+      return;
+    }
+    const next = applyConjurationTemplate(spiritId, {
+      weekday: config.weekday,
+      useHebrew: config.useHebrew,
+      showCompass: config.showCompass,
+      centerGlyph: config.centerGlyph,
+      showInnerSquare: config.showInnerSquare,
+      triangleBearing: config.triangleBearing,
+    });
+    if (!next) return;
+    // Preserve current ring text when switching spirits on an existing Goetia layout.
+    setConfig({
+      ...next,
+      rings: config.tradition === 'goetia' ? config.rings : next.rings,
+    });
+    markDirty();
   };
 
   const updateRing = (id: string, patch: Partial<RingConfig>) => {
@@ -181,11 +222,18 @@ export default function SolomonicCircleModule() {
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    clone.setAttribute('width', String(SVG_SIZE));
-    clone.setAttribute('height', String(SVG_SIZE));
+    const vb = clone.getAttribute('viewBox')?.split(/\s+/).map(Number) ?? [
+      0, 0, SVG_SIZE, SVG_SIZE,
+    ];
+    const vbW = vb[2] || SVG_SIZE;
+    const vbH = vb[3] || SVG_SIZE;
+    clone.setAttribute('width', String(vbW));
+    clone.setAttribute('height', String(vbH));
     const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    bg.setAttribute('width', String(SVG_SIZE));
-    bg.setAttribute('height', String(SVG_SIZE));
+    bg.setAttribute('x', String(vb[0] ?? 0));
+    bg.setAttribute('y', String(vb[1] ?? 0));
+    bg.setAttribute('width', String(vbW));
+    bg.setAttribute('height', String(vbH));
     bg.setAttribute('fill', '#0c0a12');
     clone.insertBefore(bg, clone.firstChild);
 
@@ -196,16 +244,16 @@ export default function SolomonicCircleModule() {
     try {
       const img = await loadImage(url);
       const canvas = document.createElement('canvas');
-      canvas.width = SVG_SIZE;
-      canvas.height = SVG_SIZE;
+      canvas.width = vbW;
+      canvas.height = vbH;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       ctx.fillStyle = '#0c0a12';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, vbW, vbH);
       ctx.drawImage(img, 0, 0);
-      const pngUrl = canvas.toDataURL('image/png');
+      const png = canvas.toDataURL('image/png');
       const a = document.createElement('a');
-      a.href = pngUrl;
+      a.href = png;
       a.download = `${slugify(layoutName || 'solomonic-circle')}.png`;
       a.click();
     } finally {
@@ -215,26 +263,20 @@ export default function SolomonicCircleModule() {
 
   const saveCircle = async () => {
     if (!token) return;
-    const name = layoutName.trim();
-    if (!name) {
-      setSaveStatus('Name is required.');
-      return;
-    }
     setSaving(true);
     setSaveStatus(null);
     try {
       const body = {
-        name,
+        name: layoutName.trim() || 'Untitled circle',
         tradition: layout.tradition,
         config: layout,
-        notes: notes.trim() || undefined,
+        notes: notes.trim(),
       };
       const url = savedId
         ? `/api/solomonic/circles/${savedId}`
         : '/api/solomonic/circles';
-      const method = savedId ? 'PUT' : 'POST';
       const res = await fetch(url, {
-        method,
+        method: savedId ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -288,19 +330,60 @@ export default function SolomonicCircleModule() {
     ) {
       return;
     }
-    setConfig(applyTraditionPreset(config.tradition, { weekday: config.weekday }));
+    setConfig(
+      applyTraditionPreset(config.tradition, { weekday: config.weekday })
+    );
     setLayoutName('Untitled circle');
     setNotes('');
     setSavedId(null);
     setDirty(false);
     setSaveStatus(null);
+    setSpiritFilter('');
   };
 
-  const outerR = Math.max(...layout.rings.map((r) => ringPx(r.radius)), ringPx(0.5));
+  const outerR = Math.max(
+    ...layout.rings.map((r) => ringPx(r.radius)),
+    ringPx(0.5)
+  );
   const glyphR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.72;
   const squareR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.85;
   const hex = hexagramTriangles(cx, cy, glyphR);
   const compass = cardinalPositions(cx, cy, outerR + 22);
+
+  const triangleSide = Math.max(outerR * 0.55, 110);
+  const triangle =
+    layout.showTriangle
+      ? triangleOfArt(
+          cx,
+          cy,
+          outerR + 6,
+          layout.triangleBearing ?? DEFAULT_TRIANGLE_BEARING,
+          triangleSide
+        )
+      : null;
+
+  const viewBox =
+    layout.showTriangle
+      ? conjurationViewBox(layout.triangleBearing ?? DEFAULT_TRIANGLE_BEARING)
+      : SVG_VIEWBOX;
+
+  const filteredSpirits = GOETIA_SPIRITS.filter((s) => {
+    if (!spiritFilter.trim()) return true;
+    const q = spiritFilter.trim().toLowerCase();
+    return (
+      s.name.toLowerCase().includes(q) ||
+      String(s.number).includes(q) ||
+      s.rank.includes(q) ||
+      GOETIA_RANK_LABELS[s.rank].toLowerCase().includes(q)
+    );
+  });
+
+  const spiritOptions =
+    selectedSpirit && !filteredSpirits.some((s) => s.id === selectedSpirit.id)
+      ? [selectedSpirit, ...filteredSpirits]
+      : filteredSpirits;
+
+  const sealSize = triangleSide * 0.28;
 
   return (
     <div className="space-y-6">
@@ -310,8 +393,9 @@ export default function SolomonicCircleModule() {
         </h1>
         <p className="max-w-2xl text-sm text-ananael-muted">
           Build a magician&apos;s protective circle from Goetia, Heptameron, or
-          generic presets. Edit ring names, toggle glyphs, and export PNG or
-          JSON. Sign in to save circles to your profile.
+          generic presets. For Goetia conjuration, pick a spirit to place the
+          Triangle of Art and a labeled seal slot. Export PNG or JSON; sign in
+          to save.
         </p>
       </header>
 
@@ -387,25 +471,65 @@ export default function SolomonicCircleModule() {
           Inner square {config.showInnerSquare ? 'On' : 'Off'}
         </button>
         {config.tradition === 'goetia' && (
-          <button
-            type="button"
-            onClick={() => {
-              const useHebrew = !config.useHebrew;
-              setConfig(
-                applyTraditionPreset('goetia', {
-                  weekday: config.weekday,
-                  useHebrew,
-                  showCompass: config.showCompass,
-                  centerGlyph: config.centerGlyph,
-                  showInnerSquare: config.showInnerSquare,
-                })
-              );
-              markDirty();
-            }}
-            className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
-          >
-            Names: {config.useHebrew ? 'Hebrew' : 'Latin'}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                const useHebrew = !config.useHebrew;
+                setConfig(
+                  applyTraditionPreset('goetia', {
+                    weekday: config.weekday,
+                    useHebrew,
+                    showCompass: config.showCompass,
+                    centerGlyph: config.centerGlyph,
+                    showInnerSquare: config.showInnerSquare,
+                    spiritId: config.spiritId,
+                    showTriangle: config.showTriangle,
+                    triangleBearing: config.triangleBearing,
+                    showSeal: config.showSeal,
+                  })
+                );
+                markDirty();
+              }}
+              className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+            >
+              Names: {config.useHebrew ? 'Hebrew' : 'Latin'}
+            </button>
+            <button
+              type="button"
+              disabled={!config.spiritId}
+              onClick={() =>
+                updateConfig({ showTriangle: !config.showTriangle })
+              }
+              className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold disabled:opacity-40"
+            >
+              Triangle {config.showTriangle ? 'On' : 'Off'}
+            </button>
+            <button
+              type="button"
+              disabled={!config.spiritId || !config.showTriangle}
+              onClick={() => updateConfig({ showSeal: !config.showSeal })}
+              className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold disabled:opacity-40"
+            >
+              Seal {config.showSeal ? 'On' : 'Off'}
+            </button>
+            <label className="flex items-center gap-2 text-xs text-ananael-muted">
+              Bearing
+              <select
+                value={config.triangleBearing}
+                disabled={!config.showTriangle}
+                onChange={(e) =>
+                  updateConfig({ triangleBearing: Number(e.target.value) })
+                }
+                className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40"
+              >
+                <option value={0}>North</option>
+                <option value={90}>East</option>
+                <option value={180}>South</option>
+                <option value={270}>West</option>
+              </select>
+            </label>
+          </>
         )}
         <button
           type="button"
@@ -416,15 +540,55 @@ export default function SolomonicCircleModule() {
         </button>
       </div>
 
+      {/* Spirit picker (Goetia) */}
+      {config.tradition === 'goetia' && (
+        <div className="space-y-2 rounded-xl border border-ananael-border/40 bg-ananael-surface/30 p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs uppercase tracking-wider text-ananael-muted">
+              Spirit
+            </span>
+            <input
+              type="search"
+              value={spiritFilter}
+              onChange={(e) => setSpiritFilter(e.target.value)}
+              placeholder="Filter by name, number, rank…"
+              className="min-w-[12rem] flex-1 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+            />
+            <select
+              value={config.spiritId ?? ''}
+              onChange={(e) => onSpiritSelect(e.target.value)}
+              className="min-w-[14rem] rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+            >
+              <option value="">Circle only (no spirit)</option>
+              {spiritOptions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  #{s.number} {s.name} ({GOETIA_RANK_LABELS[s.rank]})
+                </option>
+              ))}
+            </select>
+            {selectedSpirit && (
+              <span className="text-xs text-ananael-gold/90">
+                #{selectedSpirit.number} {selectedSpirit.name} ·{' '}
+                {GOETIA_RANK_LABELS[selectedSpirit.rank]}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1fr_minmax(260px,300px)]">
         {/* Canvas */}
         <div className="overflow-hidden rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-2 sm:p-4">
           <svg
             ref={svgRef}
-            viewBox={SVG_VIEWBOX}
+            viewBox={viewBox}
             className="mx-auto h-auto w-full max-w-full select-none"
             role="img"
-            aria-label="Solomonic magic circle"
+            aria-label={
+              selectedSpirit
+                ? `Solomonic conjuration for ${selectedSpirit.name}`
+                : 'Solomonic magic circle'
+            }
           >
             <defs>
               {layout.rings.map((r) => (
@@ -541,6 +705,79 @@ export default function SolomonicCircleModule() {
                   {c.label}
                 </text>
               ))}
+
+            {/* Triangle of Art */}
+            {triangle && (
+              <g>
+                <polygon
+                  points={triangle.points}
+                  fill="#120e1a"
+                  stroke="#c9a227"
+                  strokeWidth={1.75}
+                  opacity={0.95}
+                />
+                {triangle.sideMids.map((m, i) => (
+                  <text
+                    key={TRIANGLE_SIDE_NAMES[i]}
+                    x={m.x}
+                    y={m.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill="#e8d48b"
+                    fontSize={8}
+                    fontFamily="Cinzel, Georgia, serif"
+                    opacity={0.9}
+                  >
+                    {TRIANGLE_SIDE_NAMES[i]}
+                  </text>
+                ))}
+
+                {layout.showSeal && selectedSpirit && (
+                  <g>
+                    <rect
+                      x={triangle.center.x - sealSize / 2}
+                      y={triangle.center.y - sealSize / 2}
+                      width={sealSize}
+                      height={sealSize}
+                      rx={4}
+                      fill="#0c0a12"
+                      stroke="#7c5cbf"
+                      strokeWidth={1.5}
+                    />
+                    <text
+                      x={triangle.center.x}
+                      y={triangle.center.y - sealSize * 0.22}
+                      textAnchor="middle"
+                      fill="#a78bfa"
+                      fontSize={9}
+                      fontFamily="Cinzel, Georgia, serif"
+                    >
+                      #{selectedSpirit.number}
+                    </text>
+                    <text
+                      x={triangle.center.x}
+                      y={triangle.center.y + 2}
+                      textAnchor="middle"
+                      fill="#c9a227"
+                      fontSize={10}
+                      fontFamily="Cinzel, Georgia, serif"
+                    >
+                      {selectedSpirit.name}
+                    </text>
+                    <text
+                      x={triangle.center.x}
+                      y={triangle.center.y + sealSize * 0.28}
+                      textAnchor="middle"
+                      fill="#71717a"
+                      fontSize={7}
+                      fontFamily="ui-monospace, monospace"
+                    >
+                      {selectedSpirit.sealRef}
+                    </text>
+                  </g>
+                )}
+              </g>
+            )}
 
             {/* Center point */}
             <circle cx={cx} cy={cy} r={3} fill="#c9a227" />
@@ -667,21 +904,27 @@ export default function SolomonicCircleModule() {
                 <p className="text-xs text-zinc-500">No saved circles yet.</p>
               )}
               <ul className="max-h-48 space-y-1 overflow-y-auto">
-                {history.map((c) => (
-                  <li key={c._id}>
-                    <button
-                      type="button"
-                      onClick={() => loadCircle(c)}
-                      className="w-full rounded-md border border-transparent px-2 py-1.5 text-left text-xs text-zinc-300 transition hover:border-ananael-border/60 hover:bg-ananael-panel hover:text-ananael-gold"
-                    >
-                      <span className="font-medium">{c.name}</span>
-                      <span className="mt-0.5 block text-[10px] text-ananael-muted">
-                        {TRADITION_LABELS[c.tradition] ?? c.tradition} ·{' '}
-                        {new Date(c.date).toLocaleString()}
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                {history.map((c) => {
+                  const spirit = c.config?.spiritId
+                    ? getSpiritById(c.config.spiritId)
+                    : undefined;
+                  return (
+                    <li key={c._id}>
+                      <button
+                        type="button"
+                        onClick={() => loadCircle(c)}
+                        className="w-full rounded-md border border-transparent px-2 py-1.5 text-left text-xs text-zinc-300 transition hover:border-ananael-border/60 hover:bg-ananael-panel hover:text-ananael-gold"
+                      >
+                        <span className="font-medium">{c.name}</span>
+                        <span className="mt-0.5 block text-[10px] text-ananael-muted">
+                          {TRADITION_LABELS[c.tradition] ?? c.tradition}
+                          {spirit ? ` · ${spirit.name}` : ''} ·{' '}
+                          {new Date(c.date).toLocaleString()}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
