@@ -237,13 +237,15 @@ export interface TriangleOfArtResult {
 /**
  * Equilateral Triangle of Art placed outside the magician's circle.
  * One vertex points toward the circle center; the opposite side faces outward.
+ * `rotationDeg` twists the triangle about its centroid (0 = apex toward circle).
  */
 export function triangleOfArt(
   cx: number,
   cy: number,
   circleRadius: number,
   bearingDeg: number,
-  sideLength: number
+  sideLength: number,
+  rotationDeg = 0
 ): TriangleOfArtResult {
   const gap = 18;
   // Circumradius of an equilateral triangle with the given side length.
@@ -251,12 +253,18 @@ export function triangleOfArt(
   // Centroid sits just outside the circle along the bearing.
   const centroidDist = circleRadius + gap + R * 0.5;
   const center = polarToCartesian(cx, cy, centroidDist, bearingDeg);
+  const rot = ((rotationDeg % 360) + 360) % 360;
 
   // Vertex 0 toward the circle; 1 and 2 form the outer base.
   const vertices = [
-    polarToCartesian(center.x, center.y, R, (bearingDeg + 180) % 360),
-    polarToCartesian(center.x, center.y, R, (bearingDeg + 60) % 360),
-    polarToCartesian(center.x, center.y, R, (bearingDeg - 60 + 360) % 360),
+    polarToCartesian(center.x, center.y, R, (bearingDeg + 180 + rot) % 360),
+    polarToCartesian(center.x, center.y, R, (bearingDeg + 60 + rot) % 360),
+    polarToCartesian(
+      center.x,
+      center.y,
+      R,
+      (bearingDeg - 60 + rot + 360) % 360
+    ),
   ];
 
   const mid = (

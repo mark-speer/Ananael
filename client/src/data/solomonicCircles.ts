@@ -65,6 +65,8 @@ export interface CircleConfig {
   showTriangle: boolean;
   /** Compass degrees from circle center to triangle (0 = North). */
   triangleBearing: number;
+  /** Rotation about triangle centroid; 0 = apex toward circle. */
+  triangleRotationDeg: number;
   /** Labeled seal frame inside the triangle. */
   showSeal: boolean;
 }
@@ -119,6 +121,9 @@ export const CARDINAL_DIR_LABELS: Record<CardinalDir, string> = {
 
 /** Default triangle bearing: East (classic outer placement relative to operator). */
 export const DEFAULT_TRIANGLE_BEARING = 90;
+
+/** Default in-place triangle rotation (apex toward circle). */
+export const DEFAULT_TRIANGLE_ROTATION = 0;
 
 const MAX_GLYPH_LETTERS = 16;
 
@@ -272,12 +277,17 @@ export function defaultWeekday(): Weekday {
 
 function conjurationDefaults(): Pick<
   CircleConfig,
-  'spiritId' | 'showTriangle' | 'triangleBearing' | 'showSeal'
+  | 'spiritId'
+  | 'showTriangle'
+  | 'triangleBearing'
+  | 'triangleRotationDeg'
+  | 'showSeal'
 > {
   return {
     spiritId: null,
     showTriangle: false,
     triangleBearing: DEFAULT_TRIANGLE_BEARING,
+    triangleRotationDeg: DEFAULT_TRIANGLE_ROTATION,
     showSeal: false,
   };
 }
@@ -294,6 +304,7 @@ export function applyTraditionPreset(
     spiritId?: string | null;
     showTriangle?: boolean;
     triangleBearing?: number;
+    triangleRotationDeg?: number;
     showSeal?: boolean;
   }
 ): CircleConfig {
@@ -318,6 +329,11 @@ export function applyTraditionPreset(
     Number.isFinite(opts.triangleBearing)
       ? ((opts.triangleBearing % 360) + 360) % 360
       : conj.triangleBearing;
+  const triangleRotationDeg =
+    typeof opts?.triangleRotationDeg === 'number' &&
+    Number.isFinite(opts.triangleRotationDeg)
+      ? ((opts.triangleRotationDeg % 360) + 360) % 360
+      : conj.triangleRotationDeg;
   const showSeal =
     tradition === 'goetia' ? (opts?.showSeal ?? conj.showSeal) : false;
 
@@ -337,6 +353,7 @@ export function applyTraditionPreset(
       spiritId,
       showTriangle,
       triangleBearing,
+      triangleRotationDeg,
       showSeal,
       rings: [
         ring('Outer ring', 1, bank.outer, script, true),
@@ -359,6 +376,7 @@ export function applyTraditionPreset(
       spiritId: null,
       showTriangle: false,
       triangleBearing,
+      triangleRotationDeg,
       showSeal: false,
       rings: [
         ring('Outer ring', 1, bank.outer, 'latin', true),
@@ -380,6 +398,7 @@ export function applyTraditionPreset(
     spiritId: null,
     showTriangle: false,
     triangleBearing,
+    triangleRotationDeg,
     showSeal: false,
     rings: [
       ring('Outer ring', 1, '', 'latin', true),
@@ -405,6 +424,7 @@ export function applyConjurationTemplate(
       | 'cardinalGlyphs'
       | 'showInnerSquare'
       | 'triangleBearing'
+      | 'triangleRotationDeg'
     >
   >
 ): CircleConfig | null {
@@ -420,6 +440,8 @@ export function applyConjurationTemplate(
     spiritId: spirit.id,
     showTriangle: true,
     triangleBearing: base?.triangleBearing ?? DEFAULT_TRIANGLE_BEARING,
+    triangleRotationDeg:
+      base?.triangleRotationDeg ?? DEFAULT_TRIANGLE_ROTATION,
     showSeal: true,
   });
 }
@@ -439,6 +461,11 @@ export function buildCircleLayout(config: CircleConfig): CircleConfig {
     Number.isFinite(config.triangleBearing)
       ? ((config.triangleBearing % 360) + 360) % 360
       : DEFAULT_TRIANGLE_BEARING;
+  const triangleRotationDeg =
+    typeof config.triangleRotationDeg === 'number' &&
+    Number.isFinite(config.triangleRotationDeg)
+      ? ((config.triangleRotationDeg % 360) + 360) % 360
+      : DEFAULT_TRIANGLE_ROTATION;
 
   let spiritId: string | null = null;
   if (typeof config.spiritId === 'string' && config.spiritId.trim()) {
@@ -453,6 +480,7 @@ export function buildCircleLayout(config: CircleConfig): CircleConfig {
     cardinalGlyphs: sanitizeCardinalGlyphs(config.cardinalGlyphs),
     showTriangle: Boolean(config.showTriangle),
     triangleBearing: bearing,
+    triangleRotationDeg,
     showSeal: Boolean(config.showSeal),
     rings: config.rings.map((r) => ({
       ...r,
@@ -525,6 +553,11 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
     typeof c.triangleBearing === 'number' && Number.isFinite(c.triangleBearing)
       ? ((c.triangleBearing % 360) + 360) % 360
       : DEFAULT_TRIANGLE_BEARING;
+  const triangleRotationDeg =
+    typeof c.triangleRotationDeg === 'number' &&
+    Number.isFinite(c.triangleRotationDeg)
+      ? ((c.triangleRotationDeg % 360) + 360) % 360
+      : DEFAULT_TRIANGLE_ROTATION;
 
   return {
     tradition,
@@ -538,6 +571,7 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
     spiritId,
     showTriangle: Boolean(c.showTriangle),
     triangleBearing,
+    triangleRotationDeg,
     showSeal: Boolean(c.showSeal),
   };
 }

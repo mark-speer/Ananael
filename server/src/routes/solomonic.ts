@@ -49,10 +49,12 @@ interface SanitizedConfig {
   spiritId: string | null;
   showTriangle: boolean;
   triangleBearing: number;
+  triangleRotationDeg: number;
   showSeal: boolean;
 }
 
 const DEFAULT_TRIANGLE_BEARING = 90;
+const DEFAULT_TRIANGLE_ROTATION = 0;
 const MAX_GLYPH_LETTERS = 16;
 /** Accept goetia-01 … goetia-72 style ids without importing the full catalog. */
 const SPIRIT_ID_RE = /^goetia-(0[1-9]|[1-6][0-9]|7[0-2])$/;
@@ -166,6 +168,11 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
     typeof c.triangleBearing === 'number' && Number.isFinite(c.triangleBearing)
       ? ((c.triangleBearing % 360) + 360) % 360
       : DEFAULT_TRIANGLE_BEARING;
+  const triangleRotationDeg =
+    typeof c.triangleRotationDeg === 'number' &&
+    Number.isFinite(c.triangleRotationDeg)
+      ? ((c.triangleRotationDeg % 360) + 360) % 360
+      : DEFAULT_TRIANGLE_ROTATION;
 
   return {
     tradition,
@@ -179,6 +186,7 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
     spiritId,
     showTriangle: tradition === 'goetia' ? Boolean(c.showTriangle) : false,
     triangleBearing,
+    triangleRotationDeg,
     showSeal: tradition === 'goetia' ? Boolean(c.showSeal) : false,
   };
 }

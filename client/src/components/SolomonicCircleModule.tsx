@@ -18,6 +18,7 @@ import {
   CARDINAL_DIR_LABELS,
   CENTER_GLYPH_LABELS,
   DEFAULT_TRIANGLE_BEARING,
+  DEFAULT_TRIANGLE_ROTATION,
   buildCircleLayout,
   sanitizeCircleConfig,
   TRADITION_LABELS,
@@ -232,6 +233,7 @@ export default function SolomonicCircleModule() {
       cardinalGlyphs: config.cardinalGlyphs,
       showInnerSquare: config.showInnerSquare,
       triangleBearing: config.triangleBearing,
+      triangleRotationDeg: config.triangleRotationDeg,
     });
     if (!next) return;
     // Preserve current ring text when switching spirits on an existing Goetia layout.
@@ -437,7 +439,8 @@ export default function SolomonicCircleModule() {
           cy,
           outerR + 6,
           layout.triangleBearing ?? DEFAULT_TRIANGLE_BEARING,
-          triangleSide
+          triangleSide,
+          layout.triangleRotationDeg ?? DEFAULT_TRIANGLE_ROTATION
         )
       : null;
 
@@ -680,6 +683,7 @@ export default function SolomonicCircleModule() {
                     spiritId: config.spiritId,
                     showTriangle: config.showTriangle,
                     triangleBearing: config.triangleBearing,
+                    triangleRotationDeg: config.triangleRotationDeg,
                     showSeal: config.showSeal,
                   })
                 );
@@ -709,19 +713,43 @@ export default function SolomonicCircleModule() {
             </button>
             <label className="flex items-center gap-2 text-xs text-ananael-muted">
               Bearing
-              <select
-                value={config.triangleBearing}
+              <input
+                type="number"
+                min={0}
+                max={359}
+                step={1}
+                value={Math.round(config.triangleBearing)}
                 disabled={!config.showTriangle}
-                onChange={(e) =>
-                  updateConfig({ triangleBearing: Number(e.target.value) })
-                }
-                className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40"
-              >
-                <option value={0}>North</option>
-                <option value={90}>East</option>
-                <option value={180}>South</option>
-                <option value={270}>West</option>
-              </select>
+                onChange={(e) => {
+                  const n = Number(e.target.value);
+                  const deg = Number.isFinite(n)
+                    ? ((n % 360) + 360) % 360
+                    : DEFAULT_TRIANGLE_BEARING;
+                  updateConfig({ triangleBearing: deg });
+                }}
+                className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40"
+              />
+              °
+            </label>
+            <label className="flex items-center gap-2 text-xs text-ananael-muted">
+              Rotate
+              <input
+                type="number"
+                min={0}
+                max={359}
+                step={1}
+                value={Math.round(config.triangleRotationDeg ?? 0)}
+                disabled={!config.showTriangle}
+                onChange={(e) => {
+                  const n = Number(e.target.value);
+                  const deg = Number.isFinite(n)
+                    ? ((n % 360) + 360) % 360
+                    : DEFAULT_TRIANGLE_ROTATION;
+                  updateConfig({ triangleRotationDeg: deg });
+                }}
+                className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40"
+              />
+              °
             </label>
           </>
         )}
