@@ -46,7 +46,7 @@ export interface RingConfig {
   script: RingScript;
   /** Clockwise textPath — keeps lettering on the outside of the ring. */
   clockwise: boolean;
-  /** Stroke + lettering opacity (0–1). */
+  /** Stroke opacity (0–1); lettering is unaffected. */
   opacity: number;
 }
 
@@ -127,7 +127,7 @@ export const DEFAULT_TRIANGLE_BEARING = 90;
 /** Default in-place triangle rotation (180° from apex-toward-circle). */
 export const DEFAULT_TRIANGLE_ROTATION = 180;
 
-/** Default ring stroke + lettering opacity. */
+/** Default ring stroke opacity. */
 export const DEFAULT_RING_OPACITY = 0.85;
 
 const MAX_GLYPH_LETTERS = 16;

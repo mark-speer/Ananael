@@ -818,7 +818,6 @@ export default function SolomonicCircleModule() {
                   fill="#e8d48b"
                   fontSize={r.script === 'hebrew' ? 11 : 10}
                   letterSpacing={r.script === 'hebrew' ? 1 : 1.5}
-                  opacity={r.opacity ?? 0.85}
                   style={{
                     fontFamily:
                       r.script === 'hebrew'
