@@ -2,7 +2,7 @@
 
 A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic.
 
-**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text and profile history. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot.
+**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot. **Phase 7** adds Magical Journal — unified ritual / dream / divination / mood logs with moon and planetary-hour tags (Tarot and I Ching saves land here).
 
 ## Stack
 
@@ -64,6 +64,7 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 | Module               | Status                        |
 |----------------------|-------------------------------|
 | Tarot                | Active                        |
+| Magical Journal      | Active (Phase 7)              |
 | Gematria             | Active (Phase 2a)             |
 | Planetary Hours      | Active (Phase 2b)             |
 | Script Translator    | Active (Phase 2c)             |
@@ -78,11 +79,15 @@ Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 
 - `POST /api/auth/register` — `{ username, email, password }`
 - `POST /api/auth/login` — `{ email, password }`
-- `POST /api/tarot/save` — Bearer JWT; `{ spreadType, cardsDrawn, userNotes? }`
-- `GET /api/tarot/history` — Bearer JWT; recent readings
+- `POST /api/tarot/save` — Bearer JWT; saves a Magical Journal divination entry (`spreadType`, `cardsDrawn`, `userNotes?`, `sky?`)
+- `GET /api/tarot/history` — Bearer JWT; recent tarot journal entries (compat shape)
 - `POST /api/gematria/save` — Bearer JWT; `{ text, system, total, notes? }`
-- `POST /api/iching/save` — Bearer JWT; `{ method, lines, primaryNumber, relatingNumber?, changingLines, userNotes? }`
-- `GET /api/iching/history` — Bearer JWT; recent casts
+- `POST /api/iching/save` — Bearer JWT; saves a Magical Journal divination entry
+- `GET /api/iching/history` — Bearer JWT; recent I Ching journal entries (compat shape)
+- `POST /api/journal/entries` — Bearer JWT; create journal entry
+- `GET /api/journal/entries` — Bearer JWT; list/search (`type`, `q`, `tag`, `entity`, `from`, `to`)
+- `PATCH /api/journal/entries/:id` / `DELETE /api/journal/entries/:id` — Bearer JWT
+- `POST /api/journal/migrate` — Bearer JWT; idempotent legacy Tarot/I Ching → journal copy
 - `POST /api/tree/notes` — Bearer JWT; `{ targetType, targetId, userNotes }`
 - `GET /api/tree/notes` — Bearer JWT; recent Tree of Life study notes
 - `POST /api/ritual/layouts` — Bearer JWT; `{ name, items, showCompass?, notes? }`

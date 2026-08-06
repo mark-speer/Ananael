@@ -12,6 +12,7 @@ import tarotRoutes from './routes/tarot';
 import treeRoutes from './routes/tree';
 import ritualRoutes from './routes/ritual';
 import solomonicRoutes from './routes/solomonic';
+import journalRoutes from './routes/journal';
 
 dotenv.config();
 
@@ -67,6 +68,7 @@ app.use('/api/iching', ichingRoutes);
 app.use('/api/tree', treeRoutes);
 app.use('/api/ritual', ritualRoutes);
 app.use('/api/solomonic', solomonicRoutes);
+app.use('/api/journal', journalRoutes);
 
 if (hasClient) {
   app.use(express.static(publicDir));

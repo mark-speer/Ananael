@@ -9,7 +9,8 @@ export type ModuleId =
   | 'translator'
   | 'ritual'
   | 'solomonic'
-  | 'correspondences';
+  | 'correspondences'
+  | 'journal';
 
 export interface ModuleDef {
   id: ModuleId;
@@ -20,6 +21,7 @@ export interface ModuleDef {
 
 export const MODULES: ModuleDef[] = [
   { id: 'tarot', label: 'Tarot' },
+  { id: 'journal', label: 'Magical Journal' },
   { id: 'gematria', label: 'Gematria' },
   { id: 'planetary', label: 'Planetary Hours' },
   { id: 'translator', label: 'Script Translator' },

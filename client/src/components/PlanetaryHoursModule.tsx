@@ -4,6 +4,10 @@ import {
   formatTime,
   type PlanetId,
 } from '../lib/planetaryHours';
+import {
+  loadPlanetaryLocation,
+  savePlanetaryLocation,
+} from '../lib/planetaryLocation';
 
 function toDateInputValue(d: Date): string {
   const y = d.getFullYear();
@@ -18,19 +22,41 @@ function toTimeInputValue(d: Date): string {
   return `${h}:${min}`;
 }
 
+function initialCoords(): { lat: string; lon: string } {
+  const saved = loadPlanetaryLocation();
+  if (saved) {
+    return { lat: String(saved.lat), lon: String(saved.lon) };
+  }
+  return { lat: '40.7128', lon: '-74.0060' };
+}
+
 /**
  * Planetary Hours: sunrise-based diurnal/nocturnal table with current hour.
  */
 export default function PlanetaryHoursModule() {
   const nowInit = new Date();
-  const [latitude, setLatitude] = useState('40.7128');
-  const [longitude, setLongitude] = useState('-74.0060');
+  const coords = initialCoords();
+  const [latitude, setLatitude] = useState(coords.lat);
+  const [longitude, setLongitude] = useState(coords.lon);
   const [dateStr, setDateStr] = useState(toDateInputValue(nowInit));
   const [timeStr, setTimeStr] = useState(toTimeInputValue(nowInit));
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
 
   const lat = Number(latitude);
   const lon = Number(longitude);
+
+  useEffect(() => {
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lon) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      lon >= -180 &&
+      lon <= 180
+    ) {
+      savePlanetaryLocation(lat, lon);
+    }
+  }, [lat, lon]);
 
   const referenceNow = useMemo(() => {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -52,8 +78,11 @@ export default function PlanetaryHoursModule() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLatitude(pos.coords.latitude.toFixed(4));
-        setLongitude(pos.coords.longitude.toFixed(4));
+        const la = pos.coords.latitude;
+        const lo = pos.coords.longitude;
+        setLatitude(la.toFixed(4));
+        setLongitude(lo.toFixed(4));
+        savePlanetaryLocation(la, lo);
         setGeoStatus('Location applied.');
       },
       () => {

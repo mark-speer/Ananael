@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
 import {
@@ -6,6 +6,8 @@ import {
   saveDeckStyle,
   type DeckStyle,
 } from '../data/tarotDeckArt';
+import { buildJournalSky } from '../lib/journalSky';
+import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
 
 export type SpreadType = 'single' | 'three' | 'celtic';
@@ -15,18 +17,6 @@ interface SpreadConfig {
   label: string;
   description: string;
   positions: string[];
-}
-
-interface HistoryItem {
-  _id: string;
-  date: string;
-  spreadType: SpreadType;
-  cardsDrawn: Array<{
-    cardId: string;
-    isReversed: boolean;
-    position: string;
-  }>;
-  userNotes?: string;
 }
 
 const SPREADS: SpreadConfig[] = [
@@ -61,19 +51,17 @@ const SPREADS: SpreadConfig[] = [
   },
 ];
 
-const SPREAD_LABELS: Record<SpreadType, string> = {
-  single: 'Single Card',
-  three: 'Three-Card',
-  celtic: 'Celtic Cross',
-};
-
 /** ~20% mathematical chance a dealt card is reversed. */
 const REVERSAL_CHANCE = 0.2;
 
+interface TarotModuleProps {
+  onNavigate?: (module: ModuleId, opts?: { filter?: 'divination' }) => void;
+}
+
 /**
- * Virtual Tarot module: spread selection, interactive board, profile save + history.
+ * Virtual Tarot module: spread selection, interactive board, save to Magical Journal.
  */
-export default function TarotModule() {
+export default function TarotModule({ onNavigate }: TarotModuleProps) {
   const { isAuthenticated, token } = useAuth();
   const [spreadType, setSpreadType] = useState<SpreadType>('three');
   const [deckStyle, setDeckStyle] = useState<DeckStyle>(() => loadDeckStyle());
@@ -81,8 +69,6 @@ export default function TarotModule() {
   const [notes, setNotes] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const handleDeckStyleChange = (style: DeckStyle) => {
     setDeckStyle(style);
@@ -93,37 +79,6 @@ export default function TarotModule() {
     () => SPREADS.find((s) => s.id === spreadType)!,
     [spreadType]
   );
-
-  const loadHistory = useCallback(async () => {
-    if (!token) {
-      setHistory([]);
-      return;
-    }
-    setHistoryError(null);
-    try {
-      const res = await fetch('/api/tarot/history', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = (await res.json()) as {
-        readings?: HistoryItem[];
-        message?: string;
-      };
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to load history');
-      }
-      setHistory(data.readings ?? []);
-    } catch (err) {
-      setHistoryError(err instanceof Error ? err.message : 'History failed');
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      void loadHistory();
-    } else {
-      setHistory([]);
-    }
-  }, [isAuthenticated, loadHistory]);
 
   const drawCards = () => {
     setSaveStatus(null);
@@ -152,6 +107,8 @@ export default function TarotModule() {
     setSaving(true);
     setSaveStatus(null);
     try {
+      const now = new Date();
+      const sky = buildJournalSky(now);
       const res = await fetch('/api/tarot/save', {
         method: 'POST',
         headers: {
@@ -166,14 +123,20 @@ export default function TarotModule() {
             position: d.position,
           })),
           userNotes: notes,
+          occurredAt: now.toISOString(),
+          sky,
+          entities: dealt.map((d) => ({
+            kind: 'tarot',
+            id: d.card.id,
+            label: d.card.name,
+          })),
         }),
       });
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
         throw new Error(data.message || 'Failed to save reading');
       }
-      setSaveStatus('Reading saved to your profile.');
-      await loadHistory();
+      setSaveStatus('Saved to Magical Journal.');
     } catch (err) {
       setSaveStatus(err instanceof Error ? err.message : 'Save failed');
     } finally {
@@ -187,7 +150,8 @@ export default function TarotModule() {
         <h1 className="font-display text-3xl text-ananael-gold">Virtual Tarot</h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Select a spread, draw the cards face-down, then reveal each by clicking.
-          Approximately one in five cards arrives reversed.
+          Approximately one in five cards arrives reversed. Saved readings live in
+          the Magical Journal.
         </p>
       </header>
 
@@ -216,14 +180,14 @@ export default function TarotModule() {
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.12em] text-ananael-muted">
+        <label className="block text-sm text-ananael-muted">
           Deck art
           <select
             value={deckStyle}
             onChange={(e) =>
               handleDeckStyleChange(e.target.value as DeckStyle)
             }
-            className="rounded-md border border-ananael-border bg-ananael-panel/60 px-3 py-2.5 text-sm normal-case tracking-normal text-zinc-100 outline-none focus:border-ananael-gold/50"
+            className="mt-1 block rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
           >
             <option value="artless">Artless</option>
             <option value="rider-waite-smith">Rider–Waite–Smith</option>
@@ -266,7 +230,7 @@ export default function TarotModule() {
         </div>
       )}
 
-      {/* Profile sync */}
+      {/* Journal sync */}
       {isAuthenticated && dealt.length > 0 && (
         <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4">
           <label className="block text-sm text-ananael-muted">
@@ -279,76 +243,65 @@ export default function TarotModule() {
               className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
             />
           </label>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={saveReading}
-            className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-4 py-2 text-sm font-medium text-ananael-gold transition hover:bg-ananael-gold/20 disabled:opacity-60"
-          >
-            {saving ? 'Saving…' : 'Save Reading to Profile'}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void saveReading()}
+              className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-4 py-2 text-sm font-medium text-ananael-gold transition hover:bg-ananael-gold/20 disabled:opacity-60"
+            >
+              {saving ? 'Saving…' : 'Save to Journal'}
+            </button>
+            {onNavigate && (
+              <button
+                type="button"
+                onClick={() => onNavigate('journal', { filter: 'divination' })}
+                className="text-sm text-ananael-violet hover:underline"
+              >
+                Open Magical Journal
+              </button>
+            )}
+          </div>
           {saveStatus && (
-            <p className="text-sm text-zinc-400">{saveStatus}</p>
+            <p className="text-sm text-zinc-400">
+              {saveStatus}
+              {saveStatus.startsWith('Saved') && onNavigate && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onNavigate('journal', { filter: 'divination' })
+                    }
+                    className="text-ananael-violet hover:underline"
+                  >
+                    View in Journal
+                  </button>
+                </>
+              )}
+            </p>
           )}
         </div>
       )}
 
-      {isAuthenticated && (
-        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
-          <h2 className="font-display text-lg text-ananael-gold">
-            Recent readings
-          </h2>
-          {historyError && (
-            <p className="mt-2 text-sm text-red-400/90">{historyError}</p>
-          )}
-          {!historyError && history.length === 0 && (
-            <p className="mt-2 text-sm text-ananael-muted">
-              No saved readings yet.
-            </p>
-          )}
-          {history.length > 0 && (
-            <ul className="mt-4 space-y-3">
-              {history.map((item) => {
-                const date = new Date(item.date);
-                const names = item.cardsDrawn
-                  .map((c) => {
-                    const card = TAROT_DECK.find((d) => d.id === c.cardId);
-                    const label = card?.name ?? c.cardId;
-                    return c.isReversed ? `${label} (rev)` : label;
-                  })
-                  .join(', ');
-                return (
-                  <li
-                    key={item._id}
-                    className="border-b border-ananael-border/30 pb-3 last:border-0 last:pb-0"
-                  >
-                    <p className="text-sm text-zinc-200">
-                      <span className="font-display text-ananael-gold">
-                        {SPREAD_LABELS[item.spreadType]}
-                      </span>
-                      <span className="text-ananael-muted">
-                        {' '}
-                        · {item.cardsDrawn.length} card
-                        {item.cardsDrawn.length === 1 ? '' : 's'}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-xs text-ananael-muted">
-                      {date.toLocaleString()}
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-400 line-clamp-2">
-                      {names}
-                    </p>
-                    {item.userNotes && (
-                      <p className="mt-1 text-xs text-zinc-500 line-clamp-2">
-                        {item.userNotes}
-                      </p>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+      {isAuthenticated && dealt.length === 0 && onNavigate && (
+        <p className="text-sm text-ananael-muted">
+          Past readings are in the{' '}
+          <button
+            type="button"
+            onClick={() => onNavigate('journal', { filter: 'divination' })}
+            className="text-ananael-violet hover:underline"
+          >
+            Magical Journal
+          </button>
+          .
+        </p>
+      )}
+
+      {!isAuthenticated && (
+        <p className="text-sm text-ananael-muted">
+          Sign in to save readings to your Magical Journal.
+        </p>
       )}
     </div>
   );

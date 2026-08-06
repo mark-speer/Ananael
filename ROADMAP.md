@@ -2,7 +2,7 @@
 
 Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 
-**Priority:** calculation tools first → I Ching → Tree of Life + Ritual Space Planner → Solomonic Circles.
+**Priority:** calculation tools first → I Ching → Tree of Life + Ritual Space Planner → Solomonic Circles → Magical Journal → Magical OS.
 
 ## Status legend
 
@@ -14,16 +14,18 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 
 ## Module overview
 
-| Module               | Status | Phase        |
-|----------------------|--------|--------------|
-| Tarot                | Active | 1            |
-| Gematria             | Active | 2a           |
-| Planetary Hours      | Active | 2b           |
-| Script Translator    | Active | 2c           |
-| I Ching              | Active | 3            |
-| Tree of Life         | Active | 4a           |
-| Ritual Space Planner | Active | 4b           |
-| Solomonic Circles    | Active | 5–6          |
+| Module               | Status  | Phase        |
+|----------------------|---------|--------------|
+| Tarot                | Active  | 1            |
+| Gematria             | Active  | 2a           |
+| Planetary Hours      | Active  | 2b           |
+| Script Translator    | Active  | 2c           |
+| I Ching              | Active  | 3            |
+| Tree of Life         | Active  | 4a           |
+| Ritual Space Planner | Active  | 4b           |
+| Solomonic Circles    | Active  | 5–6          |
+| Magical Journal      | Active  | 7            |
+| Magical OS Dashboard | Planned | 8            |
 
 ---
 
@@ -129,6 +131,39 @@ Same sidebar module (`solomonic`); deepens Phase 5 canvas:
 - Save schema extended inside `config`: `spiritId`, `showTriangle`, `triangleBearing`, `showSeal`
 
 **Done when:** pick a spirit → circle + Triangle of Art + seal layout; save/reload includes spirit fields.
+
+---
+
+## Phase 7 — Magical Journal — Shipped
+
+Auth-gated unified journal as the shared notes / history layer (not the homepage).
+
+- Entry types: ritual, dream, divination, mood, working, note
+- Moon phase + planetary day/hour auto-tags (`client/src/lib/moonPhase.ts`, reuse planetary hours + saved location)
+- Entity tags searchable via Liber 777 / Goetia vocabulary
+- Tarot / I Ching **Save** writes journal divination entries; module history panels retired in favor of Journal deep-links
+- Idempotent migration of legacy `TarotReading` / `IChingCast` into `JournalEntry` on journal load
+- `POST/GET/PATCH/DELETE /api/journal/entries`, `POST /api/journal/migrate`
+
+**Done when:** signed-in CRUD + search; new divinatory saves appear in journal; legacy readings migrated; moon/hour tags when location available; journal is not the default module.
+
+---
+
+## Phase 8 — Magical Operating System — Planned
+
+Unified dashboard centerpiece (future default home) composing:
+
+- Current planetary hour
+- Moon and astrological conditions
+- Quick tarot draw
+- Open Magical Journal
+- Correspondences access
+- Ritual builder entry
+- Track ongoing workings (`working` entries with status)
+
+Modules remain individually navigable; the dashboard interconnects them and shares correspondence context automatically.
+
+**Done when:** dashboard is the default home; each tile deep-links into live modules; active workings surface from journal.
 
 ---
 

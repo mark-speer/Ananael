@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
-import IChingCast, { IChingMethod } from '../models/IChingCast';
+import JournalEntry from '../models/JournalEntry';
 import { AuthRequest, protect } from '../middleware/auth';
+import type { IChingMethod } from '../models/IChingCast';
 
 const router = Router();
 
@@ -13,8 +14,7 @@ function isValidHexNumber(n: unknown): n is number {
 
 /**
  * POST /api/iching/save
- * Requires JWT. Saves a cast to the authenticated user's profile history.
- * Body: { method, lines, primaryNumber, relatingNumber?, changingLines, userNotes? }
+ * Requires JWT. Saves a cast as a Magical Journal divination entry.
  */
 router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -25,6 +25,10 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
       relatingNumber,
       changingLines,
       userNotes,
+      occurredAt,
+      sky,
+      tags,
+      entities,
     } = req.body as {
       method?: IChingMethod;
       lines?: number[];
@@ -32,6 +36,10 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
       relatingNumber?: number | null;
       changingLines?: number[];
       userNotes?: string;
+      occurredAt?: string;
+      sky?: Record<string, unknown>;
+      tags?: string[];
+      entities?: Array<{ kind: string; id: string; label: string }>;
     };
 
     if (!method || !VALID_METHODS.includes(method)) {
@@ -82,29 +90,84 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    const cast = await IChingCast.create({
+    let when = new Date();
+    if (occurredAt) {
+      const d = new Date(occurredAt);
+      if (!Number.isNaN(d.getTime())) when = d;
+    }
+
+    const hexEntities = [
+      {
+        kind: 'hexagram' as const,
+        id: String(primaryNumber),
+        label: `Hexagram ${primaryNumber}`,
+      },
+    ];
+    if (relating != null) {
+      hexEntities.push({
+        kind: 'hexagram' as const,
+        id: String(relating),
+        label: `Hexagram ${relating}`,
+      });
+    }
+
+    const entry = await JournalEntry.create({
       userId: req.userId,
-      date: new Date(),
-      method,
-      lines,
-      primaryNumber,
-      relatingNumber: relating,
-      changingLines,
-      userNotes: userNotes ?? '',
+      entryType: 'divination',
+      occurredAt: when,
+      title: `I Ching · Hexagram ${primaryNumber}`,
+      body: userNotes ?? '',
+      tags: [
+        'iching',
+        method,
+        ...(Array.isArray(tags)
+          ? tags.map((t) => String(t).toLowerCase())
+          : []),
+      ],
+      entities: [
+        ...hexEntities,
+        ...(Array.isArray(entities)
+          ? entities.filter(
+              (e) =>
+                e &&
+                typeof e.kind === 'string' &&
+                typeof e.id === 'string' &&
+                typeof e.label === 'string'
+            )
+          : []),
+      ],
+      sky: sky && typeof sky === 'object' ? sky : undefined,
+      payload: {
+        system: 'iching',
+        method,
+        lines,
+        primaryNumber,
+        relatingNumber: relating,
+        changingLines,
+      },
     });
 
     res.status(201).json({
-      message: 'Cast saved',
+      message: 'Cast saved to journal',
+      entry: {
+        _id: entry._id,
+        entryType: entry.entryType,
+        occurredAt: entry.occurredAt,
+        title: entry.title,
+        body: entry.body,
+        payload: entry.payload,
+      },
+      /** @deprecated legacy shape for older clients */
       cast: {
-        _id: cast._id,
-        userId: cast.userId,
-        date: cast.date,
-        method: cast.method,
-        lines: cast.lines,
-        primaryNumber: cast.primaryNumber,
-        relatingNumber: cast.relatingNumber,
-        changingLines: cast.changingLines,
-        userNotes: cast.userNotes,
+        _id: entry._id,
+        userId: entry.userId,
+        date: entry.occurredAt,
+        method,
+        lines,
+        primaryNumber,
+        relatingNumber: relating,
+        changingLines,
+        userNotes: entry.body,
       },
     });
   } catch (error) {
@@ -115,26 +178,39 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
 
 /**
  * GET /api/iching/history
- * Requires JWT. Returns the authenticated user's recent casts (newest first).
+ * Requires JWT. Returns recent I Ching journal entries (newest first).
  */
 router.get('/history', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const casts = await IChingCast.find({ userId: req.userId })
-      .sort({ date: -1 })
+    const entries = await JournalEntry.find({
+      userId: req.userId,
+      entryType: 'divination',
+      'payload.system': 'iching',
+    })
+      .sort({ occurredAt: -1 })
       .limit(20)
       .lean();
 
     res.json({
-      casts: casts.map((c) => ({
-        _id: c._id,
-        date: c.date,
-        method: c.method,
-        lines: c.lines,
-        primaryNumber: c.primaryNumber,
-        relatingNumber: c.relatingNumber ?? null,
-        changingLines: c.changingLines,
-        userNotes: c.userNotes,
-      })),
+      casts: entries.map((e) => {
+        const payload = (e.payload ?? {}) as {
+          method?: IChingMethod;
+          lines?: number[];
+          primaryNumber?: number;
+          relatingNumber?: number | null;
+          changingLines?: number[];
+        };
+        return {
+          _id: e._id,
+          date: e.occurredAt,
+          method: payload.method ?? 'coins',
+          lines: payload.lines ?? [],
+          primaryNumber: payload.primaryNumber ?? 1,
+          relatingNumber: payload.relatingNumber ?? null,
+          changingLines: payload.changingLines ?? [],
+          userNotes: e.body,
+        };
+      }),
     });
   } catch (error) {
     console.error('I Ching history error:', error);

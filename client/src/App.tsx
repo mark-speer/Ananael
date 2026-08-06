@@ -3,6 +3,7 @@ import AccountMenu from './components/AccountMenu';
 import CorrespondencesModule from './components/CorrespondencesModule';
 import GematriaModule from './components/GematriaModule';
 import IChingModule from './components/IChingModule';
+import JournalModule from './components/JournalModule';
 import PlanetaryHoursModule from './components/PlanetaryHoursModule';
 import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
@@ -12,22 +13,33 @@ import TarotModule from './components/TarotModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
 } from './components/TreeOfLifeModule';
+import type { JournalEntryType } from './lib/journal';
 import { useAuth } from './context/AuthContext';
+
+export type AppNavigateOptions = TreeNavigateOptions & {
+  filter?: JournalEntryType | 'all';
+};
 
 /**
  * App shell: fixed sidebar + main content area.
- * All roadmap modules are active (Phase 5 Solomonic Circles included).
+ * Magical Journal is a hub module; default home remains Tarot (Magical OS later).
  */
 export default function App() {
   const { isLoading } = useAuth();
   const [activeModule, setActiveModule] = useState<ModuleId>('tarot');
   const [gematriaPrefill, setGematriaPrefill] = useState<string | undefined>();
+  const [journalFilter, setJournalFilter] = useState<
+    JournalEntryType | 'all'
+  >('all');
 
-  const navigateToModule = (module: ModuleId, opts?: TreeNavigateOptions) => {
+  const navigateToModule = (module: ModuleId, opts?: AppNavigateOptions) => {
     if (module === 'gematria' && opts?.gematriaPrefill !== undefined) {
       setGematriaPrefill(opts.gematriaPrefill);
     } else {
       setGematriaPrefill(undefined);
+    }
+    if (module === 'journal') {
+      setJournalFilter(opts?.filter ?? 'all');
     }
     setActiveModule(module);
   };
@@ -43,7 +55,9 @@ export default function App() {
   const renderModule = () => {
     switch (activeModule) {
       case 'tarot':
-        return <TarotModule />;
+        return <TarotModule onNavigate={navigateToModule} />;
+      case 'journal':
+        return <JournalModule initialFilter={journalFilter} />;
       case 'gematria':
         return <GematriaModule initialText={gematriaPrefill} />;
       case 'planetary':
@@ -51,7 +65,7 @@ export default function App() {
       case 'translator':
         return <ScriptTranslatorModule />;
       case 'iching':
-        return <IChingModule />;
+        return <IChingModule onNavigate={navigateToModule} />;
       case 'tree':
         return <TreeOfLifeModule onNavigate={navigateToModule} />;
       case 'correspondences':

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getHexagram, type HexagramText } from '../data/iching';
 import {
@@ -9,16 +9,8 @@ import {
   type CastResult,
   type LineValue,
 } from '../lib/iching';
-
-interface HistoryItem {
-  _id: string;
-  date: string;
-  method: CastMethod;
-  primaryNumber: number;
-  relatingNumber: number | null;
-  changingLines: number[];
-  userNotes?: string;
-}
+import { buildJournalSky } from '../lib/journalSky';
+import type { ModuleId } from './Sidebar';
 
 const METHODS: { id: CastMethod; label: string; description: string }[] = [
   {
@@ -153,49 +145,20 @@ function HexagramPanel({
   );
 }
 
+interface IChingModuleProps {
+  onNavigate?: (module: ModuleId, opts?: { filter?: 'divination' }) => void;
+}
+
 /**
- * I Ching module: coin/yarrow cast, King Wen text, profile save + recent history.
+ * I Ching module: coin/yarrow cast, King Wen text, save to Magical Journal.
  */
-export default function IChingModule() {
+export default function IChingModule({ onNavigate }: IChingModuleProps) {
   const { isAuthenticated, token } = useAuth();
   const [method, setMethod] = useState<CastMethod>('coins');
   const [result, setResult] = useState<CastResult | null>(null);
   const [notes, setNotes] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [historyError, setHistoryError] = useState<string | null>(null);
-
-  const loadHistory = useCallback(async () => {
-    if (!token) {
-      setHistory([]);
-      return;
-    }
-    setHistoryError(null);
-    try {
-      const res = await fetch('/api/iching/history', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = (await res.json()) as {
-        casts?: HistoryItem[];
-        message?: string;
-      };
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to load history');
-      }
-      setHistory(data.casts ?? []);
-    } catch (err) {
-      setHistoryError(err instanceof Error ? err.message : 'History failed');
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      void loadHistory();
-    } else {
-      setHistory([]);
-    }
-  }, [isAuthenticated, loadHistory]);
 
   const doCast = () => {
     setSaveStatus(null);
@@ -207,6 +170,29 @@ export default function IChingModule() {
     setSaving(true);
     setSaveStatus(null);
     try {
+      const now = new Date();
+      const sky = buildJournalSky(now);
+      const primaryHex = getHexagram(result.primaryNumber);
+      const entities = [
+        {
+          kind: 'hexagram' as const,
+          id: String(result.primaryNumber),
+          label: primaryHex
+            ? `${result.primaryNumber}. ${primaryHex.name}`
+            : `Hexagram ${result.primaryNumber}`,
+        },
+      ];
+      if (result.relatingNumber != null) {
+        const relHex = getHexagram(result.relatingNumber);
+        entities.push({
+          kind: 'hexagram',
+          id: String(result.relatingNumber),
+          label: relHex
+            ? `${result.relatingNumber}. ${relHex.name}`
+            : `Hexagram ${result.relatingNumber}`,
+        });
+      }
+
       const res = await fetch('/api/iching/save', {
         method: 'POST',
         headers: {
@@ -220,14 +206,16 @@ export default function IChingModule() {
           relatingNumber: result.relatingNumber,
           changingLines: result.changingLines,
           userNotes: notes,
+          occurredAt: now.toISOString(),
+          sky,
+          entities,
         }),
       });
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
         throw new Error(data.message || 'Failed to save cast');
       }
-      setSaveStatus('Cast saved to your profile.');
-      await loadHistory();
+      setSaveStatus('Saved to Magical Journal.');
     } catch (err) {
       setSaveStatus(err instanceof Error ? err.message : 'Save failed');
     } finally {
@@ -248,7 +236,7 @@ export default function IChingModule() {
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Cast with three coins or yarrow stalk probabilities. Changing lines
           yield a relating hexagram. Guests may cast freely; sign in to archive
-          readings.
+          readings in the Magical Journal.
         </p>
       </header>
 
@@ -357,70 +345,65 @@ export default function IChingModule() {
               className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
             />
           </label>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={saveCast}
-            className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-4 py-2 text-sm font-medium text-ananael-gold transition hover:bg-ananael-gold/20 disabled:opacity-60"
-          >
-            {saving ? 'Saving…' : 'Save Cast to Profile'}
-          </button>
-          {saveStatus && <p className="text-sm text-zinc-400">{saveStatus}</p>}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void saveCast()}
+              className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-4 py-2 text-sm font-medium text-ananael-gold transition hover:bg-ananael-gold/20 disabled:opacity-60"
+            >
+              {saving ? 'Saving…' : 'Save to Journal'}
+            </button>
+            {onNavigate && (
+              <button
+                type="button"
+                onClick={() => onNavigate('journal', { filter: 'divination' })}
+                className="text-sm text-ananael-violet hover:underline"
+              >
+                Open Magical Journal
+              </button>
+            )}
+          </div>
+          {saveStatus && (
+            <p className="text-sm text-zinc-400">
+              {saveStatus}
+              {saveStatus.startsWith('Saved') && onNavigate && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onNavigate('journal', { filter: 'divination' })
+                    }
+                    className="text-ananael-violet hover:underline"
+                  >
+                    View in Journal
+                  </button>
+                </>
+              )}
+            </p>
+          )}
         </div>
       )}
 
-      {isAuthenticated && (
-        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
-          <h2 className="font-display text-lg text-ananael-gold">
-            Recent casts
-          </h2>
-          {historyError && (
-            <p className="mt-2 text-sm text-red-400/90">{historyError}</p>
-          )}
-          {!historyError && history.length === 0 && (
-            <p className="mt-2 text-sm text-ananael-muted">
-              No saved casts yet.
-            </p>
-          )}
-          {history.length > 0 && (
-            <ul className="mt-4 space-y-3">
-              {history.map((item) => {
-                const hex = getHexagram(item.primaryNumber);
-                const date = new Date(item.date);
-                return (
-                  <li
-                    key={item._id}
-                    className="border-b border-ananael-border/30 pb-3 last:border-0 last:pb-0"
-                  >
-                    <p className="text-sm text-zinc-200">
-                      <span className="font-display text-ananael-gold">
-                        {item.primaryNumber}. {hex?.name ?? 'Hexagram'}
-                      </span>
-                      {item.relatingNumber != null && (
-                        <span className="text-ananael-muted">
-                          {' '}
-                          → {item.relatingNumber}.{' '}
-                          {getHexagram(item.relatingNumber)?.name ?? 'Relating'}
-                        </span>
-                      )}
-                    </p>
-                    <p className="mt-1 text-xs text-ananael-muted">
-                      {item.method === 'yarrow' ? 'Yarrow' : 'Coins'} ·{' '}
-                      {date.toLocaleString()}
-                      {item.changingLines.length > 0 &&
-                        ` · lines ${item.changingLines.map((i) => i + 1).join(', ')}`}
-                    </p>
-                    {item.userNotes && (
-                      <p className="mt-1 text-xs text-zinc-400 line-clamp-2">
-                        {item.userNotes}
-                      </p>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+      {isAuthenticated && !result && onNavigate && (
+        <p className="text-sm text-ananael-muted">
+          Past casts are in the{' '}
+          <button
+            type="button"
+            onClick={() => onNavigate('journal', { filter: 'divination' })}
+            className="text-ananael-violet hover:underline"
+          >
+            Magical Journal
+          </button>
+          .
+        </p>
+      )}
+
+      {!isAuthenticated && (
+        <p className="text-sm text-ananael-muted">
+          Sign in to save casts to your Magical Journal.
+        </p>
       )}
     </div>
   );
