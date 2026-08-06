@@ -2,7 +2,7 @@
 
 A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic.
 
-**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text and profile history. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences.
+**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text and profile history. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts.
 
 ## Stack
 
@@ -69,7 +69,7 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 | Script Translator    | Active (Phase 2c)             |
 | I Ching              | Active (Phase 3)              |
 | Tree of Life         | Active (Phase 4a)             |
-| Ritual Space Planner | Shell (Phase 4b) — Coming Soon |
+| Ritual Space Planner | Active (Phase 4b)             |
 
 Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 
@@ -84,6 +84,9 @@ Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 - `GET /api/iching/history` — Bearer JWT; recent casts
 - `POST /api/tree/notes` — Bearer JWT; `{ targetType, targetId, userNotes }`
 - `GET /api/tree/notes` — Bearer JWT; recent Tree of Life study notes
+- `POST /api/ritual/layouts` — Bearer JWT; `{ name, items, showCompass?, notes? }`
+- `GET /api/ritual/layouts` — Bearer JWT; recent ritual layouts
+- `PUT /api/ritual/layouts/:id` — Bearer JWT; update an owned layout
 - `GET /api/health` — liveness (`client: true` when the UI was baked into the image)
 
 ## License

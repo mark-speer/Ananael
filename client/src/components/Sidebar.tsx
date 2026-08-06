@@ -23,7 +23,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'translator', label: 'Script Translator' },
   { id: 'iching', label: 'I Ching' },
   { id: 'tree', label: 'Tree of Life' },
-  { id: 'ritual', label: 'Ritual Space Planner', comingSoon: true },
+  { id: 'ritual', label: 'Ritual Space Planner' },
 ];
 
 interface SidebarProps {
@@ -33,7 +33,7 @@ interface SidebarProps {
 
 /**
  * Fixed left navigation listing all Phase roadmap modules.
- * Active modules are clickable without Soon badges; shells keep the badge.
+ * Active modules are clickable; optional Soon badge via comingSoon.
  */
 export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
   return (

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import AccountMenu from './components/AccountMenu';
 import GematriaModule from './components/GematriaModule';
 import IChingModule from './components/IChingModule';
-import ModuleShell from './components/ModuleShell';
 import PlanetaryHoursModule from './components/PlanetaryHoursModule';
+import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { MODULES, type ModuleId } from './components/Sidebar';
 import TarotModule from './components/TarotModule';
@@ -12,17 +12,9 @@ import TreeOfLifeModule, {
 } from './components/TreeOfLifeModule';
 import { useAuth } from './context/AuthContext';
 
-const SHELL_COPY: Partial<Record<ModuleId, { title: string; description: string }>> = {
-  ritual: {
-    title: 'Ritual Space Planner',
-    description:
-      'Canvas altar layouts, quarters, and export tools will arrive with Phase 4.',
-  },
-};
-
 /**
  * App shell: fixed sidebar + main content area.
- * Phase 4a routes Tree of Life; Ritual Space remains a shell.
+ * All roadmap modules are active (Phase 4b Ritual Space included).
  */
 export default function App() {
   const { isLoading } = useAuth();
@@ -60,11 +52,10 @@ export default function App() {
         return <IChingModule />;
       case 'tree':
         return <TreeOfLifeModule onNavigate={navigateToModule} />;
-      default: {
-        const shell = SHELL_COPY[activeModule];
-        if (!shell) return null;
-        return <ModuleShell title={shell.title} description={shell.description} />;
-      }
+      case 'ritual':
+        return <RitualSpaceModule />;
+      default:
+        return null;
     }
   };
 

@@ -22,7 +22,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Script Translator    | Active | 2c           |
 | I Ching              | Active | 3            |
 | Tree of Life         | Active | 4a           |
-| Ritual Space Planner | Shell  | 4b           |
+| Ritual Space Planner | Active | 4b           |
 
 ---
 
@@ -84,7 +84,7 @@ Ship in this order within the phase.
 
 ---
 
-## Phase 4 — Visual / spatial modules
+## Phase 4 — Visual / spatial modules — Shipped
 
 ### 4a — Tree of Life — Shipped
 
@@ -94,11 +94,11 @@ Ship in this order within the phase.
 
 **Done when:** interactive glyph with clickable sephiroth/paths; Soon badge off; signed-in notes save/reload.
 
-### 4b — Ritual Space Planner
+### 4b — Ritual Space Planner — Shipped
 
 - Canvas/grid altar layout: tools (candle, cup, blade, incense, quarters), compass rose
 - Export PNG/JSON; templates (LBRP circle, altar cross)
-- `POST/GET /api/ritual/layouts` for authenticated persistence
+- `POST/GET /api/ritual/layouts` for authenticated persistence; `PUT /api/ritual/layouts/:id` for edit/reload
 
 **Done when:** create / edit / save / reload a layout; Soon badge off (last Coming Soon cleared).
 
