@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AuthForms from './components/AuthForms';
 import GematriaModule from './components/GematriaModule';
+import IChingModule from './components/IChingModule';
 import ModuleShell from './components/ModuleShell';
 import PlanetaryHoursModule from './components/PlanetaryHoursModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
@@ -9,11 +10,6 @@ import TarotModule from './components/TarotModule';
 import { useAuth } from './context/AuthContext';
 
 const SHELL_COPY: Partial<Record<ModuleId, { title: string; description: string }>> = {
-  iching: {
-    title: 'I Ching',
-    description:
-      'Yarrow and coin casting with King Wen text will open here in a later phase.',
-  },
   tree: {
     title: 'Tree of Life',
     description:
@@ -28,7 +24,7 @@ const SHELL_COPY: Partial<Record<ModuleId, { title: string; description: string 
 
 /**
  * App shell: fixed sidebar + main content area.
- * Phase 2 routes calculation tools; unfinished modules show shells.
+ * Phase 3 routes I Ching; unfinished modules show shells.
  */
 export default function App() {
   const { isLoading } = useAuth();
@@ -52,6 +48,8 @@ export default function App() {
         return <PlanetaryHoursModule />;
       case 'translator':
         return <ScriptTranslatorModule />;
+      case 'iching':
+        return <IChingModule />;
       default: {
         const shell = SHELL_COPY[activeModule];
         if (!shell) return null;

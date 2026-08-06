@@ -20,7 +20,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Gematria             | Active | 2a           |
 | Planetary Hours      | Active | 2b           |
 | Script Translator    | Active | 2c           |
-| I Ching              | Shell  | 3            |
+| I Ching              | Active | 3            |
 | Tree of Life         | Shell  | 4a           |
 | Ritual Space Planner | Shell  | 4b           |
 
@@ -71,13 +71,14 @@ Ship in this order within the phase.
 
 ---
 
-## Phase 3 — I Ching
+## Phase 3 — I Ching — Shipped
 
 - Yarrow / three-coin simulation, hexagram + changing lines, primary & relating hexagram
 - King Wen text excerpts (static `client/src/data/iching.ts`)
 - Notes + save like Tarot
 - `POST /api/iching/save`, `GET /api/iching/history`
 - Same pass: backfill `GET /api/tarot/history` for consistent profile history
+- Recent history panels in I Ching and Tarot when signed in
 
 **Done when:** full cast → interpret → save loop; Soon badge off.
 

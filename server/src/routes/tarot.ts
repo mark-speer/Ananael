@@ -74,4 +74,30 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
   }
 });
 
+/**
+ * GET /api/tarot/history
+ * Requires JWT. Returns the authenticated user's recent readings (newest first).
+ */
+router.get('/history', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const readings = await TarotReading.find({ userId: req.userId })
+      .sort({ date: -1 })
+      .limit(20)
+      .lean();
+
+    res.json({
+      readings: readings.map((r) => ({
+        _id: r._id,
+        date: r.date,
+        spreadType: r.spreadType,
+        cardsDrawn: r.cardsDrawn,
+        userNotes: r.userNotes,
+      })),
+    });
+  } catch (error) {
+    console.error('Tarot history error:', error);
+    res.status(500).json({ message: 'Server error while loading reading history' });
+  }
+});
+
 export default router;

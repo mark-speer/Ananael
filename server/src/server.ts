@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db';
 import authRoutes from './routes/auth';
 import gematriaRoutes from './routes/gematria';
+import ichingRoutes from './routes/iching';
 import tarotRoutes from './routes/tarot';
 
 dotenv.config();
@@ -59,6 +60,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/tarot', tarotRoutes);
 app.use('/api/gematria', gematriaRoutes);
+app.use('/api/iching', ichingRoutes);
 
 if (hasClient) {
   app.use(express.static(publicDir));

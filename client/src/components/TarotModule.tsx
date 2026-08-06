@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
 import TarotCard, { type DealtCard } from './TarotCard';
@@ -10,6 +10,18 @@ interface SpreadConfig {
   label: string;
   description: string;
   positions: string[];
+}
+
+interface HistoryItem {
+  _id: string;
+  date: string;
+  spreadType: SpreadType;
+  cardsDrawn: Array<{
+    cardId: string;
+    isReversed: boolean;
+    position: string;
+  }>;
+  userNotes?: string;
 }
 
 const SPREADS: SpreadConfig[] = [
@@ -44,11 +56,17 @@ const SPREADS: SpreadConfig[] = [
   },
 ];
 
+const SPREAD_LABELS: Record<SpreadType, string> = {
+  single: 'Single Card',
+  three: 'Three-Card',
+  celtic: 'Celtic Cross',
+};
+
 /** ~20% mathematical chance a dealt card is reversed. */
 const REVERSAL_CHANCE = 0.2;
 
 /**
- * Virtual Tarot module: spread selection, interactive board, profile save.
+ * Virtual Tarot module: spread selection, interactive board, profile save + history.
  */
 export default function TarotModule() {
   const { isAuthenticated, token } = useAuth();
@@ -57,11 +75,44 @@ export default function TarotModule() {
   const [notes, setNotes] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const activeSpread = useMemo(
     () => SPREADS.find((s) => s.id === spreadType)!,
     [spreadType]
   );
+
+  const loadHistory = useCallback(async () => {
+    if (!token) {
+      setHistory([]);
+      return;
+    }
+    setHistoryError(null);
+    try {
+      const res = await fetch('/api/tarot/history', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = (await res.json()) as {
+        readings?: HistoryItem[];
+        message?: string;
+      };
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to load history');
+      }
+      setHistory(data.readings ?? []);
+    } catch (err) {
+      setHistoryError(err instanceof Error ? err.message : 'History failed');
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void loadHistory();
+    } else {
+      setHistory([]);
+    }
+  }, [isAuthenticated, loadHistory]);
 
   const drawCards = () => {
     setSaveStatus(null);
@@ -111,6 +162,7 @@ export default function TarotModule() {
         throw new Error(data.message || 'Failed to save reading');
       }
       setSaveStatus('Reading saved to your profile.');
+      await loadHistory();
     } catch (err) {
       setSaveStatus(err instanceof Error ? err.message : 'Save failed');
     } finally {
@@ -212,6 +264,64 @@ export default function TarotModule() {
           </button>
           {saveStatus && (
             <p className="text-sm text-zinc-400">{saveStatus}</p>
+          )}
+        </div>
+      )}
+
+      {isAuthenticated && (
+        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+          <h2 className="font-display text-lg text-ananael-gold">
+            Recent readings
+          </h2>
+          {historyError && (
+            <p className="mt-2 text-sm text-red-400/90">{historyError}</p>
+          )}
+          {!historyError && history.length === 0 && (
+            <p className="mt-2 text-sm text-ananael-muted">
+              No saved readings yet.
+            </p>
+          )}
+          {history.length > 0 && (
+            <ul className="mt-4 space-y-3">
+              {history.map((item) => {
+                const date = new Date(item.date);
+                const names = item.cardsDrawn
+                  .map((c) => {
+                    const card = TAROT_DECK.find((d) => d.id === c.cardId);
+                    const label = card?.name ?? c.cardId;
+                    return c.isReversed ? `${label} (rev)` : label;
+                  })
+                  .join(', ');
+                return (
+                  <li
+                    key={item._id}
+                    className="border-b border-ananael-border/30 pb-3 last:border-0 last:pb-0"
+                  >
+                    <p className="text-sm text-zinc-200">
+                      <span className="font-display text-ananael-gold">
+                        {SPREAD_LABELS[item.spreadType]}
+                      </span>
+                      <span className="text-ananael-muted">
+                        {' '}
+                        · {item.cardsDrawn.length} card
+                        {item.cardsDrawn.length === 1 ? '' : 's'}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs text-ananael-muted">
+                      {date.toLocaleString()}
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-400 line-clamp-2">
+                      {names}
+                    </p>
+                    {item.userNotes && (
+                      <p className="mt-1 text-xs text-zinc-500 line-clamp-2">
+                        {item.userNotes}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       )}

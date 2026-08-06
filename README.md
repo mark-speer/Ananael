@@ -2,7 +2,7 @@
 
 A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic.
 
-**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools).
+**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text and profile history.
 
 ## Stack
 
@@ -67,7 +67,7 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 | Gematria             | Active (Phase 2a)             |
 | Planetary Hours      | Active (Phase 2b)             |
 | Script Translator    | Active (Phase 2c)             |
-| I Ching              | Shell (Phase 3) — Coming Soon |
+| I Ching              | Active (Phase 3)              |
 | Tree of Life         | Shell (Phase 4a) — Coming Soon |
 | Ritual Space Planner | Shell (Phase 4b) — Coming Soon |
 
@@ -78,7 +78,10 @@ Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 - `POST /api/auth/register` — `{ username, email, password }`
 - `POST /api/auth/login` — `{ email, password }`
 - `POST /api/tarot/save` — Bearer JWT; `{ spreadType, cardsDrawn, userNotes? }`
+- `GET /api/tarot/history` — Bearer JWT; recent readings
 - `POST /api/gematria/save` — Bearer JWT; `{ text, system, total, notes? }`
+- `POST /api/iching/save` — Bearer JWT; `{ method, lines, primaryNumber, relatingNumber?, changingLines, userNotes? }`
+- `GET /api/iching/history` — Bearer JWT; recent casts
 - `GET /api/health` — liveness (`client: true` when the UI was baked into the image)
 
 ## License
