@@ -54,7 +54,7 @@ interface SanitizedConfig {
 }
 
 const DEFAULT_TRIANGLE_BEARING = 90;
-const DEFAULT_TRIANGLE_ROTATION = 0;
+const DEFAULT_TRIANGLE_ROTATION = 180;
 const MAX_GLYPH_LETTERS = 16;
 /** Accept goetia-01 … goetia-72 style ids without importing the full catalog. */
 const SPIRIT_ID_RE = /^goetia-(0[1-9]|[1-6][0-9]|7[0-2])$/;

@@ -122,8 +122,8 @@ export const CARDINAL_DIR_LABELS: Record<CardinalDir, string> = {
 /** Default triangle bearing: East (classic outer placement relative to operator). */
 export const DEFAULT_TRIANGLE_BEARING = 90;
 
-/** Default in-place triangle rotation (apex toward circle). */
-export const DEFAULT_TRIANGLE_ROTATION = 0;
+/** Default in-place triangle rotation (180° from apex-toward-circle). */
+export const DEFAULT_TRIANGLE_ROTATION = 180;
 
 const MAX_GLYPH_LETTERS = 16;
 
