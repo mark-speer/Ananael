@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
+import {
+  loadDeckStyle,
+  saveDeckStyle,
+  type DeckStyle,
+} from '../data/tarotDeckArt';
 import TarotCard, { type DealtCard } from './TarotCard';
 
 export type SpreadType = 'single' | 'three' | 'celtic';
@@ -71,12 +76,18 @@ const REVERSAL_CHANCE = 0.2;
 export default function TarotModule() {
   const { isAuthenticated, token } = useAuth();
   const [spreadType, setSpreadType] = useState<SpreadType>('three');
+  const [deckStyle, setDeckStyle] = useState<DeckStyle>(() => loadDeckStyle());
   const [dealt, setDealt] = useState<DealtCard[]>([]);
   const [notes, setNotes] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
+
+  const handleDeckStyleChange = (style: DeckStyle) => {
+    setDeckStyle(style);
+    saveDeckStyle(style);
+  };
 
   const activeSpread = useMemo(
     () => SPREADS.find((s) => s.id === spreadType)!,
@@ -204,7 +215,20 @@ export default function TarotModule() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.12em] text-ananael-muted">
+          Deck art
+          <select
+            value={deckStyle}
+            onChange={(e) =>
+              handleDeckStyleChange(e.target.value as DeckStyle)
+            }
+            className="rounded-md border border-ananael-border bg-ananael-panel/60 px-3 py-2.5 text-sm normal-case tracking-normal text-zinc-100 outline-none focus:border-ananael-gold/50"
+          >
+            <option value="artless">Artless</option>
+            <option value="rider-waite-smith">Rider–Waite–Smith</option>
+          </select>
+        </label>
         <button
           type="button"
           onClick={drawCards}
@@ -236,6 +260,7 @@ export default function TarotModule() {
               key={`${card.card.id}-${card.position}`}
               dealt={card}
               onFlip={() => flipCard(index)}
+              deckStyle={deckStyle}
             />
           ))}
         </div>

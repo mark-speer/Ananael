@@ -1,4 +1,8 @@
 import type { TarotCardData } from '../data/tarotDeck';
+import {
+  getTarotCardImageUrl,
+  type DeckStyle,
+} from '../data/tarotDeckArt';
 
 export interface DealtCard {
   card: TarotCardData;
@@ -10,15 +14,20 @@ export interface DealtCard {
 interface TarotCardProps {
   dealt: DealtCard;
   onFlip: () => void;
+  deckStyle: DeckStyle;
 }
 
 /**
  * Single tarot card with a CSS 3D flip. Face-down until clicked.
  * Reversed cards render the face rotated 180° after flip.
  */
-export default function TarotCard({ dealt, onFlip }: TarotCardProps) {
+export default function TarotCard({ dealt, onFlip, deckStyle }: TarotCardProps) {
   const { card, isReversed, position, isFlipped } = dealt;
   const meaning = isReversed ? card.reversed : card.upright;
+  const imageUrl =
+    deckStyle === 'rider-waite-smith'
+      ? getTarotCardImageUrl(card.id)
+      : undefined;
 
   return (
     <div className="flex w-[140px] flex-col items-center gap-2 sm:w-[160px]">
@@ -50,26 +59,52 @@ export default function TarotCard({ dealt, onFlip }: TarotCardProps) {
 
           {/* Face up */}
           <div className="card-face card-face-back absolute inset-0 overflow-hidden rounded-lg border border-ananael-bronze/50 bg-ananael-panel shadow-gold">
-            <div
-              className={[
-                'flex h-full flex-col p-3',
-                isReversed ? 'card-reversed' : '',
-              ].join(' ')}
-            >
-              <p className="font-display text-center text-sm leading-tight text-ananael-gold">
-                {card.name}
-              </p>
-              <div className="my-2 flex flex-1 items-center justify-center">
-                <span className="text-4xl text-ananael-violet">
-                  {arcanaGlyph(card.arcana)}
-                </span>
+            {imageUrl ? (
+              <div
+                className={[
+                  'relative h-full w-full',
+                  isReversed ? 'card-reversed' : '',
+                ].join(' ')}
+              >
+                <img
+                  src={imageUrl}
+                  alt={card.name}
+                  className="h-full w-full object-cover"
+                  draggable={false}
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ananael-bg/90 via-ananael-bg/50 to-transparent px-2 pb-2 pt-6">
+                  <p className="font-display text-center text-xs leading-tight text-ananael-gold">
+                    {card.name}
+                  </p>
+                  {isReversed && (
+                    <p className="mt-0.5 text-center text-[10px] uppercase tracking-wider text-ananael-bronze">
+                      Reversed
+                    </p>
+                  )}
+                </div>
               </div>
-              {isReversed && (
-                <p className="text-center text-[10px] uppercase tracking-wider text-ananael-bronze">
-                  Reversed
+            ) : (
+              <div
+                className={[
+                  'flex h-full flex-col p-3',
+                  isReversed ? 'card-reversed' : '',
+                ].join(' ')}
+              >
+                <p className="font-display text-center text-sm leading-tight text-ananael-gold">
+                  {card.name}
                 </p>
-              )}
-            </div>
+                <div className="my-2 flex flex-1 items-center justify-center">
+                  <span className="text-4xl text-ananael-violet">
+                    {arcanaGlyph(card.arcana)}
+                  </span>
+                </div>
+                {isReversed && (
+                  <p className="text-center text-[10px] uppercase tracking-wider text-ananael-bronze">
+                    Reversed
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </button>
