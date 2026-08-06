@@ -9,19 +9,20 @@ export type ModuleId =
   | 'translator'
   | 'ritual';
 
-interface ModuleDef {
+export interface ModuleDef {
   id: ModuleId;
   label: string;
+  /** When true, show Soon badge; module remains navigable (shell). */
   comingSoon?: boolean;
 }
 
-const MODULES: ModuleDef[] = [
+export const MODULES: ModuleDef[] = [
   { id: 'tarot', label: 'Tarot' },
-  { id: 'planetary', label: 'Planetary Hours', comingSoon: true },
+  { id: 'gematria', label: 'Gematria' },
+  { id: 'planetary', label: 'Planetary Hours' },
+  { id: 'translator', label: 'Script Translator' },
   { id: 'iching', label: 'I Ching', comingSoon: true },
-  { id: 'gematria', label: 'Gematria', comingSoon: true },
   { id: 'tree', label: 'Tree of Life', comingSoon: true },
-  { id: 'translator', label: 'Script Translator', comingSoon: true },
   { id: 'ritual', label: 'Ritual Space Planner', comingSoon: true },
 ];
 
@@ -32,7 +33,7 @@ interface SidebarProps {
 
 /**
  * Fixed left navigation listing all Phase roadmap modules.
- * Only Tarot is interactive in Phase 1; others show Coming Soon.
+ * Active modules and shells are clickable; Soon badge marks unfinished work.
  */
 export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
   const { user, isAuthenticated, logout } = useAuth();
@@ -50,24 +51,18 @@ export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Modules">
         {MODULES.map((mod) => {
-          const isActive = activeModule === mod.id && !mod.comingSoon;
-          const disabled = Boolean(mod.comingSoon);
+          const isActive = activeModule === mod.id;
 
           return (
             <button
               key={mod.id}
               type="button"
-              disabled={disabled}
-              onClick={() => {
-                if (!disabled) onSelect(mod.id);
-              }}
+              onClick={() => onSelect(mod.id)}
               className={[
                 'group flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-sm transition',
-                disabled
-                  ? 'cursor-not-allowed text-zinc-600'
-                  : isActive
-                    ? 'bg-ananael-violet/20 text-ananael-gold shadow-glow'
-                    : 'text-zinc-300 hover:bg-ananael-panel hover:text-ananael-gold',
+                isActive
+                  ? 'bg-ananael-violet/20 text-ananael-gold shadow-glow'
+                  : 'text-zinc-300 hover:bg-ananael-panel hover:text-ananael-gold',
               ].join(' ')}
             >
               <span className="font-medium">{mod.label}</span>

@@ -17,9 +17,9 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Module               | Status | Phase        |
 |----------------------|--------|--------------|
 | Tarot                | Active | 1            |
-| Gematria             | Shell  | 2a           |
-| Planetary Hours      | Shell  | 2b           |
-| Script Translator    | Shell  | 2c           |
+| Gematria             | Active | 2a           |
+| Planetary Hours      | Active | 2b           |
+| Script Translator    | Active | 2c           |
 | I Ching              | Shell  | 3            |
 | Tree of Life         | Shell  | 4a           |
 | Ritual Space Planner | Shell  | 4b           |
@@ -32,34 +32,34 @@ JWT authentication and Virtual Tarot (Single / Three-Card / Celtic Cross), Docke
 
 ---
 
-## Phase 1.5 — Foundation (shells)
+## Phase 1.5 — Foundation (shells) — Shipped
 
-Clickable module shells for every Coming Soon item. Each unfinished module keeps a **Soon** badge until its **Done when** criteria below are met. No feature APIs in this phase.
+Clickable module shells for every Coming Soon item. Each unfinished module keeps a **Soon** badge until its **Done when** criteria below are met. Mobile module switch included. No feature APIs in this phase.
 
 ---
 
-## Phase 2 — Calculation & correspondence tools
+## Phase 2 — Calculation & correspondence tools — Shipped
 
 Ship in this order within the phase.
 
-### 2a — Gematria
+### 2a — Gematria — Shipped
 
 - Calculator UI: text input, system select (Hebrew ordinal / reduced / sofit; Greek isopsephy; English simple / Agrippa-style), live total + per-letter breakdown
-- Static tables in `client/src/data/gematria*.ts`
-- Optional: `POST /api/gematria/save` for authenticated history
+- Static tables in `client/src/data/gematria/`
+- `POST /api/gematria/save` for authenticated history
 
 **Done when:** Soon badge off; guest use works; signed-in users can save queries.
 
-### 2b — Planetary Hours
+### 2b — Planetary Hours — Shipped
 
 - Location + date/time inputs (browser geolocation optional)
 - Sunrise/sunset–based diurnal/nocturnal hour table, current hour highlight, planetary day ruler
-- Pure TS utility (e.g. `client/src/lib/planetaryHours.ts`); document attribution
+- Pure TS utility (`client/src/lib/planetaryHours.ts`); NOAA solar calculator attribution in file header
 - Optional later: `POST /api/planetary/save` for bookmarked charts
 
 **Done when:** accurate table for a known lat/lon/date; clear current-hour state.
 
-### 2c — Script Translator
+### 2c — Script Translator — Shipped
 
 - Bidirectional transliteration (Latin ↔ Hebrew / Greek / runes as v1 set); copy button
 - Script mapping only — not semantic translation

@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
 import authRoutes from './routes/auth';
+import gematriaRoutes from './routes/gematria';
 import tarotRoutes from './routes/tarot';
 
 dotenv.config();
@@ -57,6 +58,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tarot', tarotRoutes);
+app.use('/api/gematria', gematriaRoutes);
 
 if (hasClient) {
   app.use(express.static(publicDir));
