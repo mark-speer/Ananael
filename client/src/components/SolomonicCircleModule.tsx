@@ -970,21 +970,27 @@ export default function SolomonicCircleModule() {
                   strokeWidth={1.75}
                   opacity={0.95}
                 />
-                {triangle.sideMids.map((m, i) => (
-                  <text
-                    key={TRIANGLE_SIDE_NAMES[i]}
-                    x={m.x}
-                    y={m.y}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill="#e8d48b"
-                    fontSize={8}
-                    fontFamily="Cinzel, Georgia, serif"
-                    opacity={0.9}
-                  >
-                    {TRIANGLE_SIDE_NAMES[i]}
-                  </text>
-                ))}
+                {triangle.sideMids.map((m, i) => {
+                  // Keep labels upright along the edge (flip if upside-down).
+                  let angle = m.angle;
+                  if (angle > 90 || angle < -90) angle += 180;
+                  return (
+                    <text
+                      key={TRIANGLE_SIDE_NAMES[i]}
+                      x={m.x}
+                      y={m.y}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill="#e8d48b"
+                      fontSize={8}
+                      fontFamily="Cinzel, Georgia, serif"
+                      opacity={0.9}
+                      transform={`rotate(${angle} ${m.x} ${m.y})`}
+                    >
+                      {TRIANGLE_SIDE_NAMES[i]}
+                    </text>
+                  );
+                })}
 
                 {layout.showSeal && selectedSpirit && (
                   <g>
