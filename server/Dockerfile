@@ -1,20 +1,37 @@
+# Build from repository root:
+#   docker build -f server/Dockerfile .
+# Compose sets context: . and dockerfile: server/Dockerfile
+
 # -----------------------------------------------------------------------------
-# Stage 1: compile TypeScript → JavaScript
+# Stage 1: Vite production build (React client)
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS client-builder
+
+WORKDIR /client
+
+COPY client/package.json ./
+RUN npm install
+
+COPY client/ ./
+RUN npm run build
+
+# -----------------------------------------------------------------------------
+# Stage 2: compile Express TypeScript → JavaScript
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS server-builder
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY server/package.json ./
 RUN npm install
 
-COPY tsconfig.json ./
-COPY src ./src
+COPY server/tsconfig.json ./
+COPY server/src ./src
 
 RUN npm run build
 
 # -----------------------------------------------------------------------------
-# Stage 2: production runtime
+# Stage 3: production runtime (API + static UI on one port)
 # -----------------------------------------------------------------------------
 FROM node:20-alpine AS production
 
@@ -22,10 +39,11 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package*.json ./
+COPY server/package.json ./
 RUN npm install --omit=dev && npm cache clean --force
 
-COPY --from=builder /app/dist ./dist
+COPY --from=server-builder /app/dist ./dist
+COPY --from=client-builder /client/dist ./dist/public
 
 EXPOSE 5000
 

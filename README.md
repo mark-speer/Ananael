@@ -8,9 +8,11 @@ A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magi
 
 | Layer   | Tech                                      |
 |---------|-------------------------------------------|
-| Client  | React, Vite, TypeScript, Tailwind CSS, Nginx |
+| Client  | React, Vite, TypeScript, Tailwind CSS     |
 | Server  | Express, TypeScript, Mongoose, JWT, bcrypt |
 | Data    | MongoDB (`ananael` database)               |
+
+In production Docker, Express serves the built React app **and** the API on one port (`5000`).
 
 ## Quick start (Docker Compose)
 
@@ -20,21 +22,20 @@ From the repository root:
 docker compose up --build
 ```
 
-Then open **http://localhost:8080** (React UI via Nginx). The API listens on **http://localhost:5000** (health: `/api/health`) — that port is JSON only, not the website.
-
-Browser API calls go through Nginx (`/api` → `server:5000`), so day-to-day use is port **8080** only.
+Then open **http://localhost:5000** — that is the full web app. Health: `/api/health`.
 
 ### Portainer
 
 1. Push this repo to GitHub (or copy it onto the VM).
-2. In Portainer → **Stacks** → **Add stack** (Repository deploy from git, or paste `docker-compose.yml` with build context = repo root).
+2. In Portainer → **Stacks** → **Add stack** (Repository deploy from git, or paste `docker-compose.yml` with **build context = repository root**).
 3. Optionally set environment variables:
    - `JWT_SECRET` — strong random secret (required for production)
-   - `CLIENT_ORIGIN` — e.g. `http://<vm-ip>:8080` if anything talks to the API on port 5000 from the browser (default `http://localhost:8080`)
-4. Deploy and wait for `ananael-mongo`, `ananael-server`, and `ananael-client` to be running.
-5. Open **`http://<vm-ip>:8080/`** — not `:5000` and not `:5173`.
+   - `CLIENT_ORIGIN` — defaults to `*` (same-origin UI+API on `:5000` is typical)
+4. Deploy and wait for `ananael-mongo` and `ananael-server` to be **running**.
+5. **Pull/rebuild** so the image is rebuilt from the latest commit (Portainer → stack → **Pull and redeploy** / recreate with rebuild).
+6. Open **`http://<vm-ip>:5000/`**
 
-If `ananael-client` fails to start, check that host port **8080** is free (or change the left side of `8080:80` in `docker-compose.yml`).
+You should see the Ananael dashboard, not JSON and not `Cannot GET /`.
 
 ### Local development (without Docker)
 
@@ -56,7 +57,7 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/api` to `http://localhost:5000`.
+Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 
 ## Modules (sidebar)
 
@@ -75,7 +76,7 @@ Vite proxies `/api` to `http://localhost:5000`.
 - `POST /api/auth/register` — `{ username, email, password }`
 - `POST /api/auth/login` — `{ email, password }`
 - `POST /api/tarot/save` — Bearer JWT; `{ spreadType, cardsDrawn, userNotes? }`
-- `GET /api/health` — liveness
+- `GET /api/health` — liveness (`client: true` when the UI was baked into the image)
 
 ## License
 

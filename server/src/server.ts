@@ -1,4 +1,6 @@
-import express, { Request, Response } from 'express';
+import path from 'path';
+import fs from 'fs';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -10,22 +12,32 @@ dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost';
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5000';
 
-/** Security headers */
-app.use(helmet());
+/** Built React app (copied into dist/public in the Docker image) */
+const publicDir = path.join(__dirname, 'public');
+const hasClient = fs.existsSync(path.join(publicDir, 'index.html'));
+
+/**
+ * Security headers.
+ * CSP relaxed so the Vite-built SPA can load Google Fonts in production.
+ */
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 /**
  * CORS — allow configured origin(s).
  * Comma-separated CLIENT_ORIGIN values are supported for Portainer / multi-host setups.
- * Production UI usually same-origins via Nginx /api proxy, so CORS is mainly for direct :5000 access.
+ * When the UI is served from this same process, browser calls are same-origin.
  */
 const allowedOrigins = CLIENT_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Non-browser or same-origin proxied tools may omit Origin
       if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
@@ -38,32 +50,41 @@ app.use(
 
 app.use(express.json({ limit: '1mb' }));
 
-/**
- * Root is API-only. The React UI is served by the client container (host :8080 in Compose).
- * Avoid a bare "Cannot GET /" when someone opens :5000 in a browser.
- */
-app.get('/', (_req: Request, res: Response) => {
-  res.status(200).json({
-    service: 'ananael-server',
-    message: 'API only — open the client on port 8080 (http://<host>:8080/), not this port.',
-    health: '/api/health',
-  });
-});
-
 /** Health check for Compose / Portainer probes */
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', service: 'ananael-server' });
+  res.json({ status: 'ok', service: 'ananael-server', client: hasClient });
 });
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tarot', tarotRoutes);
+
+if (hasClient) {
+  app.use(express.static(publicDir));
+
+  /** SPA fallback — non-API routes serve index.html */
+  app.get('*', (req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/api')) {
+      next();
+      return;
+    }
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
+} else {
+  app.get('/', (_req: Request, res: Response) => {
+    res.status(200).json({
+      service: 'ananael-server',
+      message: 'API only — React build not found. Use Docker Compose production image or run the Vite client.',
+      health: '/api/health',
+    });
+  });
+}
 
 /** Boot: connect DB then listen */
 const start = async (): Promise<void> => {
   await connectDB();
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Ananael server listening on port ${PORT}`);
+    console.log(`Ananael server listening on port ${PORT} (client=${hasClient})`);
   });
 };
 

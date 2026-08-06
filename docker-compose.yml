@@ -11,10 +11,11 @@ services:
     networks:
       - ananael-net
 
+  # Single public entry: React UI + /api on host port 5000
   server:
     build:
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/Dockerfile
     container_name: ananael-server
     restart: unless-stopped
     depends_on:
@@ -23,24 +24,9 @@ services:
       PORT: "5000"
       MONGO_URI: mongodb://mongo:27017/ananael
       JWT_SECRET: ${JWT_SECRET:-ananael-dev-change-me-in-production}
-      # Browser origin of the Nginx UI (set to http://<vm-ip>:8080 in Portainer if needed)
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:8080}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-*}
     ports:
       - "5000:5000"
-    networks:
-      - ananael-net
-
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: ananael-client
-    restart: unless-stopped
-    depends_on:
-      - server
-    # 8080 avoids clashes with Portainer / other services already bound to host :80
-    ports:
-      - "8080:80"
     networks:
       - ananael-net
 
