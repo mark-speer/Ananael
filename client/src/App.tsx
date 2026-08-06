@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AuthForms from './components/AuthForms';
+import AccountMenu from './components/AccountMenu';
 import GematriaModule from './components/GematriaModule';
 import IChingModule from './components/IChingModule';
 import ModuleShell from './components/ModuleShell';
@@ -78,31 +78,31 @@ export default function App() {
         <div className="border-b border-ananael-border/60 bg-ananael-surface px-4 py-3 md:hidden">
           <div className="flex items-center justify-between gap-3">
             <p className="font-display text-lg text-ananael-gold">Ananael</p>
-            <label className="flex min-w-0 flex-1 items-center justify-end gap-2 text-xs text-ananael-muted">
-              <span className="sr-only">Module</span>
-              <select
-                value={activeModule}
-                onChange={(e) =>
-                  navigateToModule(e.target.value as ModuleId)
-                }
-                className="max-w-[14rem] truncate rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-              >
-                {MODULES.map((mod) => (
-                  <option key={mod.id} value={mod.id}>
-                    {mod.label}
-                    {mod.comingSoon ? ' (Soon)' : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+              <label className="flex min-w-0 items-center gap-2 text-xs text-ananael-muted">
+                <span className="sr-only">Module</span>
+                <select
+                  value={activeModule}
+                  onChange={(e) =>
+                    navigateToModule(e.target.value as ModuleId)
+                  }
+                  className="max-w-[10rem] truncate rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                >
+                  {MODULES.map((mod) => (
+                    <option key={mod.id} value={mod.id}>
+                      {mod.label}
+                      {mod.comingSoon ? ' (Soon)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <AccountMenu className="max-w-[9rem] shrink-0" />
+            </div>
           </div>
         </div>
 
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 lg:px-10">
-          <div className="mx-auto max-w-6xl space-y-6">
-            <AuthForms />
-            {renderModule()}
-          </div>
+          <div className="mx-auto max-w-6xl space-y-6">{renderModule()}</div>
         </main>
       </div>
     </div>

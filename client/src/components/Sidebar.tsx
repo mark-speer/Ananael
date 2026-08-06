@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext';
+import AccountMenu from './AccountMenu';
 
 export type ModuleId =
   | 'tarot'
@@ -36,8 +36,6 @@ interface SidebarProps {
  * Active modules are clickable without Soon badges; shells keep the badge.
  */
 export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
-  const { user, isAuthenticated, logout } = useAuth();
-
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-ananael-border/60 bg-ananael-surface/90 backdrop-blur-sm">
       <div className="border-b border-ananael-border/60 px-5 py-6">
@@ -76,26 +74,8 @@ export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t border-ananael-border/60 px-4 py-4">
-        {isAuthenticated && user ? (
-          <div className="space-y-2">
-            <p className="truncate text-sm text-zinc-300">
-              <span className="text-ananael-muted">Signed in as </span>
-              {user.username}
-            </p>
-            <button
-              type="button"
-              onClick={logout}
-              className="w-full rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-ananael-violet hover:text-ananael-gold"
-            >
-              Sign out
-            </button>
-          </div>
-        ) : (
-          <p className="text-xs text-ananael-muted">
-            Sign in to save readings to your profile.
-          </p>
-        )}
+      <div className="border-t border-ananael-border/60 px-3 py-3">
+        <AccountMenu className="w-full" />
       </div>
     </aside>
   );

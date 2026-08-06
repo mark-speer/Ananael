@@ -3,11 +3,15 @@ import { useAuth } from '../context/AuthContext';
 
 type Mode = 'login' | 'register';
 
+interface AuthFormsProps {
+  onSuccess?: () => void;
+}
+
 /**
- * Compact login / register panel for the dashboard header area.
+ * Login / register form for the account modal; shows welcome + sign out when authenticated.
  */
-export default function AuthForms() {
-  const { login, register, isAuthenticated, user } = useAuth();
+export default function AuthForms({ onSuccess }: AuthFormsProps) {
+  const { login, register, logout, isAuthenticated, user } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -17,9 +21,21 @@ export default function AuthForms() {
 
   if (isAuthenticated && user) {
     return (
-      <div className="rounded-lg border border-ananael-border/70 bg-ananael-panel/60 px-4 py-3 text-sm text-zinc-300">
-        Welcome back, <span className="text-ananael-gold">{user.username}</span>. Your
-        readings can be saved to your profile.
+      <div className="space-y-4">
+        <p className="text-sm text-zinc-300">
+          Welcome back, <span className="text-ananael-gold">{user.username}</span>.
+          Your readings can be saved to your profile.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            logout();
+            onSuccess?.();
+          }}
+          className="w-full rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-ananael-violet hover:text-ananael-gold"
+        >
+          Sign out
+        </button>
       </div>
     );
   }
@@ -34,6 +50,7 @@ export default function AuthForms() {
       } else {
         await register(username, email, password);
       }
+      onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
@@ -42,8 +59,8 @@ export default function AuthForms() {
   };
 
   return (
-    <div className="rounded-lg border border-ananael-border/70 bg-ananael-panel/60 p-4">
-      <div className="mb-3 flex gap-2">
+    <div>
+      <div className="mb-4 flex gap-2">
         <button
           type="button"
           onClick={() => {
@@ -76,7 +93,7 @@ export default function AuthForms() {
         </button>
       </div>
 
-      <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-3">
+      <form onSubmit={onSubmit} className="space-y-3">
         {mode === 'register' && (
           <label className="flex flex-col gap-1 text-xs text-ananael-muted">
             Username
@@ -113,7 +130,7 @@ export default function AuthForms() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-ananael-violet px-4 py-2 text-sm font-medium text-white transition hover:bg-ananael-violet-deep disabled:opacity-60"
+          className="w-full rounded-md bg-ananael-violet px-4 py-2 text-sm font-medium text-white transition hover:bg-ananael-violet-deep disabled:opacity-60"
         >
           {submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
         </button>
