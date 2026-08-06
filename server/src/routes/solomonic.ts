@@ -32,6 +32,12 @@ interface SanitizedConfig {
   rings: SanitizedRing[];
   showCompass: boolean;
   centerGlyph: 'none' | 'hexagram' | 'pentagram';
+  cardinalGlyphs: {
+    n: 'none' | 'hexagram' | 'pentagram';
+    e: 'none' | 'hexagram' | 'pentagram';
+    s: 'none' | 'hexagram' | 'pentagram';
+    w: 'none' | 'hexagram' | 'pentagram';
+  };
   showInnerSquare: boolean;
   useHebrew: boolean;
   spiritId: string | null;
@@ -43,6 +49,25 @@ interface SanitizedConfig {
 const DEFAULT_TRIANGLE_BEARING = 90;
 /** Accept goetia-01 … goetia-72 style ids without importing the full catalog. */
 const SPIRIT_ID_RE = /^goetia-(0[1-9]|[1-6][0-9]|7[0-2])$/;
+
+type GlyphKind = 'none' | 'hexagram' | 'pentagram';
+
+function parseGlyph(value: unknown): GlyphKind {
+  return value === 'hexagram' || value === 'pentagram' ? value : 'none';
+}
+
+function sanitizeCardinalGlyphs(raw: unknown): SanitizedConfig['cardinalGlyphs'] {
+  if (!raw || typeof raw !== 'object') {
+    return { n: 'none', e: 'none', s: 'none', w: 'none' };
+  }
+  const g = raw as Record<string, unknown>;
+  return {
+    n: parseGlyph(g.n),
+    e: parseGlyph(g.e),
+    s: parseGlyph(g.s),
+    w: parseGlyph(g.w),
+  };
+}
 
 function sanitizeConfig(raw: unknown): SanitizedConfig | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -88,10 +113,8 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
     });
   }
 
-  const centerGlyph =
-    c.centerGlyph === 'hexagram' || c.centerGlyph === 'pentagram'
-      ? c.centerGlyph
-      : 'none';
+  const centerGlyph = parseGlyph(c.centerGlyph);
+  const cardinalGlyphs = sanitizeCardinalGlyphs(c.cardinalGlyphs);
 
   let spiritId: string | null = null;
   if (
@@ -114,6 +137,7 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
     rings,
     showCompass: c.showCompass !== false,
     centerGlyph,
+    cardinalGlyphs,
     showInnerSquare: Boolean(c.showInnerSquare),
     useHebrew: Boolean(c.useHebrew),
     spiritId,

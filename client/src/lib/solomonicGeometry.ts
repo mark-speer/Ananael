@@ -126,6 +126,50 @@ export function cardinalPositions(
   ];
 }
 
+export type CardinalGlyphDir = 'n' | 'e' | 's' | 'w';
+
+export interface CardinalGlyphPlacement {
+  dir: CardinalGlyphDir;
+  x: number;
+  y: number;
+  radius: number;
+}
+
+/**
+ * Layout for quarter glyphs in the outermost ring band (Lesser Key style).
+ * Centers sit at the band midpoint; glyph radius is ~38% of band width.
+ */
+export function cardinalGlyphLayout(
+  cx: number,
+  cy: number,
+  outerR: number,
+  innerBandR?: number
+): CardinalGlyphPlacement[] {
+  const bandInner =
+    typeof innerBandR === 'number' &&
+    Number.isFinite(innerBandR) &&
+    innerBandR > 0 &&
+    innerBandR < outerR
+      ? innerBandR
+      : outerR * 0.76;
+  const bandWidth = Math.max(outerR - bandInner, outerR * 0.08);
+  const midR = (outerR + bandInner) / 2;
+  const glyphR = Math.min(bandWidth * 0.38, outerR * 0.12);
+
+  const dirs: { dir: CardinalGlyphDir; angle: number }[] = [
+    { dir: 'n', angle: 0 },
+    { dir: 'e', angle: 90 },
+    { dir: 's', angle: 180 },
+    { dir: 'w', angle: 270 },
+  ];
+
+  return dirs.map(({ dir, angle }) => ({
+    dir,
+    ...polarToCartesian(cx, cy, midR, angle),
+    radius: glyphR,
+  }));
+}
+
 export interface TriangleOfArtResult {
   /** Three vertices as SVG polygon points string. */
   points: string;

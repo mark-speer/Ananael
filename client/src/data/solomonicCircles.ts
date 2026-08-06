@@ -20,6 +20,10 @@ export type Weekday =
 
 export type CenterGlyph = 'none' | 'hexagram' | 'pentagram';
 
+export type CardinalDir = 'n' | 'e' | 's' | 'w';
+
+export type CardinalGlyphs = Record<CardinalDir, CenterGlyph>;
+
 export type RingScript = 'latin' | 'hebrew';
 
 export interface RingConfig {
@@ -41,6 +45,8 @@ export interface CircleConfig {
   rings: RingConfig[];
   showCompass: boolean;
   centerGlyph: CenterGlyph;
+  /** Independent glyphs at the four cardinal quarters. */
+  cardinalGlyphs: CardinalGlyphs;
   showInnerSquare: boolean;
   /** Prefer Hebrew strings when applying Goetia presets. */
   useHebrew: boolean;
@@ -93,8 +99,40 @@ export const CENTER_GLYPH_LABELS: Record<CenterGlyph, string> = {
   pentagram: 'Pentagram',
 };
 
+export const CARDINAL_DIRS: CardinalDir[] = ['n', 'e', 's', 'w'];
+
+export const CARDINAL_DIR_LABELS: Record<CardinalDir, string> = {
+  n: 'N',
+  e: 'E',
+  s: 'S',
+  w: 'W',
+};
+
 /** Default triangle bearing: East (classic outer placement relative to operator). */
 export const DEFAULT_TRIANGLE_BEARING = 90;
+
+export function defaultCardinalGlyphs(
+  glyph: CenterGlyph = 'none'
+): CardinalGlyphs {
+  return { n: glyph, e: glyph, s: glyph, w: glyph };
+}
+
+function parseGlyph(value: unknown): CenterGlyph {
+  return value === 'hexagram' || value === 'pentagram' ? value : 'none';
+}
+
+export function sanitizeCardinalGlyphs(raw: unknown): CardinalGlyphs {
+  if (!raw || typeof raw !== 'object') {
+    return defaultCardinalGlyphs('none');
+  }
+  const g = raw as Record<string, unknown>;
+  return {
+    n: parseGlyph(g.n),
+    e: parseGlyph(g.e),
+    s: parseGlyph(g.s),
+    w: parseGlyph(g.w),
+  };
+}
 
 function uid(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -201,6 +239,7 @@ export function applyTraditionPreset(
     useHebrew?: boolean;
     showCompass?: boolean;
     centerGlyph?: CenterGlyph;
+    cardinalGlyphs?: CardinalGlyphs;
     showInnerSquare?: boolean;
     spiritId?: string | null;
     showTriangle?: boolean;
@@ -234,12 +273,15 @@ export function applyTraditionPreset(
   if (tradition === 'goetia') {
     const bank = useHebrew ? GOETIA_HEBREW : GOETIA_LATIN;
     const script: RingScript = useHebrew ? 'hebrew' : 'latin';
+    const cardinalGlyphs =
+      opts?.cardinalGlyphs ?? defaultCardinalGlyphs('pentagram');
     return {
       tradition,
       weekday,
       useHebrew,
       showCompass,
       centerGlyph,
+      cardinalGlyphs,
       showInnerSquare,
       spiritId,
       showTriangle,
@@ -261,6 +303,7 @@ export function applyTraditionPreset(
       useHebrew: false,
       showCompass,
       centerGlyph: opts?.centerGlyph ?? 'pentagram',
+      cardinalGlyphs: opts?.cardinalGlyphs ?? defaultCardinalGlyphs('none'),
       showInnerSquare,
       spiritId: null,
       showTriangle: false,
@@ -281,6 +324,7 @@ export function applyTraditionPreset(
     useHebrew: false,
     showCompass,
     centerGlyph: opts?.centerGlyph ?? 'none',
+    cardinalGlyphs: opts?.cardinalGlyphs ?? defaultCardinalGlyphs('none'),
     showInnerSquare: opts?.showInnerSquare ?? false,
     spiritId: null,
     showTriangle: false,
@@ -307,6 +351,7 @@ export function applyConjurationTemplate(
       | 'useHebrew'
       | 'showCompass'
       | 'centerGlyph'
+      | 'cardinalGlyphs'
       | 'showInnerSquare'
       | 'triangleBearing'
     >
@@ -319,6 +364,7 @@ export function applyConjurationTemplate(
     useHebrew: base?.useHebrew ?? true,
     showCompass: base?.showCompass,
     centerGlyph: base?.centerGlyph ?? 'hexagram',
+    cardinalGlyphs: base?.cardinalGlyphs,
     showInnerSquare: base?.showInnerSquare ?? true,
     spiritId: spirit.id,
     showTriangle: true,
@@ -352,6 +398,7 @@ export function buildCircleLayout(config: CircleConfig): CircleConfig {
   return {
     ...config,
     spiritId,
+    cardinalGlyphs: sanitizeCardinalGlyphs(config.cardinalGlyphs),
     showTriangle: Boolean(config.showTriangle),
     triangleBearing: bearing,
     showSeal: Boolean(config.showSeal),
@@ -409,10 +456,8 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
     });
   }
 
-  const centerGlyph: CenterGlyph =
-    c.centerGlyph === 'hexagram' || c.centerGlyph === 'pentagram'
-      ? c.centerGlyph
-      : 'none';
+  const centerGlyph = parseGlyph(c.centerGlyph);
+  const cardinalGlyphs = sanitizeCardinalGlyphs(c.cardinalGlyphs);
 
   let spiritId: string | null = null;
   if (
@@ -435,6 +480,7 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
     rings,
     showCompass: c.showCompass !== false,
     centerGlyph,
+    cardinalGlyphs,
     showInnerSquare: Boolean(c.showInnerSquare),
     useHebrew: Boolean(c.useHebrew),
     spiritId,

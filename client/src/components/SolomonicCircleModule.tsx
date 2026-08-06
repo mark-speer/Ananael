@@ -14,6 +14,8 @@ import {
   absoluteRadius,
   applyConjurationTemplate,
   applyTraditionPreset,
+  CARDINAL_DIRS,
+  CARDINAL_DIR_LABELS,
   CENTER_GLYPH_LABELS,
   DEFAULT_TRIANGLE_BEARING,
   buildCircleLayout,
@@ -32,6 +34,7 @@ import {
   SVG_SIZE,
   SVG_VIEWBOX,
   TRIANGLE_SIDE_NAMES,
+  cardinalGlyphLayout,
   cardinalPositions,
   circleArcPath,
   conjurationViewBox,
@@ -136,6 +139,7 @@ export default function SolomonicCircleModule() {
         useHebrew: tradition === 'goetia' ? config.useHebrew : false,
         showCompass: config.showCompass,
         centerGlyph: config.centerGlyph,
+        cardinalGlyphs: config.cardinalGlyphs,
         showInnerSquare: config.showInnerSquare,
       })
     );
@@ -156,6 +160,7 @@ export default function SolomonicCircleModule() {
           weekday,
           showCompass: config.showCompass,
           centerGlyph: config.centerGlyph,
+          cardinalGlyphs: config.cardinalGlyphs,
           showInnerSquare: config.showInnerSquare,
         })
       );
@@ -179,6 +184,7 @@ export default function SolomonicCircleModule() {
       useHebrew: config.useHebrew,
       showCompass: config.showCompass,
       centerGlyph: config.centerGlyph,
+      cardinalGlyphs: config.cardinalGlyphs,
       showInnerSquare: config.showInnerSquare,
       triangleBearing: config.triangleBearing,
     });
@@ -345,10 +351,15 @@ export default function SolomonicCircleModule() {
     ...layout.rings.map((r) => ringPx(r.radius)),
     ringPx(0.5)
   );
+  const sortedRingPx = [...layout.rings]
+    .map((r) => ringPx(r.radius))
+    .sort((a, b) => b - a);
+  const nextRingR = sortedRingPx.length > 1 ? sortedRingPx[1] : undefined;
   const glyphR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.72;
   const squareR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.85;
   const hex = hexagramTriangles(cx, cy, glyphR);
   const compass = cardinalPositions(cx, cy, outerR + 22);
+  const quarterGlyphs = cardinalGlyphLayout(cx, cy, outerR, nextRingR);
 
   const triangleSide = Math.max(outerR * 0.55, 110);
   const triangle =
@@ -454,6 +465,34 @@ export default function SolomonicCircleModule() {
           </select>
         </label>
 
+        {CARDINAL_DIRS.map((dir) => (
+          <label
+            key={dir}
+            className="flex items-center gap-2 text-xs text-ananael-muted"
+          >
+            {CARDINAL_DIR_LABELS[dir]}
+            <select
+              value={config.cardinalGlyphs[dir]}
+              onChange={(e) =>
+                updateConfig({
+                  cardinalGlyphs: {
+                    ...config.cardinalGlyphs,
+                    [dir]: e.target.value as CenterGlyph,
+                  },
+                })
+              }
+              className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+              aria-label={`Cardinal ${CARDINAL_DIR_LABELS[dir]} glyph`}
+            >
+              {(Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]).map((g) => (
+                <option key={g} value={g}>
+                  {CENTER_GLYPH_LABELS[g]}
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
+
         <button
           type="button"
           onClick={() => updateConfig({ showCompass: !config.showCompass })}
@@ -482,6 +521,7 @@ export default function SolomonicCircleModule() {
                     useHebrew,
                     showCompass: config.showCompass,
                     centerGlyph: config.centerGlyph,
+                    cardinalGlyphs: config.cardinalGlyphs,
                     showInnerSquare: config.showInnerSquare,
                     spiritId: config.spiritId,
                     showTriangle: config.showTriangle,
@@ -662,6 +702,37 @@ export default function SolomonicCircleModule() {
                 opacity={0.9}
               />
             )}
+
+            {/* Cardinal quarter glyphs (Lesser Key style) */}
+            {quarterGlyphs.map((q) => {
+              const kind = layout.cardinalGlyphs[q.dir];
+              if (kind === 'none') return null;
+              if (kind === 'hexagram') {
+                const h = hexagramTriangles(q.x, q.y, q.radius);
+                return (
+                  <g
+                    key={`cardinal-${q.dir}`}
+                    stroke="#c9a227"
+                    strokeWidth={1}
+                    fill="none"
+                    opacity={0.9}
+                  >
+                    <polygon points={h.up} />
+                    <polygon points={h.down} />
+                  </g>
+                );
+              }
+              return (
+                <polyline
+                  key={`cardinal-${q.dir}`}
+                  points={pentagramPoints(q.x, q.y, q.radius)}
+                  fill="none"
+                  stroke="#c9a227"
+                  strokeWidth={1}
+                  opacity={0.9}
+                />
+              );
+            })}
 
             {/* Curved ring text */}
             {layout.rings.map((r) =>
