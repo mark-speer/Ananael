@@ -71,16 +71,28 @@ export function regularPolygonPoints(
   return pts.join(' ');
 }
 
+/** Five-pointed star vertices (tip first at rotationDeg). */
+export function pentagramVertices(
+  cx: number,
+  cy: number,
+  radius: number,
+  rotationDeg = 0
+): { x: number; y: number }[] {
+  const verts: { x: number; y: number }[] = [];
+  for (let i = 0; i < 5; i++) {
+    verts.push(polarToCartesian(cx, cy, radius, rotationDeg + i * 72));
+  }
+  return verts;
+}
+
 /** Five-pointed star (pentagram) as a closed polyline. */
 export function pentagramPoints(
   cx: number,
   cy: number,
-  radius: number
+  radius: number,
+  rotationDeg = 0
 ): string {
-  const verts: { x: number; y: number }[] = [];
-  for (let i = 0; i < 5; i++) {
-    verts.push(polarToCartesian(cx, cy, radius, i * 72));
-  }
+  const verts = pentagramVertices(cx, cy, radius, rotationDeg);
   const order = [0, 2, 4, 1, 3, 0];
   return order.map((i) => `${verts[i].x},${verts[i].y}`).join(' ');
 }
@@ -95,6 +107,48 @@ export function hexagramTriangles(
     up: regularPolygonPoints(cx, cy, radius, 3, 0),
     down: regularPolygonPoints(cx, cy, radius, 3, 180),
   };
+}
+
+/** Six star-of-David points at 0°, 60°, … (compass), tip North first. */
+export function hexagramVertices(
+  cx: number,
+  cy: number,
+  radius: number
+): { x: number; y: number }[] {
+  const verts: { x: number; y: number }[] = [];
+  for (let i = 0; i < 6; i++) {
+    verts.push(polarToCartesian(cx, cy, radius, i * 60));
+  }
+  return verts;
+}
+
+/**
+ * Label positions slightly outside each vertex along the ray from glyph center.
+ * Maps characters from `letters` onto vertices in order; empty chars skipped.
+ */
+export function glyphPointLabels(
+  cx: number,
+  cy: number,
+  vertices: { x: number; y: number }[],
+  letters: string,
+  outwardPx = 10
+): { char: string; x: number; y: number }[] {
+  const labels: { char: string; x: number; y: number }[] = [];
+  const chars = Array.from(letters);
+  for (let i = 0; i < vertices.length && i < chars.length; i++) {
+    const char = chars[i];
+    if (!char || char === ' ') continue;
+    const v = vertices[i];
+    const dx = v.x - cx;
+    const dy = v.y - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    labels.push({
+      char,
+      x: v.x + (dx / len) * outwardPx,
+      y: v.y + (dy / len) * outwardPx,
+    });
+  }
+  return labels;
 }
 
 /** Axis-aligned square inscribed in a circle of given radius. */

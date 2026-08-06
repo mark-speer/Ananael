@@ -23,8 +23,10 @@ import {
   TRADITION_LABELS,
   WEEKDAY_LABELS,
   WEEKDAYS,
+  type CardinalDir,
   type CenterGlyph,
   type CircleConfig,
+  type GlyphSpec,
   type RingConfig,
   type TraditionId,
   type Weekday,
@@ -38,14 +40,42 @@ import {
   cardinalPositions,
   circleArcPath,
   conjurationViewBox,
+  glyphPointLabels,
   hexagramTriangles,
+  hexagramVertices,
   inscribedSquarePoints,
   pentagramPoints,
+  pentagramVertices,
   triangleOfArt,
 } from '../lib/solomonicGeometry';
 
 function ringPx(relative: number): number {
   return absoluteRadius(relative);
+}
+
+function GlyphPointTexts({
+  labels,
+  fontSize,
+}: {
+  labels: { char: string; x: number; y: number }[];
+  fontSize: number;
+}) {
+  if (labels.length === 0) return null;
+  return (
+    <g fill="#e8d48b" fontFamily="Cinzel, Georgia, serif" fontSize={fontSize}>
+      {labels.map((l, i) => (
+        <text
+          key={`${l.char}-${i}-${l.x.toFixed(1)}`}
+          x={l.x}
+          y={l.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+        >
+          {l.char}
+        </text>
+      ))}
+    </g>
+  );
 }
 
 interface SavedCircle {
@@ -124,6 +154,21 @@ export default function SolomonicCircleModule() {
   const updateConfig = (patch: Partial<CircleConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
     markDirty();
+  };
+
+  const patchCenterGlyph = (patch: Partial<GlyphSpec>) => {
+    updateConfig({
+      centerGlyph: { ...config.centerGlyph, ...patch },
+    });
+  };
+
+  const patchCardinalGlyph = (dir: CardinalDir, patch: Partial<GlyphSpec>) => {
+    updateConfig({
+      cardinalGlyphs: {
+        ...config.cardinalGlyphs,
+        [dir]: { ...config.cardinalGlyphs[dir], ...patch },
+      },
+    });
   };
 
   const applyPreset = (tradition: TraditionId) => {
@@ -357,7 +402,29 @@ export default function SolomonicCircleModule() {
   const nextRingR = sortedRingPx.length > 1 ? sortedRingPx[1] : undefined;
   const glyphR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.72;
   const squareR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.85;
-  const hex = hexagramTriangles(cx, cy, glyphR);
+  const centerSpec = layout.centerGlyph;
+  const hex =
+    centerSpec.kind === 'hexagram'
+      ? hexagramTriangles(cx, cy, glyphR)
+      : null;
+  const centerLabels =
+    centerSpec.kind === 'hexagram'
+      ? glyphPointLabels(
+          cx,
+          cy,
+          hexagramVertices(cx, cy, glyphR),
+          centerSpec.letters,
+          14
+        )
+      : centerSpec.kind === 'pentagram'
+        ? glyphPointLabels(
+            cx,
+            cy,
+            pentagramVertices(cx, cy, glyphR, centerSpec.rotationDeg),
+            centerSpec.letters,
+            14
+          )
+        : [];
   const compass = cardinalPositions(cx, cy, outerR + 22);
   const quarterGlyphs = cardinalGlyphLayout(cx, cy, outerR, nextRingR);
 
@@ -448,41 +515,15 @@ export default function SolomonicCircleModule() {
           </select>
         </label>
 
-        <label className="flex items-center gap-2 text-xs text-ananael-muted">
-          Center
-          <select
-            value={config.centerGlyph}
-            onChange={(e) =>
-              updateConfig({ centerGlyph: e.target.value as CenterGlyph })
-            }
-            className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-          >
-            {(Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]).map((g) => (
-              <option key={g} value={g}>
-                {CENTER_GLYPH_LABELS[g]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {CARDINAL_DIRS.map((dir) => (
-          <label
-            key={dir}
-            className="flex items-center gap-2 text-xs text-ananael-muted"
-          >
-            {CARDINAL_DIR_LABELS[dir]}
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-2 text-xs text-ananael-muted">
+            Center
             <select
-              value={config.cardinalGlyphs[dir]}
+              value={config.centerGlyph.kind}
               onChange={(e) =>
-                updateConfig({
-                  cardinalGlyphs: {
-                    ...config.cardinalGlyphs,
-                    [dir]: e.target.value as CenterGlyph,
-                  },
-                })
+                patchCenterGlyph({ kind: e.target.value as CenterGlyph })
               }
               className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-              aria-label={`Cardinal ${CARDINAL_DIR_LABELS[dir]} glyph`}
             >
               {(Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]).map((g) => (
                 <option key={g} value={g}>
@@ -491,7 +532,119 @@ export default function SolomonicCircleModule() {
               ))}
             </select>
           </label>
-        ))}
+          {config.centerGlyph.kind !== 'none' && (
+            <>
+              <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                Letters
+                <input
+                  type="text"
+                  value={config.centerGlyph.letters}
+                  onChange={(e) =>
+                    patchCenterGlyph({ letters: e.target.value.slice(0, 16) })
+                  }
+                  placeholder="YHVH"
+                  maxLength={16}
+                  className="w-24 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                />
+              </label>
+              {config.centerGlyph.kind === 'pentagram' && (
+                <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                  Rotate
+                  <input
+                    type="number"
+                    min={0}
+                    max={359}
+                    step={1}
+                    value={Math.round(config.centerGlyph.rotationDeg)}
+                    onChange={(e) => {
+                      const n = Number(e.target.value);
+                      const deg = Number.isFinite(n)
+                        ? ((n % 360) + 360) % 360
+                        : 0;
+                      patchCenterGlyph({ rotationDeg: deg });
+                    }}
+                    className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                  />
+                  °
+                </label>
+              )}
+            </>
+          )}
+        </div>
+
+        {CARDINAL_DIRS.map((dir) => {
+          const spec = config.cardinalGlyphs[dir];
+          return (
+            <div
+              key={dir}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                {CARDINAL_DIR_LABELS[dir]}
+                <select
+                  value={spec.kind}
+                  onChange={(e) =>
+                    patchCardinalGlyph(dir, {
+                      kind: e.target.value as CenterGlyph,
+                    })
+                  }
+                  className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                  aria-label={`Cardinal ${CARDINAL_DIR_LABELS[dir]} glyph`}
+                >
+                  {(Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]).map(
+                    (g) => (
+                      <option key={g} value={g}>
+                        {CENTER_GLYPH_LABELS[g]}
+                      </option>
+                    )
+                  )}
+                </select>
+              </label>
+              {spec.kind !== 'none' && (
+                <>
+                  <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                    Letters
+                    <input
+                      type="text"
+                      value={spec.letters}
+                      onChange={(e) =>
+                        patchCardinalGlyph(dir, {
+                          letters: e.target.value.slice(0, 16),
+                        })
+                      }
+                      placeholder="YHVH"
+                      maxLength={16}
+                      className="w-20 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                      aria-label={`${CARDINAL_DIR_LABELS[dir]} letters`}
+                    />
+                  </label>
+                  {spec.kind === 'pentagram' && (
+                    <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                      Rotate
+                      <input
+                        type="number"
+                        min={0}
+                        max={359}
+                        step={1}
+                        value={Math.round(spec.rotationDeg)}
+                        onChange={(e) => {
+                          const n = Number(e.target.value);
+                          const deg = Number.isFinite(n)
+                            ? ((n % 360) + 360) % 360
+                            : 0;
+                          patchCardinalGlyph(dir, { rotationDeg: deg });
+                        }}
+                        className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                        aria-label={`${CARDINAL_DIR_LABELS[dir]} rotation`}
+                      />
+                      °
+                    </label>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
 
         <button
           type="button"
@@ -686,16 +839,21 @@ export default function SolomonicCircleModule() {
               />
             )}
 
-            {layout.centerGlyph === 'hexagram' && (
+            {centerSpec.kind === 'hexagram' && hex && (
               <g stroke="#c9a227" strokeWidth={1.25} fill="none" opacity={0.9}>
                 <polygon points={hex.up} />
                 <polygon points={hex.down} />
               </g>
             )}
 
-            {layout.centerGlyph === 'pentagram' && (
+            {centerSpec.kind === 'pentagram' && (
               <polyline
-                points={pentagramPoints(cx, cy, glyphR)}
+                points={pentagramPoints(
+                  cx,
+                  cy,
+                  glyphR,
+                  centerSpec.rotationDeg
+                )}
                 fill="none"
                 stroke="#c9a227"
                 strokeWidth={1.25}
@@ -703,34 +861,59 @@ export default function SolomonicCircleModule() {
               />
             )}
 
+            <GlyphPointTexts labels={centerLabels} fontSize={13} />
+
             {/* Cardinal quarter glyphs (Lesser Key style) */}
             {quarterGlyphs.map((q) => {
-              const kind = layout.cardinalGlyphs[q.dir];
-              if (kind === 'none') return null;
-              if (kind === 'hexagram') {
+              const spec = layout.cardinalGlyphs[q.dir];
+              if (spec.kind === 'none') return null;
+              if (spec.kind === 'hexagram') {
                 const h = hexagramTriangles(q.x, q.y, q.radius);
+                const labels = glyphPointLabels(
+                  q.x,
+                  q.y,
+                  hexagramVertices(q.x, q.y, q.radius),
+                  spec.letters,
+                  8
+                );
                 return (
-                  <g
-                    key={`cardinal-${q.dir}`}
-                    stroke="#c9a227"
-                    strokeWidth={1}
-                    fill="none"
-                    opacity={0.9}
-                  >
-                    <polygon points={h.up} />
-                    <polygon points={h.down} />
+                  <g key={`cardinal-${q.dir}`}>
+                    <g
+                      stroke="#c9a227"
+                      strokeWidth={1}
+                      fill="none"
+                      opacity={0.9}
+                    >
+                      <polygon points={h.up} />
+                      <polygon points={h.down} />
+                    </g>
+                    <GlyphPointTexts labels={labels} fontSize={9} />
                   </g>
                 );
               }
+              const labels = glyphPointLabels(
+                q.x,
+                q.y,
+                pentagramVertices(q.x, q.y, q.radius, spec.rotationDeg),
+                spec.letters,
+                8
+              );
               return (
-                <polyline
-                  key={`cardinal-${q.dir}`}
-                  points={pentagramPoints(q.x, q.y, q.radius)}
-                  fill="none"
-                  stroke="#c9a227"
-                  strokeWidth={1}
-                  opacity={0.9}
-                />
+                <g key={`cardinal-${q.dir}`}>
+                  <polyline
+                    points={pentagramPoints(
+                      q.x,
+                      q.y,
+                      q.radius,
+                      spec.rotationDeg
+                    )}
+                    fill="none"
+                    stroke="#c9a227"
+                    strokeWidth={1}
+                    opacity={0.9}
+                  />
+                  <GlyphPointTexts labels={labels} fontSize={9} />
+                </g>
               );
             })}
 

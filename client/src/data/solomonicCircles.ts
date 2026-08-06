@@ -22,7 +22,16 @@ export type CenterGlyph = 'none' | 'hexagram' | 'pentagram';
 
 export type CardinalDir = 'n' | 'e' | 's' | 'w';
 
-export type CardinalGlyphs = Record<CardinalDir, CenterGlyph>;
+/** Per-glyph kind, point letters, and pentagram rotation. */
+export interface GlyphSpec {
+  kind: CenterGlyph;
+  /** Characters mapped onto vertices in order; extras ignored. */
+  letters: string;
+  /** Compass degrees (0 = tip North, CW); used when kind === 'pentagram'. */
+  rotationDeg: number;
+}
+
+export type CardinalGlyphs = Record<CardinalDir, GlyphSpec>;
 
 export type RingScript = 'latin' | 'hebrew';
 
@@ -44,7 +53,7 @@ export interface CircleConfig {
   weekday: Weekday;
   rings: RingConfig[];
   showCompass: boolean;
-  centerGlyph: CenterGlyph;
+  centerGlyph: GlyphSpec;
   /** Independent glyphs at the four cardinal quarters. */
   cardinalGlyphs: CardinalGlyphs;
   showInnerSquare: boolean;
@@ -111,14 +120,55 @@ export const CARDINAL_DIR_LABELS: Record<CardinalDir, string> = {
 /** Default triangle bearing: East (classic outer placement relative to operator). */
 export const DEFAULT_TRIANGLE_BEARING = 90;
 
-export function defaultCardinalGlyphs(
-  glyph: CenterGlyph = 'none'
-): CardinalGlyphs {
-  return { n: glyph, e: glyph, s: glyph, w: glyph };
+const MAX_GLYPH_LETTERS = 16;
+
+export function glyphSpec(
+  kind: CenterGlyph = 'none',
+  letters = '',
+  rotationDeg = 0
+): GlyphSpec {
+  return {
+    kind,
+    letters: letters.slice(0, MAX_GLYPH_LETTERS),
+    rotationDeg: normalizeRotation(rotationDeg),
+  };
 }
 
-function parseGlyph(value: unknown): CenterGlyph {
+function normalizeRotation(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return ((value % 360) + 360) % 360;
+}
+
+function parseGlyphKind(value: unknown): CenterGlyph {
   return value === 'hexagram' || value === 'pentagram' ? value : 'none';
+}
+
+/** Coerce legacy string kinds or partial objects into GlyphSpec. */
+export function sanitizeGlyphSpec(raw: unknown): GlyphSpec {
+  if (typeof raw === 'string') {
+    return glyphSpec(parseGlyphKind(raw));
+  }
+  if (!raw || typeof raw !== 'object') {
+    return glyphSpec('none');
+  }
+  const g = raw as Record<string, unknown>;
+  const kind = parseGlyphKind(g.kind);
+  const letters =
+    typeof g.letters === 'string' ? g.letters.slice(0, MAX_GLYPH_LETTERS) : '';
+  const rotationDeg =
+    typeof g.rotationDeg === 'number' && Number.isFinite(g.rotationDeg)
+      ? normalizeRotation(g.rotationDeg)
+      : 0;
+  return { kind, letters, rotationDeg };
+}
+
+export function defaultCardinalGlyphs(kind: CenterGlyph = 'none'): CardinalGlyphs {
+  return {
+    n: glyphSpec(kind),
+    e: glyphSpec(kind),
+    s: glyphSpec(kind),
+    w: glyphSpec(kind),
+  };
 }
 
 export function sanitizeCardinalGlyphs(raw: unknown): CardinalGlyphs {
@@ -127,10 +177,10 @@ export function sanitizeCardinalGlyphs(raw: unknown): CardinalGlyphs {
   }
   const g = raw as Record<string, unknown>;
   return {
-    n: parseGlyph(g.n),
-    e: parseGlyph(g.e),
-    s: parseGlyph(g.s),
-    w: parseGlyph(g.w),
+    n: sanitizeGlyphSpec(g.n),
+    e: sanitizeGlyphSpec(g.e),
+    s: sanitizeGlyphSpec(g.s),
+    w: sanitizeGlyphSpec(g.w),
   };
 }
 
@@ -238,7 +288,7 @@ export function applyTraditionPreset(
     weekday?: Weekday;
     useHebrew?: boolean;
     showCompass?: boolean;
-    centerGlyph?: CenterGlyph;
+    centerGlyph?: GlyphSpec;
     cardinalGlyphs?: CardinalGlyphs;
     showInnerSquare?: boolean;
     spiritId?: string | null;
@@ -251,7 +301,8 @@ export function applyTraditionPreset(
   const useHebrew = opts?.useHebrew ?? tradition === 'goetia';
   const showCompass = opts?.showCompass ?? true;
   const centerGlyph =
-    opts?.centerGlyph ?? (tradition === 'goetia' ? 'hexagram' : 'none');
+    opts?.centerGlyph ??
+    glyphSpec(tradition === 'goetia' ? 'hexagram' : 'none');
   const showInnerSquare = opts?.showInnerSquare ?? tradition !== 'generic';
   const conj = conjurationDefaults();
   const spiritId =
@@ -302,7 +353,7 @@ export function applyTraditionPreset(
       weekday,
       useHebrew: false,
       showCompass,
-      centerGlyph: opts?.centerGlyph ?? 'pentagram',
+      centerGlyph: opts?.centerGlyph ?? glyphSpec('pentagram'),
       cardinalGlyphs: opts?.cardinalGlyphs ?? defaultCardinalGlyphs('none'),
       showInnerSquare,
       spiritId: null,
@@ -323,7 +374,7 @@ export function applyTraditionPreset(
     weekday,
     useHebrew: false,
     showCompass,
-    centerGlyph: opts?.centerGlyph ?? 'none',
+    centerGlyph: opts?.centerGlyph ?? glyphSpec('none'),
     cardinalGlyphs: opts?.cardinalGlyphs ?? defaultCardinalGlyphs('none'),
     showInnerSquare: opts?.showInnerSquare ?? false,
     spiritId: null,
@@ -363,7 +414,7 @@ export function applyConjurationTemplate(
     weekday: base?.weekday,
     useHebrew: base?.useHebrew ?? true,
     showCompass: base?.showCompass,
-    centerGlyph: base?.centerGlyph ?? 'hexagram',
+    centerGlyph: base?.centerGlyph ?? glyphSpec('hexagram'),
     cardinalGlyphs: base?.cardinalGlyphs,
     showInnerSquare: base?.showInnerSquare ?? true,
     spiritId: spirit.id,
@@ -398,6 +449,7 @@ export function buildCircleLayout(config: CircleConfig): CircleConfig {
   return {
     ...config,
     spiritId,
+    centerGlyph: sanitizeGlyphSpec(config.centerGlyph),
     cardinalGlyphs: sanitizeCardinalGlyphs(config.cardinalGlyphs),
     showTriangle: Boolean(config.showTriangle),
     triangleBearing: bearing,
@@ -456,7 +508,7 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
     });
   }
 
-  const centerGlyph = parseGlyph(c.centerGlyph);
+  const centerGlyph = sanitizeGlyphSpec(c.centerGlyph);
   const cardinalGlyphs = sanitizeCardinalGlyphs(c.cardinalGlyphs);
 
   let spiritId: string | null = null;
