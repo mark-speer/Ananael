@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AccountMenu from './components/AccountMenu';
+import CorrespondencesModule from './components/CorrespondencesModule';
 import GematriaModule from './components/GematriaModule';
 import IChingModule from './components/IChingModule';
 import PlanetaryHoursModule from './components/PlanetaryHoursModule';
@@ -53,6 +54,8 @@ export default function App() {
         return <IChingModule />;
       case 'tree':
         return <TreeOfLifeModule onNavigate={navigateToModule} />;
+      case 'correspondences':
+        return <CorrespondencesModule onNavigate={navigateToModule} />;
       case 'ritual':
         return <RitualSpaceModule />;
       case 'solomonic':

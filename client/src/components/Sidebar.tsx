@@ -8,7 +8,8 @@ export type ModuleId =
   | 'tree'
   | 'translator'
   | 'ritual'
-  | 'solomonic';
+  | 'solomonic'
+  | 'correspondences';
 
 export interface ModuleDef {
   id: ModuleId;
@@ -24,6 +25,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'translator', label: 'Script Translator' },
   { id: 'iching', label: 'I Ching' },
   { id: 'tree', label: 'Tree of Life' },
+  { id: 'correspondences', label: 'Correspondences' },
   { id: 'ritual', label: 'Ritual Space Planner' },
   { id: 'solomonic', label: 'Solomonic Circles' },
 ];
