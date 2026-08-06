@@ -9,6 +9,7 @@ import authRoutes from './routes/auth';
 import gematriaRoutes from './routes/gematria';
 import ichingRoutes from './routes/iching';
 import tarotRoutes from './routes/tarot';
+import treeRoutes from './routes/tree';
 
 dotenv.config();
 
@@ -61,6 +62,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tarot', tarotRoutes);
 app.use('/api/gematria', gematriaRoutes);
 app.use('/api/iching', ichingRoutes);
+app.use('/api/tree', treeRoutes);
 
 if (hasClient) {
   app.use(express.static(publicDir));

@@ -7,14 +7,12 @@ import PlanetaryHoursModule from './components/PlanetaryHoursModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { MODULES, type ModuleId } from './components/Sidebar';
 import TarotModule from './components/TarotModule';
+import TreeOfLifeModule, {
+  type TreeNavigateOptions,
+} from './components/TreeOfLifeModule';
 import { useAuth } from './context/AuthContext';
 
 const SHELL_COPY: Partial<Record<ModuleId, { title: string; description: string }>> = {
-  tree: {
-    title: 'Tree of Life',
-    description:
-      'An interactive Glyph of the Sephiroth with path correspondences is planned for Phase 4.',
-  },
   ritual: {
     title: 'Ritual Space Planner',
     description:
@@ -24,11 +22,21 @@ const SHELL_COPY: Partial<Record<ModuleId, { title: string; description: string 
 
 /**
  * App shell: fixed sidebar + main content area.
- * Phase 3 routes I Ching; unfinished modules show shells.
+ * Phase 4a routes Tree of Life; Ritual Space remains a shell.
  */
 export default function App() {
   const { isLoading } = useAuth();
   const [activeModule, setActiveModule] = useState<ModuleId>('tarot');
+  const [gematriaPrefill, setGematriaPrefill] = useState<string | undefined>();
+
+  const navigateToModule = (module: ModuleId, opts?: TreeNavigateOptions) => {
+    if (module === 'gematria' && opts?.gematriaPrefill !== undefined) {
+      setGematriaPrefill(opts.gematriaPrefill);
+    } else {
+      setGematriaPrefill(undefined);
+    }
+    setActiveModule(module);
+  };
 
   if (isLoading) {
     return (
@@ -43,13 +51,15 @@ export default function App() {
       case 'tarot':
         return <TarotModule />;
       case 'gematria':
-        return <GematriaModule />;
+        return <GematriaModule initialText={gematriaPrefill} />;
       case 'planetary':
         return <PlanetaryHoursModule />;
       case 'translator':
         return <ScriptTranslatorModule />;
       case 'iching':
         return <IChingModule />;
+      case 'tree':
+        return <TreeOfLifeModule onNavigate={navigateToModule} />;
       default: {
         const shell = SHELL_COPY[activeModule];
         if (!shell) return null;
@@ -61,7 +71,7 @@ export default function App() {
   return (
     <div className="flex min-h-screen">
       <div className="sticky top-0 hidden h-screen md:block">
-        <Sidebar activeModule={activeModule} onSelect={setActiveModule} />
+        <Sidebar activeModule={activeModule} onSelect={navigateToModule} />
       </div>
 
       <div className="flex min-h-screen flex-1 flex-col">
@@ -72,7 +82,9 @@ export default function App() {
               <span className="sr-only">Module</span>
               <select
                 value={activeModule}
-                onChange={(e) => setActiveModule(e.target.value as ModuleId)}
+                onChange={(e) =>
+                  navigateToModule(e.target.value as ModuleId)
+                }
                 className="max-w-[14rem] truncate rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
               >
                 {MODULES.map((mod) => (

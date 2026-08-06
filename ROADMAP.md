@@ -21,7 +21,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Planetary Hours      | Active | 2b           |
 | Script Translator    | Active | 2c           |
 | I Ching              | Active | 3            |
-| Tree of Life         | Shell  | 4a           |
+| Tree of Life         | Active | 4a           |
 | Ritual Space Planner | Shell  | 4b           |
 
 ---
@@ -86,11 +86,13 @@ Ship in this order within the phase.
 
 ## Phase 4 — Visual / spatial modules
 
-### 4a — Tree of Life
+### 4a — Tree of Life — Shipped
 
 - Interactive SVG (10 sephiroth + 22 paths); click for correspondences (Hebrew letter, tarot trump, planet/element)
 - GD-leaning defaults; deep-link to Tarot / Gematria where IDs align
-- Optional saved study notes per node
+- Optional saved study notes per node (`POST/GET /api/tree/notes`)
+
+**Done when:** interactive glyph with clickable sephiroth/paths; Soon badge off; signed-in notes save/reload.
 
 ### 4b — Ritual Space Planner
 

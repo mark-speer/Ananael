@@ -22,7 +22,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'planetary', label: 'Planetary Hours' },
   { id: 'translator', label: 'Script Translator' },
   { id: 'iching', label: 'I Ching' },
-  { id: 'tree', label: 'Tree of Life', comingSoon: true },
+  { id: 'tree', label: 'Tree of Life' },
   { id: 'ritual', label: 'Ritual Space Planner', comingSoon: true },
 ];
 
@@ -33,7 +33,7 @@ interface SidebarProps {
 
 /**
  * Fixed left navigation listing all Phase roadmap modules.
- * Active modules and shells are clickable; Soon badge marks unfinished work.
+ * Active modules are clickable without Soon badges; shells keep the badge.
  */
 export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
   const { user, isAuthenticated, logout } = useAuth();

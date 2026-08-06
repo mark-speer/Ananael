@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   computeGematria,
@@ -6,16 +6,29 @@ import {
   type GematriaSystemId,
 } from '../lib/gematria';
 
+interface GematriaModuleProps {
+  /** Prefill text when navigating from Tree of Life (or similar). */
+  initialText?: string;
+}
+
 /**
  * Gematria calculator: live totals, per-letter breakdown, optional profile save.
  */
-export default function GematriaModule() {
+export default function GematriaModule({ initialText }: GematriaModuleProps) {
   const { isAuthenticated, token } = useAuth();
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText ?? '');
   const [system, setSystem] = useState<GematriaSystemId>('hebrew_sofit');
   const [notes, setNotes] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (initialText !== undefined && initialText !== '') {
+      setText(initialText);
+      setSystem('hebrew_sofit');
+      setSaveStatus(null);
+    }
+  }, [initialText]);
 
   const result = useMemo(() => computeGematria(text, system), [text, system]);
   const activeMeta = GEMATRIA_SYSTEMS.find((s) => s.id === system)!;
