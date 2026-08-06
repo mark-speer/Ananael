@@ -38,6 +38,18 @@ app.use(
 
 app.use(express.json({ limit: '1mb' }));
 
+/**
+ * Root is API-only. The React UI is served by the client container (host :8080 in Compose).
+ * Avoid a bare "Cannot GET /" when someone opens :5000 in a browser.
+ */
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({
+    service: 'ananael-server',
+    message: 'API only — open the client on port 8080 (http://<host>:8080/), not this port.',
+    health: '/api/health',
+  });
+});
+
 /** Health check for Compose / Portainer probes */
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'ananael-server' });

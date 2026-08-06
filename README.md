@@ -20,19 +20,21 @@ From the repository root:
 docker compose up --build
 ```
 
-Then open **http://localhost** (client on port 80). The API is also reachable at **http://localhost:5000** (health: `/api/health`).
+Then open **http://localhost:8080** (React UI via Nginx). The API listens on **http://localhost:5000** (health: `/api/health`) — that port is JSON only, not the website.
 
-Browser API calls go through Nginx (`/api` → `server:5000`), so you only need port 80 in normal use.
+Browser API calls go through Nginx (`/api` → `server:5000`), so day-to-day use is port **8080** only.
 
 ### Portainer
 
-1. Push or copy this repo onto the VM.
-2. In Portainer → **Stacks** → **Add stack**.
-3. Upload or paste `docker-compose.yml` (set the build context to this repo root), or use **Repository** deploy if the stack lives in git.
-4. Optionally set environment variables:
+1. Push this repo to GitHub (or copy it onto the VM).
+2. In Portainer → **Stacks** → **Add stack** (Repository deploy from git, or paste `docker-compose.yml` with build context = repo root).
+3. Optionally set environment variables:
    - `JWT_SECRET` — strong random secret (required for production)
-   - `CLIENT_ORIGIN` — browser origin if you hit the API on port 5000 directly (default `http://localhost`)
-5. Deploy the stack and wait for `ananael-mongo`, `ananael-server`, and `ananael-client` to become healthy/running.
+   - `CLIENT_ORIGIN` — e.g. `http://<vm-ip>:8080` if anything talks to the API on port 5000 from the browser (default `http://localhost:8080`)
+4. Deploy and wait for `ananael-mongo`, `ananael-server`, and `ananael-client` to be running.
+5. Open **`http://<vm-ip>:8080/`** — not `:5000` and not `:5173`.
+
+If `ananael-client` fails to start, check that host port **8080** is free (or change the left side of `8080:80` in `docker-compose.yml`).
 
 ### Local development (without Docker)
 

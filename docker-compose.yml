@@ -23,7 +23,8 @@ services:
       PORT: "5000"
       MONGO_URI: mongodb://mongo:27017/ananael
       JWT_SECRET: ${JWT_SECRET:-ananael-dev-change-me-in-production}
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost}
+      # Browser origin of the Nginx UI (set to http://<vm-ip>:8080 in Portainer if needed)
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:8080}
     ports:
       - "5000:5000"
     networks:
@@ -37,8 +38,9 @@ services:
     restart: unless-stopped
     depends_on:
       - server
+    # 8080 avoids clashes with Portainer / other services already bound to host :80
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       - ananael-net
 
