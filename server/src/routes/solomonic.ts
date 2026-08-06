@@ -24,6 +24,7 @@ interface SanitizedRing {
   text: string;
   script: 'latin' | 'hebrew';
   clockwise: boolean;
+  opacity: number;
 }
 
 interface SanitizedGlyphSpec {
@@ -55,6 +56,7 @@ interface SanitizedConfig {
 
 const DEFAULT_TRIANGLE_BEARING = 90;
 const DEFAULT_TRIANGLE_ROTATION = 180;
+const DEFAULT_RING_OPACITY = 0.85;
 const MAX_GLYPH_LETTERS = 16;
 /** Accept goetia-01 … goetia-72 style ids without importing the full catalog. */
 const SPIRIT_ID_RE = /^goetia-(0[1-9]|[1-6][0-9]|7[0-2])$/;
@@ -147,7 +149,11 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
       radius: Math.max(0.08, Math.min(1, e.radius)),
       text: e.text.slice(0, 500),
       script,
-      clockwise: e.clockwise !== false,
+      clockwise: true,
+      opacity:
+        typeof e.opacity === 'number' && Number.isFinite(e.opacity)
+          ? Math.max(0, Math.min(1, e.opacity))
+          : DEFAULT_RING_OPACITY,
     });
   }
 

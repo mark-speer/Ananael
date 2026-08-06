@@ -36,7 +36,7 @@ export function polarToCartesian(
 
 /**
  * Closed circular path suitable for SVG textPath.
- * clockwise=true draws so text reads clockwise along the ring.
+ * clockwise=true draws so text reads clockwise with lettering outside the ring.
  */
 export function circleArcPath(
   cx: number,

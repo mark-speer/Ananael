@@ -44,8 +44,10 @@ export interface RingConfig {
   /** Text placed along the ring via textPath. */
   text: string;
   script: RingScript;
-  /** Clockwise textPath (outer rings usually true). */
+  /** Clockwise textPath — keeps lettering on the outside of the ring. */
   clockwise: boolean;
+  /** Stroke + lettering opacity (0–1). */
+  opacity: number;
 }
 
 export interface CircleConfig {
@@ -125,6 +127,9 @@ export const DEFAULT_TRIANGLE_BEARING = 90;
 /** Default in-place triangle rotation (180° from apex-toward-circle). */
 export const DEFAULT_TRIANGLE_ROTATION = 180;
 
+/** Default ring stroke + lettering opacity. */
+export const DEFAULT_RING_OPACITY = 0.85;
+
 const MAX_GLYPH_LETTERS = 16;
 
 export function glyphSpec(
@@ -193,12 +198,20 @@ function uid(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function sanitizeRingOpacity(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.max(0, Math.min(1, value));
+  }
+  return DEFAULT_RING_OPACITY;
+}
+
 function ring(
   label: string,
   radius: number,
   text: string,
   script: RingScript,
-  clockwise = true
+  clockwise = true,
+  opacity = DEFAULT_RING_OPACITY
 ): RingConfig {
   return {
     id: uid('ring'),
@@ -207,6 +220,7 @@ function ring(
     text,
     script,
     clockwise,
+    opacity,
   };
 }
 
@@ -358,7 +372,7 @@ export function applyTraditionPreset(
       rings: [
         ring('Outer ring', 1, bank.outer, script, true),
         ring('Middle ring', 0.9, bank.middle, script, true),
-        ring('Inner ring', 0.8, bank.inner, script, false),
+        ring('Inner ring', 0.8, bank.inner, script, true),
       ],
     };
   }
@@ -381,7 +395,7 @@ export function applyTraditionPreset(
       rings: [
         ring('Outer ring', 1, bank.outer, 'latin', true),
         ring('Middle ring', 0.9, bank.middle, 'latin', true),
-        ring('Inner ring', 0.8, bank.inner, 'latin', false),
+        ring('Inner ring', 0.8, bank.inner, 'latin', true),
       ],
     };
   }
@@ -403,7 +417,7 @@ export function applyTraditionPreset(
     rings: [
       ring('Outer ring', 1, '', 'latin', true),
       ring('Middle ring', 0.9, '', 'latin', true),
-      ring('Inner ring', 0.8, '', 'latin', false),
+      ring('Inner ring', 0.8, '', 'latin', true),
     ],
   };
 }
@@ -487,6 +501,8 @@ export function buildCircleLayout(config: CircleConfig): CircleConfig {
       radius: Math.max(0.08, Math.min(1, r.radius)),
       text: r.text.slice(0, 500),
       label: r.label.slice(0, 64),
+      clockwise: true,
+      opacity: sanitizeRingOpacity(r.opacity),
     })),
   };
 }
@@ -532,7 +548,8 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
       radius: Math.max(0.08, Math.min(1, e.radius)),
       text: e.text.slice(0, 500),
       script,
-      clockwise: e.clockwise !== false,
+      clockwise: true,
+      opacity: sanitizeRingOpacity(e.opacity),
     });
   }
 

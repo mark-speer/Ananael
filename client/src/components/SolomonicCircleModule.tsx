@@ -681,7 +681,7 @@ export default function SolomonicCircleModule() {
                 <path
                   key={`path-${r.id}`}
                   id={`solomonic-ring-${r.id}`}
-                  d={circleArcPath(cx, cy, ringPx(r.radius), r.clockwise)}
+                  d={circleArcPath(cx, cy, ringPx(r.radius), true)}
                   fill="none"
                 />
               ))}
@@ -707,7 +707,7 @@ export default function SolomonicCircleModule() {
                 fill="none"
                 stroke="#c9a227"
                 strokeWidth={1.5}
-                opacity={0.85}
+                opacity={r.opacity ?? 0.85}
               />
             ))}
 
@@ -810,7 +810,7 @@ export default function SolomonicCircleModule() {
               );
             })}
 
-            {/* Curved ring text */}
+            {/* Curved ring text — clockwise paths keep lettering outside each ring */}
             {layout.rings.map((r) =>
               r.text.trim() ? (
                 <text
@@ -818,6 +818,7 @@ export default function SolomonicCircleModule() {
                   fill="#e8d48b"
                   fontSize={r.script === 'hebrew' ? 11 : 10}
                   letterSpacing={r.script === 'hebrew' ? 1 : 1.5}
+                  opacity={r.opacity ?? 0.85}
                   style={{
                     fontFamily:
                       r.script === 'hebrew'
@@ -980,6 +981,26 @@ export default function SolomonicCircleModule() {
                     />
                   </label>
                 </div>
+                <label className="flex items-center gap-2 text-[10px] text-ananael-muted">
+                  Opacity
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={r.opacity ?? 0.85}
+                    onChange={(e) =>
+                      updateRing(r.id, {
+                        opacity: Number(e.target.value),
+                      })
+                    }
+                    className="h-1.5 flex-1 accent-ananael-gold"
+                    aria-label={`${r.label} opacity`}
+                  />
+                  <span className="w-8 tabular-nums text-zinc-400">
+                    {Math.round((r.opacity ?? 0.85) * 100)}%
+                  </span>
+                </label>
                 <textarea
                   value={r.text}
                   onChange={(e) => updateRing(r.id, { text: e.target.value })}
