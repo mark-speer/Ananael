@@ -14,8 +14,6 @@ import {
   absoluteRadius,
   applyConjurationTemplate,
   applyTraditionPreset,
-  CARDINAL_DIRS,
-  CARDINAL_DIR_LABELS,
   CENTER_GLYPH_LABELS,
   DEFAULT_TRIANGLE_BEARING,
   DEFAULT_TRIANGLE_ROTATION,
@@ -23,15 +21,14 @@ import {
   sanitizeCircleConfig,
   TRADITION_LABELS,
   WEEKDAY_LABELS,
-  WEEKDAYS,
   type CardinalDir,
-  type CenterGlyph,
   type CircleConfig,
   type GlyphSpec,
   type RingConfig,
   type TraditionId,
   type Weekday,
 } from '../data/solomonicCircles';
+import CircleLayoutModal from './CircleLayoutModal';
 import {
   SVG_CENTER,
   SVG_SIZE,
@@ -108,6 +105,7 @@ export default function SolomonicCircleModule() {
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [spiritFilter, setSpiritFilter] = useState('');
+  const [layoutModalOpen, setLayoutModalOpen] = useState(false);
 
   const layout = buildCircleLayout(config);
   const cx = SVG_CENTER;
@@ -504,151 +502,17 @@ export default function SolomonicCircleModule() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex items-center gap-2 text-xs text-ananael-muted">
-          Weekday
-          <select
-            value={config.weekday}
-            onChange={(e) => onWeekdayChange(e.target.value as Weekday)}
-            className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-          >
-            {WEEKDAYS.map((d) => (
-              <option key={d} value={d}>
-                {WEEKDAY_LABELS[d]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-2 text-xs text-ananael-muted">
-            Center
-            <select
-              value={config.centerGlyph.kind}
-              onChange={(e) =>
-                patchCenterGlyph({ kind: e.target.value as CenterGlyph })
-              }
-              className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-            >
-              {(Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]).map((g) => (
-                <option key={g} value={g}>
-                  {CENTER_GLYPH_LABELS[g]}
-                </option>
-              ))}
-            </select>
-          </label>
-          {config.centerGlyph.kind !== 'none' && (
-            <>
-              <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                Letters
-                <input
-                  type="text"
-                  value={config.centerGlyph.letters}
-                  onChange={(e) =>
-                    patchCenterGlyph({ letters: e.target.value.slice(0, 16) })
-                  }
-                  placeholder="YHVH"
-                  maxLength={16}
-                  className="w-24 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                />
-              </label>
-              {config.centerGlyph.kind === 'pentagram' && (
-                <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                  Rotate
-                  <input
-                    type="number"
-                    min={0}
-                    max={359}
-                    step={1}
-                    value={Math.round(config.centerGlyph.rotationDeg)}
-                    onChange={(e) => {
-                      const n = Number(e.target.value);
-                      const deg = Number.isFinite(n)
-                        ? ((n % 360) + 360) % 360
-                        : 0;
-                      patchCenterGlyph({ rotationDeg: deg });
-                    }}
-                    className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                  />
-                  °
-                </label>
-              )}
-            </>
-          )}
-        </div>
-
-        {CARDINAL_DIRS.map((dir) => {
-          const spec = config.cardinalGlyphs[dir];
-          return (
-            <div
-              key={dir}
-              className="flex flex-wrap items-center gap-2"
-            >
-              <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                {CARDINAL_DIR_LABELS[dir]}
-                <select
-                  value={spec.kind}
-                  onChange={(e) =>
-                    patchCardinalGlyph(dir, {
-                      kind: e.target.value as CenterGlyph,
-                    })
-                  }
-                  className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                  aria-label={`Cardinal ${CARDINAL_DIR_LABELS[dir]} glyph`}
-                >
-                  {(Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]).map(
-                    (g) => (
-                      <option key={g} value={g}>
-                        {CENTER_GLYPH_LABELS[g]}
-                      </option>
-                    )
-                  )}
-                </select>
-              </label>
-              {spec.kind !== 'none' && (
-                <>
-                  <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                    Letters
-                    <input
-                      type="text"
-                      value={spec.letters}
-                      onChange={(e) =>
-                        patchCardinalGlyph(dir, {
-                          letters: e.target.value.slice(0, 16),
-                        })
-                      }
-                      placeholder="YHVH"
-                      maxLength={16}
-                      className="w-20 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                      aria-label={`${CARDINAL_DIR_LABELS[dir]} letters`}
-                    />
-                  </label>
-                  {spec.kind === 'pentagram' && (
-                    <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                      Rotate
-                      <input
-                        type="number"
-                        min={0}
-                        max={359}
-                        step={1}
-                        value={Math.round(spec.rotationDeg)}
-                        onChange={(e) => {
-                          const n = Number(e.target.value);
-                          const deg = Number.isFinite(n)
-                            ? ((n % 360) + 360) % 360
-                            : 0;
-                          patchCardinalGlyph(dir, { rotationDeg: deg });
-                        }}
-                        className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                        aria-label={`${CARDINAL_DIR_LABELS[dir]} rotation`}
-                      />
-                      °
-                    </label>
-                  )}
-                </>
-              )}
-            </div>
-          );
-        })}
+        <button
+          type="button"
+          onClick={() => setLayoutModalOpen(true)}
+          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+        >
+          Weekday & Glyphs
+          <span className="ml-1.5 text-ananael-muted">
+            · {WEEKDAY_LABELS[config.weekday]} ·{' '}
+            {CENTER_GLYPH_LABELS[config.centerGlyph.kind]}
+          </span>
+        </button>
 
         <button
           type="button"
@@ -1219,6 +1083,15 @@ export default function SolomonicCircleModule() {
           )}
         </div>
       </div>
+
+      <CircleLayoutModal
+        open={layoutModalOpen}
+        onClose={() => setLayoutModalOpen(false)}
+        config={config}
+        onWeekdayChange={onWeekdayChange}
+        patchCenterGlyph={patchCenterGlyph}
+        patchCardinalGlyph={patchCardinalGlyph}
+      />
     </div>
   );
 }
