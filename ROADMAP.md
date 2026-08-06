@@ -25,7 +25,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Ritual Space Planner | Active  | 4b           |
 | Solomonic Circles    | Active  | 5–6          |
 | Magical Journal      | Active  | 7            |
-| Magical OS Dashboard | Planned | 8            |
+| Magical OS Dashboard | Active  | 8            |
 
 ---
 
@@ -149,9 +149,9 @@ Auth-gated unified journal as the shared notes / history layer (not the homepage
 
 ---
 
-## Phase 8 — Magical Operating System — Planned
+## Phase 8 — Magical Operating System — Shipped
 
-Unified dashboard centerpiece (future default home) composing:
+Unified dashboard centerpiece (default home) composing:
 
 - Current planetary hour
 - Moon and astrological conditions

@@ -104,7 +104,7 @@ router.post('/migrate', protect, async (req: AuthRequest, res: Response): Promis
 
 /**
  * GET /api/journal/entries
- * Query: type, q, tag, entity, from, to, limit
+ * Query: type, status, q, tag, entity, from, to, limit
  * Runs lazy legacy migration once per request (idempotent).
  */
 router.get('/entries', protect, async (req: AuthRequest, res: Response): Promise<void> => {
@@ -113,6 +113,7 @@ router.get('/entries', protect, async (req: AuthRequest, res: Response): Promise
 
     const {
       type,
+      status,
       q,
       tag,
       entity,
@@ -125,6 +126,10 @@ router.get('/entries', protect, async (req: AuthRequest, res: Response): Promise
 
     if (type && ENTRY_TYPES.includes(type as JournalEntryType)) {
       filter.entryType = type;
+    }
+
+    if (status && VALID_STATUS.includes(status as WorkingStatus)) {
+      filter.status = status;
     }
 
     if (tag && typeof tag === 'string' && tag.trim()) {

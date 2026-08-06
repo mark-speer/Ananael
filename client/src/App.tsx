@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AccountMenu from './components/AccountMenu';
 import CorrespondencesModule from './components/CorrespondencesModule';
+import DashboardModule from './components/DashboardModule';
 import GematriaModule from './components/GematriaModule';
 import IChingModule from './components/IChingModule';
 import JournalModule from './components/JournalModule';
@@ -22,11 +23,11 @@ export type AppNavigateOptions = TreeNavigateOptions & {
 
 /**
  * App shell: fixed sidebar + main content area.
- * Magical Journal is a hub module; default home remains Tarot (Magical OS later).
+ * Magical OS is the default home; other modules remain individually navigable.
  */
 export default function App() {
   const { isLoading } = useAuth();
-  const [activeModule, setActiveModule] = useState<ModuleId>('tarot');
+  const [activeModule, setActiveModule] = useState<ModuleId>('dashboard');
   const [gematriaPrefill, setGematriaPrefill] = useState<string | undefined>();
   const [journalFilter, setJournalFilter] = useState<
     JournalEntryType | 'all'
@@ -54,6 +55,8 @@ export default function App() {
 
   const renderModule = () => {
     switch (activeModule) {
+      case 'dashboard':
+        return <DashboardModule onNavigate={navigateToModule} />;
       case 'tarot':
         return <TarotModule onNavigate={navigateToModule} />;
       case 'journal':

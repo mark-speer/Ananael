@@ -1,6 +1,7 @@
 import AccountMenu from './AccountMenu';
 
 export type ModuleId =
+  | 'dashboard'
   | 'tarot'
   | 'planetary'
   | 'iching'
@@ -20,6 +21,7 @@ export interface ModuleDef {
 }
 
 export const MODULES: ModuleDef[] = [
+  { id: 'dashboard', label: 'Magical OS' },
   { id: 'tarot', label: 'Tarot' },
   { id: 'journal', label: 'Magical Journal' },
   { id: 'gematria', label: 'Gematria' },

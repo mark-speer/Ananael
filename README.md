@@ -2,7 +2,7 @@
 
 A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic.
 
-**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot. **Phase 7** adds Magical Journal — unified ritual / dream / divination / mood logs with moon and planetary-hour tags (Tarot and I Ching saves land here).
+**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot. **Phase 7** adds Magical Journal — unified ritual / dream / divination / mood logs with moon and planetary-hour tags (Tarot and I Ching saves land here). **Phase 8** adds Magical OS — the default-home dashboard composing sky conditions, quick tarot, journal workings, and deep-links into every module.
 
 ## Stack
 
@@ -63,6 +63,7 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 
 | Module               | Status                        |
 |----------------------|-------------------------------|
+| Magical OS           | Active (Phase 8, default home)|
 | Tarot                | Active                        |
 | Magical Journal      | Active (Phase 7)              |
 | Gematria             | Active (Phase 2a)             |
@@ -70,6 +71,7 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 | Script Translator    | Active (Phase 2c)             |
 | I Ching              | Active (Phase 3)              |
 | Tree of Life         | Active (Phase 4a)             |
+| Correspondences      | Active                        |
 | Ritual Space Planner | Active (Phase 4b)             |
 | Solomonic Circles    | Active (Phase 5–6)            |
 
@@ -85,7 +87,7 @@ Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 - `POST /api/iching/save` — Bearer JWT; saves a Magical Journal divination entry
 - `GET /api/iching/history` — Bearer JWT; recent I Ching journal entries (compat shape)
 - `POST /api/journal/entries` — Bearer JWT; create journal entry
-- `GET /api/journal/entries` — Bearer JWT; list/search (`type`, `q`, `tag`, `entity`, `from`, `to`)
+- `GET /api/journal/entries` — Bearer JWT; list/search (`type`, `status`, `q`, `tag`, `entity`, `from`, `to`)
 - `PATCH /api/journal/entries/:id` / `DELETE /api/journal/entries/:id` — Bearer JWT
 - `POST /api/journal/migrate` — Bearer JWT; idempotent legacy Tarot/I Ching → journal copy
 - `POST /api/tree/notes` — Bearer JWT; `{ targetType, targetId, userNotes }`
