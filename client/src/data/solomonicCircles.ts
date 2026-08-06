@@ -340,8 +340,8 @@ export function applyTraditionPreset(
       showSeal,
       rings: [
         ring('Outer ring', 1, bank.outer, script, true),
-        ring('Middle ring', 0.78, bank.middle, script, true),
-        ring('Inner ring', 0.56, bank.inner, script, false),
+        ring('Middle ring', 0.9, bank.middle, script, true),
+        ring('Inner ring', 0.8, bank.inner, script, false),
       ],
     };
   }
@@ -362,8 +362,8 @@ export function applyTraditionPreset(
       showSeal: false,
       rings: [
         ring('Outer ring', 1, bank.outer, 'latin', true),
-        ring('Middle ring', 0.76, bank.middle, 'latin', true),
-        ring('Inner ring', 0.52, bank.inner, 'latin', false),
+        ring('Middle ring', 0.9, bank.middle, 'latin', true),
+        ring('Inner ring', 0.8, bank.inner, 'latin', false),
       ],
     };
   }
@@ -383,8 +383,8 @@ export function applyTraditionPreset(
     showSeal: false,
     rings: [
       ring('Outer ring', 1, '', 'latin', true),
-      ring('Middle ring', 0.75, '', 'latin', true),
-      ring('Inner ring', 0.5, '', 'latin', false),
+      ring('Middle ring', 0.9, '', 'latin', true),
+      ring('Inner ring', 0.8, '', 'latin', false),
     ],
   };
 }

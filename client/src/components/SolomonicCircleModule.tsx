@@ -396,12 +396,13 @@ export default function SolomonicCircleModule() {
     ...layout.rings.map((r) => ringPx(r.radius)),
     ringPx(0.5)
   );
-  const sortedRingPx = [...layout.rings]
-    .map((r) => ringPx(r.radius))
-    .sort((a, b) => b - a);
-  const nextRingR = sortedRingPx.length > 1 ? sortedRingPx[1] : undefined;
-  const glyphR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.72;
-  const squareR = Math.min(...layout.rings.map((r) => ringPx(r.radius))) * 0.85;
+  const innerR = Math.min(
+    ...layout.rings.map((r) => ringPx(r.radius)),
+    outerR
+  );
+  // Center glyph stays compact so cardinals fit inside the innermost circle.
+  const glyphR = innerR * 0.32;
+  const squareR = innerR * 0.72;
   const centerSpec = layout.centerGlyph;
   const hex =
     centerSpec.kind === 'hexagram'
@@ -426,7 +427,7 @@ export default function SolomonicCircleModule() {
           )
         : [];
   const compass = cardinalPositions(cx, cy, outerR + 22);
-  const quarterGlyphs = cardinalGlyphLayout(cx, cy, outerR, nextRingR);
+  const quarterGlyphs = cardinalGlyphLayout(cx, cy, innerR, glyphR * 1.15);
 
   const triangleSide = Math.max(outerR * 0.55, 110);
   const triangle =

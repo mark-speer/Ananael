@@ -190,25 +190,24 @@ export interface CardinalGlyphPlacement {
 }
 
 /**
- * Layout for quarter glyphs in the outermost ring band (Lesser Key style).
- * Centers sit at the band midpoint; glyph radius is ~38% of band width.
+ * Layout for quarter glyphs inside the innermost circle (Lesser Key style).
+ * Centers sit between the center glyph clearance and the inner ring.
  */
 export function cardinalGlyphLayout(
   cx: number,
   cy: number,
-  outerR: number,
-  innerBandR?: number
+  innerR: number,
+  centerClearance = innerR * 0.38
 ): CardinalGlyphPlacement[] {
-  const bandInner =
-    typeof innerBandR === 'number' &&
-    Number.isFinite(innerBandR) &&
-    innerBandR > 0 &&
-    innerBandR < outerR
-      ? innerBandR
-      : outerR * 0.76;
-  const bandWidth = Math.max(outerR - bandInner, outerR * 0.08);
-  const midR = (outerR + bandInner) / 2;
-  const glyphR = Math.min(bandWidth * 0.38, outerR * 0.12);
+  const safeInner = Math.max(innerR, 1);
+  const clearance = Math.max(
+    0,
+    Math.min(centerClearance, safeInner * 0.75)
+  );
+  const band = Math.max(safeInner - clearance, safeInner * 0.2);
+  // Sit in the outer half of the inner disk so glyphs read as quarter markers.
+  const midR = clearance + band * 0.62;
+  const glyphR = Math.min(band * 0.28, safeInner * 0.16, midR * 0.45);
 
   const dirs: { dir: CardinalGlyphDir; angle: number }[] = [
     { dir: 'n', angle: 0 },
