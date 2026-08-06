@@ -61,15 +61,16 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 
 ## Modules (sidebar)
 
-| Module               | Status       |
-|----------------------|--------------|
-| Tarot                | Active       |
-| Planetary Hours      | Coming Soon  |
-| I Ching              | Coming Soon  |
-| Gematria             | Coming Soon  |
-| Tree of Life         | Coming Soon  |
-| Script Translator    | Coming Soon  |
-| Ritual Space Planner | Coming Soon  |
+| Module               | Status                          |
+|----------------------|---------------------------------|
+| Tarot                | Active                          |
+| Planetary Hours      | Shell (Phase 2b) — Coming Soon  |
+| Script Translator    | Shell (Phase 2c) — Coming Soon  |
+| I Ching              | Shell (Phase 3) — Coming Soon   |
+| Tree of Life         | Shell (Phase 4a) — Coming Soon  |
+| Ritual Space Planner | Shell (Phase 4b) — Coming Soon  |
+
+Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 
 ## API (Phase 1)
 
