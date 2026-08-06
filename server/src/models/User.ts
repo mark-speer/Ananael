@@ -1,17 +1,25 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+/** Lat/lon used for planetary hours and journal sky tags. */
+export interface IUserLocation {
+  lat: number;
+  lon: number;
+}
+
 /** Public shape returned to the client (never include password). */
 export interface IUserPublic {
   _id: string;
   username: string;
   email: string;
+  location?: IUserLocation | null;
 }
 
 export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
+  location?: IUserLocation | null;
   comparePassword(candidate: string): Promise<boolean>;
 }
 
@@ -37,6 +45,10 @@ const UserSchema = new Schema<IUser>(
       required: [true, 'Password is required'],
       minlength: 6,
       select: false, // omit from queries by default
+    },
+    location: {
+      lat: { type: Number, min: -90, max: 90 },
+      lon: { type: Number, min: -180, max: 180 },
     },
   },
   { timestamps: true }

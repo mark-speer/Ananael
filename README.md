@@ -81,6 +81,8 @@ Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 
 - `POST /api/auth/register` — `{ username, email, password }`
 - `POST /api/auth/login` — `{ email, password }`
+- `GET /api/auth/me` — Bearer JWT; current user (includes `location`)
+- `PUT /api/auth/location` — Bearer JWT; `{ lat, lon }` saved on the user profile for planetary hours / Magical OS / journal sky
 - `POST /api/tarot/save` — Bearer JWT; saves a Magical Journal divination entry (`spreadType`, `cardsDrawn`, `userNotes?`, `sky?`)
 - `GET /api/tarot/history` — Bearer JWT; recent tarot journal entries (compat shape)
 - `POST /api/gematria/save` — Bearer JWT; `{ text, system, total, notes? }`

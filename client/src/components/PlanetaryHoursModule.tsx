@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   buildPlanetaryHours,
   formatTime,
   type PlanetId,
 } from '../lib/planetaryHours';
-import {
-  loadPlanetaryLocation,
-  savePlanetaryLocation,
-} from '../lib/planetaryLocation';
+import { loadPlanetaryLocation } from '../lib/planetaryLocation';
 
 function toDateInputValue(d: Date): string {
   const y = d.getFullYear();
@@ -22,8 +20,11 @@ function toTimeInputValue(d: Date): string {
   return `${h}:${min}`;
 }
 
-function initialCoords(): { lat: string; lon: string } {
-  const saved = loadPlanetaryLocation();
+function initialCoords(authLoc: { lat: number; lon: number } | null): {
+  lat: string;
+  lon: string;
+} {
+  const saved = authLoc ?? loadPlanetaryLocation();
   if (saved) {
     return { lat: String(saved.lat), lon: String(saved.lon) };
   }
@@ -32,31 +33,45 @@ function initialCoords(): { lat: string; lon: string } {
 
 /**
  * Planetary Hours: sunrise-based diurnal/nocturnal table with current hour.
+ * Location syncs to the signed-in user profile when authenticated.
  */
 export default function PlanetaryHoursModule() {
+  const { location: authLocation, saveLocation, isAuthenticated } = useAuth();
   const nowInit = new Date();
-  const coords = initialCoords();
+  const coords = initialCoords(authLocation);
   const [latitude, setLatitude] = useState(coords.lat);
   const [longitude, setLongitude] = useState(coords.lon);
   const [dateStr, setDateStr] = useState(toDateInputValue(nowInit));
   const [timeStr, setTimeStr] = useState(toTimeInputValue(nowInit));
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
+  const [coordsTouched, setCoordsTouched] = useState(false);
 
   const lat = Number(latitude);
   const lon = Number(longitude);
 
+  // Apply account location once it hydrates if the user hasn't edited yet.
+  useEffect(() => {
+    if (coordsTouched || !authLocation) return;
+    setLatitude(String(authLocation.lat));
+    setLongitude(String(authLocation.lon));
+  }, [authLocation, coordsTouched]);
+
   useEffect(() => {
     if (
-      Number.isFinite(lat) &&
-      Number.isFinite(lon) &&
-      lat >= -90 &&
-      lat <= 90 &&
-      lon >= -180 &&
-      lon <= 180
+      !coordsTouched ||
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon) ||
+      lat < -90 ||
+      lat > 90 ||
+      lon < -180 ||
+      lon > 180
     ) {
-      savePlanetaryLocation(lat, lon);
+      return;
     }
-  }, [lat, lon]);
+    void saveLocation(lat, lon).catch(() => {
+      setGeoStatus('Saved locally; could not sync to account.');
+    });
+  }, [lat, lon, coordsTouched, saveLocation]);
 
   const referenceNow = useMemo(() => {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -80,10 +95,20 @@ export default function PlanetaryHoursModule() {
       (pos) => {
         const la = pos.coords.latitude;
         const lo = pos.coords.longitude;
+        setCoordsTouched(true);
         setLatitude(la.toFixed(4));
         setLongitude(lo.toFixed(4));
-        savePlanetaryLocation(la, lo);
-        setGeoStatus('Location applied.');
+        void saveLocation(la, lo)
+          .then(() => {
+            setGeoStatus(
+              isAuthenticated
+                ? 'Location applied and saved to your account.'
+                : 'Location applied (sign in to sync across devices).'
+            );
+          })
+          .catch(() => {
+            setGeoStatus('Location applied locally; account sync failed.');
+          });
       },
       () => {
         setGeoStatus('Unable to read location. Enter coordinates manually.');
@@ -110,7 +135,10 @@ export default function PlanetaryHoursModule() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Unequal hours from local sunrise to sunrise, ruled by the Chaldean
-          order. Calculations run entirely in your browser.
+          order. Calculations run in your browser
+          {isAuthenticated
+            ? '; location is saved to your account for Magical OS and journal sky tags.'
+            : '; sign in to save location to your account.'}
         </p>
       </header>
 
@@ -121,7 +149,10 @@ export default function PlanetaryHoursModule() {
             type="number"
             step="any"
             value={latitude}
-            onChange={(e) => setLatitude(e.target.value)}
+            onChange={(e) => {
+              setCoordsTouched(true);
+              setLatitude(e.target.value);
+            }}
             className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
           />
         </label>
@@ -131,7 +162,10 @@ export default function PlanetaryHoursModule() {
             type="number"
             step="any"
             value={longitude}
-            onChange={(e) => setLongitude(e.target.value)}
+            onChange={(e) => {
+              setCoordsTouched(true);
+              setLongitude(e.target.value);
+            }}
             className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
           />
         </label>

@@ -9,7 +9,6 @@ import {
   formatTime,
   type PlanetaryHoursChart,
 } from '../lib/planetaryHours';
-import { loadPlanetaryLocation } from '../lib/planetaryLocation';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
 
@@ -75,13 +74,14 @@ function TileLink({
  * journal/workings, and deep-links into live modules.
  */
 export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, location, saveLocation } = useAuth();
   const [now, setNow] = useState(() => new Date());
   const [dealt, setDealt] = useState<DealtCard | null>(null);
   const [deckStyle] = useState(() => loadDeckStyle());
   const [workings, setWorkings] = useState<JournalEntry[]>([]);
   const [workingsError, setWorkingsError] = useState<string | null>(null);
   const [workingsLoading, setWorkingsLoading] = useState(false);
+  const [geoStatus, setGeoStatus] = useState<string | null>(null);
 
   const refreshSky = useCallback(() => {
     setNow(new Date());
@@ -97,7 +97,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     };
   }, [refreshSky]);
 
-  const loc = loadPlanetaryLocation();
+  const loc = location;
   const sky = buildJournalSky(now, loc?.lat, loc?.lon);
   let chart: PlanetaryHoursChart | null = null;
   if (loc) {
@@ -107,6 +107,34 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const hourRemainingMs = chart?.currentHour
     ? chart.currentHour.end.getTime() - now.getTime()
     : null;
+
+  const requestGeo = () => {
+    setGeoStatus(null);
+    if (!navigator.geolocation) {
+      setGeoStatus('Geolocation is not available in this browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        void saveLocation(pos.coords.latitude, pos.coords.longitude)
+          .then(() => {
+            setGeoStatus(
+              isAuthenticated
+                ? 'Location saved to your account.'
+                : 'Location saved on this device. Sign in to sync.'
+            );
+            refreshSky();
+          })
+          .catch(() => {
+            setGeoStatus('Could not save location.');
+          });
+      },
+      () => {
+        setGeoStatus('Unable to read location.');
+      },
+      { enableHighAccuracy: false, timeout: 10000 }
+    );
+  };
 
   const loadWorkings = useCallback(async () => {
     if (!token) {
@@ -175,11 +203,20 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 Moon and planetary day / hour
               </p>
             </div>
-            <TileLink
-              label="Planetary Hours"
-              onClick={() => onNavigate('planetary')}
-              tone="gold"
-            />
+            <div className="flex flex-wrap gap-2">
+              {!loc && (
+                <TileLink
+                  label="Use my location"
+                  onClick={requestGeo}
+                  tone="bronze"
+                />
+              )}
+              <TileLink
+                label="Planetary Hours"
+                onClick={() => onNavigate('planetary')}
+                tone="gold"
+              />
+            </div>
           </div>
 
           <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -226,8 +263,20 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
 
           {!loc && (
             <p className="mt-3 text-xs text-ananael-muted">
-              Save a location in Planetary Hours to unlock the current planetary
-              hour.
+              Set a location (here or in Planetary Hours) for the current
+              planetary hour
+              {isAuthenticated
+                ? ' — it is saved to your account.'
+                : '. Sign in to sync location across devices.'}
+            </p>
+          )}
+          {geoStatus && (
+            <p className="mt-2 text-xs text-zinc-500">{geoStatus}</p>
+          )}
+          {loc && (
+            <p className="mt-3 text-[11px] text-ananael-muted">
+              Using {loc.lat.toFixed(4)}, {loc.lon.toFixed(4)}
+              {isAuthenticated ? ' (account)' : ' (this device)'}
             </p>
           )}
         </section>

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import User, { type IUser, type IUserLocation } from '../models/User';
+import { AuthRequest, protect } from '../middleware/auth';
 
 const router = Router();
 
@@ -12,6 +13,49 @@ const signToken = (userId: string): string => {
   }
   return jwt.sign({ id: userId }, secret, { expiresIn: '7d' });
 };
+
+function serializeLocation(
+  location: IUser['location']
+): IUserLocation | null {
+  if (
+    !location ||
+    typeof location.lat !== 'number' ||
+    typeof location.lon !== 'number'
+  ) {
+    return null;
+  }
+  return { lat: location.lat, lon: location.lon };
+}
+
+function publicUser(user: IUser) {
+  return {
+    _id: user._id.toString(),
+    username: user.username,
+    email: user.email,
+    location: serializeLocation(user.location),
+  };
+}
+
+function parseLocationBody(
+  body: Record<string, unknown>
+): { ok: true; location: IUserLocation } | { ok: false; message: string } {
+  const lat = Number(body.lat);
+  const lon = Number(body.lon);
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lon) ||
+    lat < -90 ||
+    lat > 90 ||
+    lon < -180 ||
+    lon > 180
+  ) {
+    return {
+      ok: false,
+      message: 'lat and lon must be valid numbers within range',
+    };
+  }
+  return { ok: true, location: { lat, lon } };
+}
 
 /**
  * POST /api/auth/register
@@ -51,11 +95,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).json({
       token,
-      user: {
-        _id: user._id.toString(),
-        username: user.username,
-        email: user.email,
-      },
+      user: publicUser(user),
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -99,16 +139,64 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     res.json({
       token,
-      user: {
-        _id: user._id.toString(),
-        username: user.username,
-        email: user.email,
-      },
+      user: publicUser(user),
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
   }
 });
+
+/**
+ * GET /api/auth/me
+ * Return the authenticated user (includes saved location).
+ */
+router.get('/me', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+    res.json({ user: publicUser(user) });
+  } catch (error) {
+    console.error('Auth me error:', error);
+    res.status(500).json({ message: 'Server error while loading profile' });
+  }
+});
+
+/**
+ * PUT /api/auth/location
+ * Body: { lat, lon } — persist coordinates for planetary hours / sky tags.
+ */
+router.put(
+  '/location',
+  protect,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const parsed = parseLocationBody(req.body as Record<string, unknown>);
+      if (!parsed.ok) {
+        res.status(400).json({ message: parsed.message });
+        return;
+      }
+
+      const user = await User.findByIdAndUpdate(
+        req.userId,
+        { location: parsed.location },
+        { new: true }
+      );
+
+      if (!user) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
+
+      res.json({ user: publicUser(user) });
+    } catch (error) {
+      console.error('Auth location error:', error);
+      res.status(500).json({ message: 'Server error while saving location' });
+    }
+  }
+);
 
 export default router;
