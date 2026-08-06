@@ -6,6 +6,7 @@ import PlanetaryHoursModule from './components/PlanetaryHoursModule';
 import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { MODULES, type ModuleId } from './components/Sidebar';
+import SolomonicCircleModule from './components/SolomonicCircleModule';
 import TarotModule from './components/TarotModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
@@ -14,7 +15,7 @@ import { useAuth } from './context/AuthContext';
 
 /**
  * App shell: fixed sidebar + main content area.
- * All roadmap modules are active (Phase 4b Ritual Space included).
+ * All roadmap modules are active (Phase 5 Solomonic Circles included).
  */
 export default function App() {
   const { isLoading } = useAuth();
@@ -54,6 +55,8 @@ export default function App() {
         return <TreeOfLifeModule onNavigate={navigateToModule} />;
       case 'ritual':
         return <RitualSpaceModule />;
+      case 'solomonic':
+        return <SolomonicCircleModule />;
       default:
         return null;
     }

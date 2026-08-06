@@ -2,7 +2,7 @@
 
 Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 
-**Priority:** calculation tools first → I Ching → Tree of Life + Ritual Space Planner.
+**Priority:** calculation tools first → I Ching → Tree of Life + Ritual Space Planner → Solomonic Circles.
 
 ## Status legend
 
@@ -23,6 +23,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | I Ching              | Active | 3            |
 | Tree of Life         | Active | 4a           |
 | Ritual Space Planner | Active | 4b           |
+| Solomonic Circles    | Active | 5            |
 
 ---
 
@@ -101,6 +102,33 @@ Ship in this order within the phase.
 - `POST/GET /api/ritual/layouts` for authenticated persistence; `PUT /api/ritual/layouts/:id` for edit/reload
 
 **Done when:** create / edit / save / reload a layout; Soon badge off (last Coming Soon cleared).
+
+---
+
+## Phase 5 — Solomonic Circles (magician’s circle) — Shipped
+
+Parametric SVG circle builder (same UX family as Ritual Space: preview, PNG/JSON export, auth save).
+
+- Tradition selector: **Goetia**, **Heptameron** (weekday name banks), **Generic** (blank editable rings)
+- Concentric rings with curved text, compass, optional hexagram/pentagram, inner square
+- All ring text user-editable after preset load; Goetia Latin ↔ Hebrew name toggle
+- `POST/GET /api/solomonic/circles`, `PUT /api/solomonic/circles/:id`
+
+**Done when:** tradition presets load and edit; SVG with ring text + directions; PNG/JSON export; signed-in save/edit/reload.
+
+---
+
+## Phase 6 — Solomonic Circles (Goetia conjuration) — Planned
+
+Same sidebar module (`solomonic`); deepen Phase 5 canvas:
+
+- Ars Goetia spirit catalog (static: number, name, rank, seal reference)
+- Triangle of Art geometry + placement relative to the circle
+- Seal/sigil slot for the selected spirit
+- Conjuration layout templates; optional deeper Heptameron day/hour coupling
+- Extend save schema with `spiritId`, triangle, and seal fields
+
+**Done when:** pick a spirit → circle + Triangle of Art + seal layout; save/reload includes spirit fields.
 
 ---
 

@@ -1,0 +1,289 @@
+import { Router, Response } from 'express';
+import SolomonicCircle, {
+  type TraditionId,
+} from '../models/SolomonicCircle';
+import { AuthRequest, protect } from '../middleware/auth';
+
+const router = Router();
+
+const TRADITIONS: TraditionId[] = ['goetia', 'heptameron', 'generic'];
+const WEEKDAYS = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+];
+
+interface SanitizedRing {
+  id: string;
+  label: string;
+  radius: number;
+  text: string;
+  script: 'latin' | 'hebrew';
+  clockwise: boolean;
+}
+
+interface SanitizedConfig {
+  tradition: TraditionId;
+  weekday: string;
+  rings: SanitizedRing[];
+  showCompass: boolean;
+  centerGlyph: 'none' | 'hexagram' | 'pentagram';
+  showInnerSquare: boolean;
+  useHebrew: boolean;
+}
+
+function sanitizeConfig(raw: unknown): SanitizedConfig | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const c = raw as Record<string, unknown>;
+
+  if (
+    typeof c.tradition !== 'string' ||
+    !TRADITIONS.includes(c.tradition as TraditionId)
+  ) {
+    return null;
+  }
+  const tradition = c.tradition as TraditionId;
+
+  const weekday =
+    typeof c.weekday === 'string' && WEEKDAYS.includes(c.weekday)
+      ? c.weekday
+      : 'sunday';
+
+  if (!Array.isArray(c.rings) || c.rings.length === 0 || c.rings.length > 8) {
+    return null;
+  }
+
+  const rings: SanitizedRing[] = [];
+  for (const entry of c.rings) {
+    if (!entry || typeof entry !== 'object') return null;
+    const e = entry as Record<string, unknown>;
+    if (typeof e.radius !== 'number' || !Number.isFinite(e.radius)) return null;
+    if (typeof e.text !== 'string') return null;
+    const script = e.script === 'hebrew' ? 'hebrew' : 'latin';
+    rings.push({
+      id:
+        typeof e.id === 'string' && e.id.trim()
+          ? e.id.trim().slice(0, 64)
+          : `ring-${rings.length}`,
+      label:
+        typeof e.label === 'string' && e.label.trim()
+          ? e.label.trim().slice(0, 64)
+          : 'Ring',
+      radius: Math.max(0.08, Math.min(1, e.radius)),
+      text: e.text.slice(0, 500),
+      script,
+      clockwise: e.clockwise !== false,
+    });
+  }
+
+  const centerGlyph =
+    c.centerGlyph === 'hexagram' || c.centerGlyph === 'pentagram'
+      ? c.centerGlyph
+      : 'none';
+
+  return {
+    tradition,
+    weekday,
+    rings,
+    showCompass: c.showCompass !== false,
+    centerGlyph,
+    showInnerSquare: Boolean(c.showInnerSquare),
+    useHebrew: Boolean(c.useHebrew),
+  };
+}
+
+function circlePayload(circle: {
+  _id: unknown;
+  userId: unknown;
+  date: Date;
+  name: string;
+  tradition: TraditionId;
+  config: Record<string, unknown>;
+  notes?: string;
+}) {
+  return {
+    _id: circle._id,
+    userId: circle.userId,
+    date: circle.date,
+    name: circle.name,
+    tradition: circle.tradition,
+    config: circle.config,
+    notes: circle.notes ?? '',
+  };
+}
+
+/**
+ * POST /api/solomonic/circles
+ * Requires JWT. Creates a new Solomonic circle layout.
+ * Body: { name, tradition, config, notes? }
+ */
+router.post('/circles', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { name, tradition, config: rawConfig, notes } = req.body as {
+      name?: string;
+      tradition?: string;
+      config?: unknown;
+      notes?: string;
+    };
+
+    if (typeof name !== 'string' || !name.trim()) {
+      res.status(400).json({ message: 'name is required' });
+      return;
+    }
+    if (name.trim().length > 100) {
+      res.status(400).json({ message: 'name must be at most 100 characters' });
+      return;
+    }
+
+    const config = sanitizeConfig(rawConfig);
+    if (!config) {
+      res.status(400).json({
+        message:
+          'config must include tradition and 1–8 rings with radius and text',
+      });
+      return;
+    }
+
+    const trad =
+      typeof tradition === 'string' && TRADITIONS.includes(tradition as TraditionId)
+        ? (tradition as TraditionId)
+        : config.tradition;
+
+    if (notes !== undefined && typeof notes !== 'string') {
+      res.status(400).json({ message: 'notes must be a string' });
+      return;
+    }
+    if (typeof notes === 'string' && notes.length > 5000) {
+      res.status(400).json({ message: 'notes must be at most 5000 characters' });
+      return;
+    }
+
+    const circle = await SolomonicCircle.create({
+      userId: req.userId,
+      date: new Date(),
+      name: name.trim(),
+      tradition: trad,
+      config,
+      notes: typeof notes === 'string' ? notes.trim() : '',
+    });
+
+    res.status(201).json({
+      message: 'Circle saved',
+      circle: circlePayload(circle),
+    });
+  } catch (error) {
+    console.error('Solomonic circle save error:', error);
+    res.status(500).json({ message: 'Server error while saving circle' });
+  }
+});
+
+/**
+ * GET /api/solomonic/circles
+ * Requires JWT. Returns the authenticated user's recent circles (newest first).
+ */
+router.get('/circles', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const circles = await SolomonicCircle.find({ userId: req.userId })
+      .sort({ date: -1 })
+      .limit(20)
+      .lean();
+
+    res.json({
+      circles: circles.map((c) => ({
+        _id: c._id,
+        date: c.date,
+        name: c.name,
+        tradition: c.tradition,
+        config: c.config,
+        notes: c.notes ?? '',
+      })),
+    });
+  } catch (error) {
+    console.error('Solomonic circles history error:', error);
+    res.status(500).json({ message: 'Server error while loading circles' });
+  }
+});
+
+/**
+ * PUT /api/solomonic/circles/:id
+ * Requires JWT. Updates an existing circle owned by the user.
+ * Body: { name, tradition, config, notes? }
+ */
+router.put(
+  '/circles/:id',
+  protect,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { name, tradition, config: rawConfig, notes } = req.body as {
+        name?: string;
+        tradition?: string;
+        config?: unknown;
+        notes?: string;
+      };
+
+      if (typeof name !== 'string' || !name.trim()) {
+        res.status(400).json({ message: 'name is required' });
+        return;
+      }
+      if (name.trim().length > 100) {
+        res.status(400).json({ message: 'name must be at most 100 characters' });
+        return;
+      }
+
+      const config = sanitizeConfig(rawConfig);
+      if (!config) {
+        res.status(400).json({
+          message:
+            'config must include tradition and 1–8 rings with radius and text',
+        });
+        return;
+      }
+
+      const trad =
+        typeof tradition === 'string' &&
+        TRADITIONS.includes(tradition as TraditionId)
+          ? (tradition as TraditionId)
+          : config.tradition;
+
+      if (notes !== undefined && typeof notes !== 'string') {
+        res.status(400).json({ message: 'notes must be a string' });
+        return;
+      }
+      if (typeof notes === 'string' && notes.length > 5000) {
+        res.status(400).json({ message: 'notes must be at most 5000 characters' });
+        return;
+      }
+
+      const circle = await SolomonicCircle.findOne({
+        _id: id,
+        userId: req.userId,
+      });
+      if (!circle) {
+        res.status(404).json({ message: 'Circle not found' });
+        return;
+      }
+
+      circle.name = name.trim();
+      circle.tradition = trad;
+      circle.config = config as unknown as Record<string, unknown>;
+      circle.notes = typeof notes === 'string' ? notes.trim() : '';
+      circle.date = new Date();
+      await circle.save();
+
+      res.json({
+        message: 'Circle updated',
+        circle: circlePayload(circle),
+      });
+    } catch (error) {
+      console.error('Solomonic circle update error:', error);
+      res.status(500).json({ message: 'Server error while updating circle' });
+    }
+  }
+);
+
+export default router;

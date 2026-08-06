@@ -7,7 +7,8 @@ export type ModuleId =
   | 'gematria'
   | 'tree'
   | 'translator'
-  | 'ritual';
+  | 'ritual'
+  | 'solomonic';
 
 export interface ModuleDef {
   id: ModuleId;
@@ -24,6 +25,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'iching', label: 'I Ching' },
   { id: 'tree', label: 'Tree of Life' },
   { id: 'ritual', label: 'Ritual Space Planner' },
+  { id: 'solomonic', label: 'Solomonic Circles' },
 ];
 
 interface SidebarProps {
