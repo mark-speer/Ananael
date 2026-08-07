@@ -240,10 +240,10 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
               setSaveStatus(null);
             }}
             className={[
-              'rounded-md border px-4 py-3 text-left transition',
+              'w-full rounded-md border px-4 py-3 text-left transition sm:w-auto',
               spreadType === spread.id
                 ? 'border-ananael-violet bg-ananael-violet/20 shadow-glow'
-                : 'border-ananael-border bg-ananael-panel/40 hover:border-ananael-gold/40',
+                : 'border-ananael-border bg-ananael-panel hover:border-ananael-gold/40',
             ].join(' ')}
           >
             <p className="text-sm font-medium text-zinc-100">{spread.label}</p>
@@ -260,7 +260,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
             onChange={(e) =>
               handleDeckStyleChange(e.target.value as DeckStyle)
             }
-            className="mt-1 block rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            className="mt-1 block w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet sm:w-auto"
           >
             <option value="artless">Artless</option>
             <option value="rider-waite-smith">Rider–Waite–Smith</option>
@@ -293,7 +293,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
             onFlip={flipCard}
           />
         ) : (
-          <div className="flex flex-wrap justify-center gap-6 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-6">
+          <div className="flex flex-wrap justify-center gap-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:gap-6 sm:p-6">
             {dealt.map((card, index) => (
               <TarotCard
                 key={`${card.card.id}-${card.position}`}
@@ -307,7 +307,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
 
       {/* Deterministic reading summary (guests + signed-in) */}
       {readingSummary && (
-        <section className="max-w-3xl space-y-4 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
+        <section className="max-w-3xl space-y-4 rounded-lg border border-ananael-border/50 bg-ananael-panel p-4">
           <h2 className="font-display text-lg text-ananael-gold">
             Reading summary
           </h2>
@@ -389,7 +389,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
 
       {/* Journal sync */}
       {isAuthenticated && dealt.length > 0 && (
-        <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4">
+        <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel p-4">
           <label className="block text-sm text-ananael-muted">
             Reading notes
             <textarea
@@ -443,7 +443,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
 
       {/* Signed-in: aggregate patterns across saved pulls */}
       {isAuthenticated && historyLoaded && (
-        <section className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
+        <section className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-display text-lg text-ananael-gold">
               Your patterns
@@ -594,11 +594,11 @@ function CelticCrossBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-6">
-        <div className="mx-auto flex min-w-[700px] items-center justify-center gap-10">
+      <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-6">
+        <div className="mx-auto flex flex-col items-center justify-center gap-6 md:min-w-[700px] md:flex-row md:gap-10">
           {/* Cross */}
           <div
-            className="grid grid-cols-3 grid-rows-3 place-items-center gap-x-3 gap-y-1"
+            className="grid grid-cols-3 grid-rows-3 place-items-center gap-x-2 gap-y-1 sm:gap-x-3"
             style={{
               gridTemplateAreas: `
                 ". crown ."
@@ -667,7 +667,7 @@ function CelticCrossBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
           </div>
 
           {/* Staff: Outcome on top, Self on bottom */}
-          <div className="flex flex-col-reverse gap-3 border-l border-ananael-border/40 pl-8">
+          <div className="flex flex-col-reverse gap-3 border-t border-ananael-border/40 pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
             {CELTIC_STAFF_INDICES.map((index) => slotCard(index))}
           </div>
         </div>
@@ -675,7 +675,7 @@ function CelticCrossBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
 
       {/* Meanings listed below so the cross stays readable */}
       {flipped.length > 0 && (
-        <ul className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
+        <ul className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel p-4">
           {flipped.map((d) => {
             const meaning = d.isReversed ? d.card.reversed : d.card.upright;
             return (

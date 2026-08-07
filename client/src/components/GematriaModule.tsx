@@ -110,7 +110,7 @@ export default function GematriaModule({ initialText }: GematriaModuleProps) {
           <p className="text-xs text-ananael-muted">{activeMeta.description}</p>
         </div>
 
-        <div className="flex flex-col justify-center rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-6 text-center">
+        <div className="flex flex-col justify-center rounded-xl border border-ananael-border/50 bg-ananael-surface p-6 text-center">
           <p className="text-xs uppercase tracking-[0.2em] text-ananael-muted">
             Total
           </p>
@@ -127,7 +127,7 @@ export default function GematriaModule({ initialText }: GematriaModuleProps) {
       </div>
 
       {text.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface/40">
+        <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
@@ -160,7 +160,7 @@ export default function GematriaModule({ initialText }: GematriaModuleProps) {
       )}
 
       {isAuthenticated && text.trim().length > 0 && (
-        <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4">
+        <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel p-4">
           <label className="block text-sm text-ananael-muted">
             Notes
             <textarea

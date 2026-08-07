@@ -20,7 +20,7 @@ export default function ModuleShell({ title, description }: ModuleShellProps) {
         <p className="max-w-2xl text-sm text-ananael-muted">{description}</p>
       </header>
 
-      <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-8">
+      <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-8">
         <p className="text-sm text-zinc-400">
           This chamber is prepared but not yet furnished. Check the roadmap for when
           full workings arrive.

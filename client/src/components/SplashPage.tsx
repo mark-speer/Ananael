@@ -66,7 +66,7 @@ export default function SplashPage({ onEnterGuest }: SplashPageProps) {
 
           <div
             id="splash-auth"
-            className="splash-fade-up splash-fade-up-delay w-full rounded-lg border border-ananael-border/80 bg-ananael-panel/90 p-5 shadow-glow backdrop-blur-sm sm:p-6"
+            className="splash-fade-up splash-fade-up-delay w-full rounded-lg border border-ananael-border/80 bg-ananael-panel p-5 shadow-glow sm:p-6"
           >
             <h2 className="font-display text-lg text-ananael-gold">
               Sign in or create an account

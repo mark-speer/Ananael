@@ -41,7 +41,7 @@ function GlyphKindSelect({
       value={value}
       aria-label={ariaLabel}
       onChange={(e) => onChange(e.target.value as CenterGlyph)}
-      className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+      className="w-full min-w-0 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet sm:w-auto"
     >
       {CENTER_GLYPH_GROUPS.map((group) =>
         group.kinds.length === 1 && group.kinds[0] === 'none' ? (
@@ -170,7 +170,7 @@ export default function CircleLayoutModal({
             <select
               value={config.weekday}
               onChange={(e) => onWeekdayChange(e.target.value as Weekday)}
-              className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+              className="w-full min-w-0 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
             >
               {WEEKDAYS.map((d) => (
                 <option key={d} value={d}>
@@ -184,8 +184,8 @@ export default function CircleLayoutModal({
             <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
               Center glyph
             </h3>
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-2 text-xs text-ananael-muted">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <label className="flex min-w-0 flex-col gap-1.5 text-xs text-ananael-muted sm:flex-row sm:items-center sm:gap-2">
                 Kind
                 <GlyphKindSelect
                   value={centerKind}
@@ -230,9 +230,9 @@ export default function CircleLayoutModal({
                 return (
                   <div
                     key={dir}
-                    className="flex flex-wrap items-center gap-2 rounded-md border border-ananael-border/30 bg-ananael-bg/40 px-3 py-2"
+                    className="flex flex-col gap-2 rounded-md border border-ananael-border/30 bg-ananael-bg px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center"
                   >
-                    <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                    <label className="flex min-w-0 flex-col gap-1.5 text-xs text-ananael-muted sm:flex-row sm:items-center sm:gap-2">
                       {CARDINAL_DIR_LABELS[dir]}
                       <GlyphKindSelect
                         value={spec.kind}

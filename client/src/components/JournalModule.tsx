@@ -330,11 +330,11 @@ export default function JournalModule({
       </header>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
           onClick={() => setTypeFilter('all')}
-          className={`rounded-md border px-3 py-1.5 text-xs ${
+          className={`rounded-md border px-2.5 py-1.5 text-xs ${
             typeFilter === 'all'
               ? 'border-ananael-gold text-ananael-gold'
               : 'border-ananael-border text-zinc-400'
@@ -347,7 +347,7 @@ export default function JournalModule({
             key={t}
             type="button"
             onClick={() => setTypeFilter(t)}
-            className={`rounded-md border px-3 py-1.5 text-xs ${
+            className={`rounded-md border px-2.5 py-1.5 text-xs ${
               typeFilter === t
                 ? 'border-ananael-gold text-ananael-gold'
                 : 'border-ananael-border text-zinc-400'
@@ -380,7 +380,7 @@ export default function JournalModule({
       </div>
 
       {/* Editor */}
-      <section className="space-y-4 border border-ananael-border/50 bg-ananael-surface/40 p-4 sm:p-5">
+      <section className="space-y-4 border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-display text-xl text-ananael-gold">
             {editingId ? 'Edit entry' : 'New entry'}
@@ -419,7 +419,7 @@ export default function JournalModule({
               type="datetime-local"
               value={occurredAt}
               onChange={(e) => setOccurredAt(e.target.value)}
-              className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              className="mt-1 w-full min-w-0 max-w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
             />
           </label>
           {entryType === 'working' && (

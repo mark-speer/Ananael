@@ -101,7 +101,7 @@ function HexagramPanel({
   changingLines?: number[];
 }) {
   return (
-    <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+    <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
       <p className="text-xs uppercase tracking-[0.2em] text-ananael-muted">
         {title}
       </p>
@@ -253,7 +253,7 @@ export default function IChingModule({ onNavigate }: IChingModuleProps) {
               'rounded-md border px-4 py-3 text-left transition',
               method === m.id
                 ? 'border-ananael-violet bg-ananael-violet/20 shadow-glow'
-                : 'border-ananael-border bg-ananael-panel/40 hover:border-ananael-gold/40',
+                : 'border-ananael-border bg-ananael-panel hover:border-ananael-gold/40',
             ].join(' ')}
           >
             <p className="text-sm font-medium text-zinc-100">{m.label}</p>
@@ -274,7 +274,7 @@ export default function IChingModule({ onNavigate }: IChingModuleProps) {
 
       {result && primary && (
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface/40">
+          <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
@@ -334,7 +334,7 @@ export default function IChingModule({ onNavigate }: IChingModuleProps) {
       )}
 
       {isAuthenticated && result && (
-        <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4">
+        <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel p-4">
           <label className="block text-sm text-ananael-muted">
             Cast notes
             <textarea

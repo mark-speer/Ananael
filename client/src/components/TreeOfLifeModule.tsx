@@ -153,10 +153,10 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-3 sm:p-5">
+        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-5">
           <svg
             viewBox={`0 0 ${TREE_VIEWBOX.width} ${TREE_VIEWBOX.height}`}
-            className="mx-auto h-auto w-full max-w-md"
+            className="mx-auto h-auto w-full max-w-none lg:max-w-lg"
             role="img"
             aria-label="Tree of Life diagram with ten sephiroth and twenty-two paths"
           >
@@ -235,16 +235,16 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
                     y={s.center.y - 4}
                     textAnchor="middle"
                     className="pointer-events-none select-none fill-ananael-gold font-display"
-                    style={{ fontSize: 11 }}
+                    style={{ fontSize: 12 }}
                   >
                     {s.id}
                   </text>
                   <text
                     x={s.center.x}
-                    y={s.center.y + 10}
+                    y={s.center.y + 11}
                     textAnchor="middle"
                     className="pointer-events-none select-none fill-zinc-300"
-                    style={{ fontSize: 8 }}
+                    style={{ fontSize: 9 }}
                   >
                     {s.name}
                   </text>
@@ -316,7 +316,7 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
           )}
 
           {!selection && (
-            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
               <p className="text-sm text-ananael-muted">
                 Select a sephira or path on the glyph.
               </p>
@@ -324,7 +324,7 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
           )}
 
           {isAuthenticated && selection && (
-            <div className="space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4">
+            <div className="space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel p-4">
               <label className="block text-sm text-ananael-muted">
                 Study notes for{' '}
                 <span className="text-zinc-300">
@@ -357,7 +357,7 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
       </div>
 
       {isAuthenticated && (
-        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
           <h2 className="font-display text-lg text-ananael-gold">
             Recent study notes
           </h2>
@@ -429,7 +429,7 @@ function DetailPanel({
   extra?: ReactNode;
 }) {
   return (
-    <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+    <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
       <p className="text-xs uppercase tracking-wider text-ananael-muted">
         {eyebrow}
       </p>

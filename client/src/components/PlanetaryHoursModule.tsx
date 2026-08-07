@@ -175,7 +175,7 @@ export default function PlanetaryHoursModule() {
             type="date"
             value={dateStr}
             onChange={(e) => setDateStr(e.target.value)}
-            className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            className="mt-1 w-full min-w-0 max-w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
           />
         </label>
         <label className="block text-sm text-ananael-muted">
@@ -184,7 +184,7 @@ export default function PlanetaryHoursModule() {
             type="time"
             value={timeStr}
             onChange={(e) => setTimeStr(e.target.value)}
-            className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            className="mt-1 w-full min-w-0 max-w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
           />
         </label>
       </div>
@@ -209,7 +209,7 @@ export default function PlanetaryHoursModule() {
 
       {chart && (
         <>
-          <div className="flex flex-wrap gap-6 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 px-6 py-4 text-sm">
+          <div className="flex flex-wrap gap-4 rounded-xl border border-ananael-border/50 bg-ananael-surface px-3 py-4 text-sm sm:gap-6 sm:px-6">
             <div>
               <p className="text-xs uppercase tracking-wider text-ananael-muted">
                 Day ruler
@@ -242,7 +242,7 @@ export default function PlanetaryHoursModule() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface/40">
+          <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">

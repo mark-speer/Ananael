@@ -55,7 +55,7 @@ export default function CorrespondencesModule({
         </p>
       </header>
 
-      <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-4 sm:p-5">
+      <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
         <label className="block">
           <span className="sr-only">Search correspondences</span>
           <input
@@ -70,7 +70,11 @@ export default function CorrespondencesModule({
           />
         </label>
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Search facets">
+        <div
+          className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto px-1 pb-1"
+          role="group"
+          aria-label="Search facets"
+        >
           {CORRESPONDENCE_FACETS.map((f) => {
             const active = facet === f;
             return (
@@ -79,7 +83,7 @@ export default function CorrespondencesModule({
                 type="button"
                 onClick={() => toggleFacet(f)}
                 className={[
-                  'rounded-md border px-2.5 py-1 text-xs transition',
+                  'shrink-0 rounded-md border px-2.5 py-1 text-xs transition',
                   active
                     ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
                     : 'border-ananael-border/60 text-ananael-muted hover:border-ananael-violet/50 hover:text-zinc-200',
@@ -94,7 +98,7 @@ export default function CorrespondencesModule({
 
       {result.cluster && (
         <section
-          className="rounded-xl border border-ananael-gold/30 bg-ananael-gold/5 p-5"
+          className="rounded-xl border border-ananael-gold/30 bg-ananael-panel p-5"
           aria-label={`${result.cluster.label} correspondences`}
         >
           <p className="text-xs uppercase tracking-wider text-ananael-muted">
@@ -123,7 +127,7 @@ export default function CorrespondencesModule({
             {result.matches.length === 1 ? '' : 's'}
             {facet ? ` · ${FACET_LABELS[facet]}` : ''}
           </p>
-          <ul className="max-h-[32rem] space-y-1 overflow-y-auto rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-2">
+          <ul className="max-h-[50vh] space-y-1 overflow-y-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-2 sm:max-h-[32rem]">
             {result.matches.length === 0 && (
               <li className="px-3 py-4 text-sm text-ananael-muted">
                 No correspondences match this search.
@@ -166,7 +170,7 @@ export default function CorrespondencesModule({
           {selected ? (
             <KeyDetailPanel keyData={selected} onNavigate={onNavigate} />
           ) : (
-            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
               <p className="text-sm text-ananael-muted">
                 Select a key to view its full correspondences.
               </p>
@@ -235,7 +239,7 @@ function KeyDetailPanel({
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+    <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
       <div>
         <p className="text-xs uppercase tracking-wider text-ananael-muted">
           Key {keyData.key}

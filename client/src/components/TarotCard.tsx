@@ -46,7 +46,9 @@ export default function TarotCard({
       : undefined;
   const compact = size === 'compact';
   const cardHeight = compact ? 'h-[170px]' : 'h-[220px]';
-  const cardWidth = compact ? 'w-[110px]' : 'w-[140px] sm:w-[160px]';
+  const cardWidth = compact
+    ? 'w-[110px]'
+    : 'w-[120px] sm:w-[140px] md:w-[160px]';
 
   const faces = (
     <div

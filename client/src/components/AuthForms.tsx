@@ -104,7 +104,7 @@ export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
               minLength={3}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              className="rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet w-full"
             />
           </label>
         )}
@@ -115,7 +115,7 @@ export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            className="rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet w-full"
           />
         </label>
         <label className="flex flex-col gap-1 text-xs text-ananael-muted">
@@ -126,7 +126,7 @@ export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            className="rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet w-full"
           />
         </label>
         <button

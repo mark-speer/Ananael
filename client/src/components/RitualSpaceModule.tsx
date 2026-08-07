@@ -462,7 +462,7 @@ export default function RitualSpaceModule() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_minmax(240px,280px)]">
         {/* Canvas */}
-        <div className="overflow-hidden rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-2 sm:p-4">
+        <div className="overflow-hidden rounded-xl border border-ananael-border/50 bg-ananael-surface p-2 sm:p-4">
           <svg
             ref={svgRef}
             viewBox={SVG_VIEWBOX}
@@ -472,6 +472,11 @@ export default function RitualSpaceModule() {
             onClick={onCanvasClick}
             style={{ cursor: placeTool ? 'crosshair' : 'default' }}
           >
+            <rect
+              width={GRID_WIDTH}
+              height={GRID_HEIGHT}
+              fill="#0c0a12"
+            />
             {/* Grid lines */}
             <g stroke="#2a2438" strokeWidth={0.5}>
               {Array.from({ length: GRID_COLS + 1 }, (_, i) => (
@@ -576,7 +581,7 @@ export default function RitualSpaceModule() {
 
         {/* Side panel */}
         <div className="space-y-4">
-          <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-4">
+          <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4">
             <p className="text-xs uppercase tracking-wider text-ananael-muted">
               Export
             </p>
@@ -603,7 +608,7 @@ export default function RitualSpaceModule() {
           </div>
 
           {isAuthenticated ? (
-            <div className="space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4">
+            <div className="space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel p-4">
               <label className="block text-sm text-ananael-muted">
                 Layout name
                 <input
@@ -656,7 +661,7 @@ export default function RitualSpaceModule() {
               )}
             </div>
           ) : (
-            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-4">
+            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-4">
               <p className="text-sm text-ananael-muted">
                 Sign in to save and reload layouts on your profile. Export works
                 without an account.
@@ -667,7 +672,7 @@ export default function RitualSpaceModule() {
       </div>
 
       {isAuthenticated && (
-        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-5">
+        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
           <h2 className="font-display text-lg text-ananael-gold">
             Saved layouts
           </h2>
@@ -686,7 +691,7 @@ export default function RitualSpaceModule() {
                 return (
                   <li
                     key={layout._id}
-                    className="flex items-start justify-between gap-3 border-b border-ananael-border/30 pb-3 last:border-0 last:pb-0"
+                    className="flex min-w-0 flex-wrap items-start justify-between gap-3 border-b border-ananael-border/30 pb-3 last:border-0 last:pb-0"
                   >
                     <button
                       type="button"

@@ -37,7 +37,7 @@ function formatRemaining(ms: number): string {
 
 function tileClassName(extra = ''): string {
   return [
-    'rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4',
+    'rounded-lg border border-ananael-border/70 bg-ananael-panel p-4',
     extra,
   ]
     .filter(Boolean)
@@ -408,7 +408,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                   <button
                     type="button"
                     onClick={() => openJournal('working')}
-                    className="flex w-full items-center justify-between gap-2 rounded-md border border-ananael-border/50 bg-ananael-bg/40 px-3 py-2 text-left text-sm transition hover:border-ananael-violet/50"
+                    className="flex w-full items-center justify-between gap-2 rounded-md border border-ananael-border/50 bg-ananael-bg px-3 py-2 text-left text-sm transition hover:border-ananael-violet/50"
                   >
                     <span className="truncate text-zinc-200">
                       {entry.title?.trim() || 'Untitled working'}

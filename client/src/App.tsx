@@ -99,39 +99,39 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-ananael-bg">
       <div className="sticky top-0 hidden h-screen md:block">
         <Sidebar activeModule={activeModule} onSelect={navigateToModule} />
       </div>
 
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <div className="border-b border-ananael-border/60 bg-ananael-surface px-4 py-3 md:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-display text-lg text-ananael-gold">Ananael</p>
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-              <label className="flex min-w-0 items-center gap-2 text-xs text-ananael-muted">
-                <span className="sr-only">Module</span>
-                <select
-                  value={activeModule}
-                  onChange={(e) =>
-                    navigateToModule(e.target.value as ModuleId)
-                  }
-                  className="max-w-[10rem] truncate rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                >
-                  {MODULES.map((mod) => (
-                    <option key={mod.id} value={mod.id}>
-                      {mod.label}
-                      {mod.comingSoon ? ' (Soon)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-display text-lg text-ananael-gold">Ananael</p>
               <AccountMenu className="max-w-[9rem] shrink-0" />
             </div>
+            <label className="block text-xs text-ananael-muted">
+              <span className="sr-only">Module</span>
+              <select
+                value={activeModule}
+                onChange={(e) =>
+                  navigateToModule(e.target.value as ModuleId)
+                }
+                className="w-full rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+              >
+                {MODULES.map((mod) => (
+                  <option key={mod.id} value={mod.id}>
+                    {mod.label}
+                    {mod.comingSoon ? ' (Soon)' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 lg:px-10">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-6">{renderModule()}</div>
         </main>
       </div>

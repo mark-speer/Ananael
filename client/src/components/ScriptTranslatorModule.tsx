@@ -48,8 +48,8 @@ export default function ScriptTranslatorModule() {
         </p>
       </header>
 
-      <div className="flex flex-wrap items-end gap-4">
-        <label className="block text-sm text-ananael-muted">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+        <label className="block min-w-0 flex-1 text-sm text-ananael-muted sm:flex-none">
           From
           <select
             value={source}
@@ -57,7 +57,7 @@ export default function ScriptTranslatorModule() {
               setSource(e.target.value as ScriptId);
               setCopyStatus(null);
             }}
-            className="mt-1 block min-w-[10rem] rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            className="mt-1 block w-full min-w-0 rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet sm:w-auto sm:min-w-[10rem]"
           >
             {SCRIPTS.map((s) => (
               <option key={s.id} value={s.id}>
@@ -70,13 +70,13 @@ export default function ScriptTranslatorModule() {
         <button
           type="button"
           onClick={swap}
-          className="rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-ananael-violet hover:text-ananael-gold"
+          className="self-start rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-ananael-violet hover:text-ananael-gold sm:self-auto"
           aria-label="Swap scripts"
         >
           ⇄ Swap
         </button>
 
-        <label className="block text-sm text-ananael-muted">
+        <label className="block min-w-0 flex-1 text-sm text-ananael-muted sm:flex-none">
           To
           <select
             value={target}
@@ -84,7 +84,7 @@ export default function ScriptTranslatorModule() {
               setTarget(e.target.value as ScriptId);
               setCopyStatus(null);
             }}
-            className="mt-1 block min-w-[10rem] rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            className="mt-1 block w-full min-w-0 rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet sm:w-auto sm:min-w-[10rem]"
           >
             {SCRIPTS.map((s) => (
               <option key={s.id} value={s.id}>
@@ -124,7 +124,7 @@ export default function ScriptTranslatorModule() {
             </button>
           </div>
           <div
-            className="min-h-[12rem] whitespace-pre-wrap rounded-md border border-ananael-border/50 bg-ananael-surface/40 px-3 py-2 text-sm text-zinc-100"
+            className="min-h-[12rem] whitespace-pre-wrap rounded-md border border-ananael-border/50 bg-ananael-surface px-3 py-2 text-sm text-zinc-100"
             dir="auto"
           >
             {result.output || (

@@ -393,6 +393,12 @@ export default function SolomonicCircleModule() {
     layout.showTriangle
       ? conjurationViewBox(layout.triangleBearing ?? DEFAULT_TRIANGLE_BEARING)
       : SVG_VIEWBOX;
+  const viewBoxParts = viewBox.split(/\s+/).map(Number) as [
+    number,
+    number,
+    number,
+    number,
+  ];
 
   const filteredSpirits = GOETIA_SPIRITS.filter((s) => {
     if (!spiritFilter.trim()) return true;
@@ -452,10 +458,10 @@ export default function SolomonicCircleModule() {
         <button
           type="button"
           onClick={() => setLayoutModalOpen(true)}
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+          className="max-w-full rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
         >
           Weekday & Glyphs
-          <span className="ml-1.5 text-ananael-muted">
+          <span className="ml-1.5 inline-block max-w-[12rem] truncate align-bottom text-ananael-muted sm:max-w-[16rem]">
             · {WEEKDAY_LABELS[config.weekday]} ·{' '}
             {CENTER_GLYPH_LABELS[config.centerGlyph.kind]}
           </span>
@@ -522,46 +528,48 @@ export default function SolomonicCircleModule() {
             >
               Seal {config.showSeal ? 'On' : 'Off'}
             </button>
-            <label className="flex items-center gap-2 text-xs text-ananael-muted">
-              Bearing
-              <input
-                type="number"
-                min={0}
-                max={359}
-                step={1}
-                value={Math.round(config.triangleBearing)}
-                disabled={!config.showTriangle}
-                onChange={(e) => {
-                  const n = Number(e.target.value);
-                  const deg = Number.isFinite(n)
-                    ? ((n % 360) + 360) % 360
-                    : DEFAULT_TRIANGLE_BEARING;
-                  updateConfig({ triangleBearing: deg });
-                }}
-                className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40"
-              />
-              °
-            </label>
-            <label className="flex items-center gap-2 text-xs text-ananael-muted">
-              Rotate
-              <input
-                type="number"
-                min={0}
-                max={359}
-                step={1}
-                value={Math.round(config.triangleRotationDeg ?? 0)}
-                disabled={!config.showTriangle}
-                onChange={(e) => {
-                  const n = Number(e.target.value);
-                  const deg = Number.isFinite(n)
-                    ? ((n % 360) + 360) % 360
-                    : DEFAULT_TRIANGLE_ROTATION;
-                  updateConfig({ triangleRotationDeg: deg });
-                }}
-                className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40"
-              />
-              °
-            </label>
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
+              <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                Bearing
+                <input
+                  type="number"
+                  min={0}
+                  max={359}
+                  step={1}
+                  value={Math.round(config.triangleBearing)}
+                  disabled={!config.showTriangle}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    const deg = Number.isFinite(n)
+                      ? ((n % 360) + 360) % 360
+                      : DEFAULT_TRIANGLE_BEARING;
+                    updateConfig({ triangleBearing: deg });
+                  }}
+                  className="min-h-10 w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40 sm:min-h-0"
+                />
+                °
+              </label>
+              <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                Rotate
+                <input
+                  type="number"
+                  min={0}
+                  max={359}
+                  step={1}
+                  value={Math.round(config.triangleRotationDeg ?? 0)}
+                  disabled={!config.showTriangle}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    const deg = Number.isFinite(n)
+                      ? ((n % 360) + 360) % 360
+                      : DEFAULT_TRIANGLE_ROTATION;
+                    updateConfig({ triangleRotationDeg: deg });
+                  }}
+                  className="min-h-10 w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet disabled:opacity-40 sm:min-h-0"
+                />
+                °
+              </label>
+            </div>
           </>
         )}
         <button
@@ -575,8 +583,8 @@ export default function SolomonicCircleModule() {
 
       {/* Spirit picker (Goetia) */}
       {config.tradition === 'goetia' && (
-        <div className="space-y-2 rounded-xl border border-ananael-border/40 bg-ananael-surface/30 p-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-2 rounded-xl border border-ananael-border/40 bg-ananael-surface p-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             <span className="text-xs uppercase tracking-wider text-ananael-muted">
               Spirit
             </span>
@@ -585,12 +593,12 @@ export default function SolomonicCircleModule() {
               value={spiritFilter}
               onChange={(e) => setSpiritFilter(e.target.value)}
               placeholder="Filter by name, number, rank…"
-              className="min-w-[12rem] flex-1 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+              className="w-full min-w-0 flex-1 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
             />
             <select
               value={config.spiritId ?? ''}
               onChange={(e) => onSpiritSelect(e.target.value)}
-              className="min-w-[14rem] rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+              className="w-full min-w-0 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet sm:w-auto sm:min-w-[14rem]"
             >
               <option value="">Circle only (no spirit)</option>
               {spiritOptions.map((s) => (
@@ -611,7 +619,7 @@ export default function SolomonicCircleModule() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_minmax(260px,300px)]">
         {/* Canvas */}
-        <div className="overflow-hidden rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-2 sm:p-4">
+        <div className="overflow-hidden rounded-xl border border-ananael-border/50 bg-ananael-surface p-2 sm:p-4">
           <svg
             ref={svgRef}
             viewBox={viewBox}
@@ -623,6 +631,13 @@ export default function SolomonicCircleModule() {
                 : 'Solomonic magic circle'
             }
           >
+            <rect
+              x={viewBoxParts[0]}
+              y={viewBoxParts[1]}
+              width={viewBoxParts[2]}
+              height={viewBoxParts[3]}
+              fill="#0c0a12"
+            />
             <defs>
               {layout.rings.map((r) => (
                 <path
