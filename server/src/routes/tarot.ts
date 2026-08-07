@@ -13,15 +13,25 @@ const SPREAD_LABELS: Record<SpreadType, string> = {
   celtic: 'Celtic Cross',
 };
 
+const SUMMARY_MAX_LEN = 8000;
+
 /**
  * POST /api/tarot/save
  * Requires JWT. Saves a reading as a Magical Journal divination entry.
- * Body: { spreadType, cardsDrawn, userNotes?, occurredAt?, sky?, tags?, entities? }
+ * Body: { spreadType, cardsDrawn, userNotes?, occurredAt?, sky?, tags?, entities?, summary? }
  */
 router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { spreadType, cardsDrawn, userNotes, occurredAt, sky, tags, entities } =
-      req.body as {
+    const {
+      spreadType,
+      cardsDrawn,
+      userNotes,
+      occurredAt,
+      sky,
+      tags,
+      entities,
+      summary,
+    } = req.body as {
         spreadType?: SpreadType;
         cardsDrawn?: Array<{
           cardId: string;
@@ -33,6 +43,7 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
         sky?: Record<string, unknown>;
         tags?: string[];
         entities?: Array<{ kind: string; id: string; label: string }>;
+        summary?: string;
       };
 
     if (!spreadType || !VALID_SPREADS.includes(spreadType)) {
@@ -103,6 +114,9 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
         system: 'tarot',
         spreadType,
         cardsDrawn,
+        ...(typeof summary === 'string' && summary.trim()
+          ? { summary: summary.trim().slice(0, SUMMARY_MAX_LEN) }
+          : {}),
       },
     });
 
@@ -144,7 +158,7 @@ router.get('/history', protect, async (req: AuthRequest, res: Response): Promise
       'payload.system': 'tarot',
     })
       .sort({ occurredAt: -1 })
-      .limit(20)
+      .limit(50)
       .lean();
 
     res.json({

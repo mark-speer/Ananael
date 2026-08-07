@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
 import {
@@ -8,8 +8,21 @@ import {
 } from '../data/tarotDeckArt';
 import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
+import {
+  aggregateTarotHistory,
+  summarizeReading,
+  type HistoryReading,
+  type MinorSuit,
+} from '../lib/tarotSummary';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
+
+const SUIT_LABELS: Record<MinorSuit, string> = {
+  cups: 'Cups',
+  wands: 'Wands',
+  swords: 'Swords',
+  pentacles: 'Pentacles',
+};
 
 export type SpreadType = 'single' | 'three' | 'celtic';
 
@@ -70,6 +83,8 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
   const [notes, setNotes] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [history, setHistory] = useState<HistoryReading[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const handleDeckStyleChange = (style: DeckStyle) => {
     setDeckStyle(style);
@@ -80,6 +95,46 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
     () => SPREADS.find((s) => s.id === spreadType)!,
     [spreadType]
   );
+
+  const flipped = useMemo(() => dealt.filter((d) => d.isFlipped), [dealt]);
+
+  const readingSummary = useMemo(
+    () =>
+      flipped.length > 0 ? summarizeReading(flipped, spreadType) : null,
+    [flipped, spreadType]
+  );
+
+  const historyAggregate = useMemo(
+    () => aggregateTarotHistory(history),
+    [history]
+  );
+
+  const loadHistory = useCallback(async () => {
+    if (!isAuthenticated) {
+      setHistory([]);
+      setHistoryLoaded(false);
+      return;
+    }
+    try {
+      const res = await apiFetch('/api/tarot/history');
+      const data = (await res.json()) as {
+        readings?: HistoryReading[];
+        message?: string;
+      };
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to load history');
+      }
+      setHistory(data.readings ?? []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setHistoryLoaded(true);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
 
   const drawCards = () => {
     setSaveStatus(null);
@@ -110,6 +165,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
     try {
       const now = new Date();
       const sky = buildJournalSky(now);
+      const summaryText = summarizeReading(dealt, spreadType).text;
       const res = await apiFetch('/api/tarot/save', {
         method: 'POST',
         headers: {
@@ -125,6 +181,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
           userNotes: notes,
           occurredAt: now.toISOString(),
           sky,
+          summary: summaryText,
           entities: dealt.map((d) => ({
             kind: 'tarot',
             id: d.card.id,
@@ -137,6 +194,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
         throw new Error(data.message || 'Failed to save reading');
       }
       setSaveStatus('Saved to Magical Journal.');
+      void loadHistory();
     } catch (err) {
       setSaveStatus(err instanceof Error ? err.message : 'Save failed');
     } finally {
@@ -232,6 +290,37 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
           </div>
         ))}
 
+      {/* Deterministic reading summary (guests + signed-in) */}
+      {readingSummary && (
+        <section className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
+          <h2 className="font-display text-lg text-ananael-gold">
+            Reading summary
+          </h2>
+          <ul className="space-y-2">
+            {readingSummary.walkthrough.map((sentence, i) => (
+              <li
+                key={`walk-${i}`}
+                className="text-sm leading-relaxed text-zinc-300"
+              >
+                {sentence}
+              </li>
+            ))}
+          </ul>
+          {readingSummary.patterns.length > 0 && (
+            <ul className="space-y-1.5 border-t border-ananael-border/40 pt-3">
+              {readingSummary.patterns.map((note, i) => (
+                <li
+                  key={`pat-${i}`}
+                  className="text-xs leading-relaxed text-ananael-muted"
+                >
+                  {note}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       {/* Journal sync */}
       {isAuthenticated && dealt.length > 0 && (
         <div className="max-w-xl space-y-3 rounded-lg border border-ananael-border/70 bg-ananael-panel/50 p-4">
@@ -284,6 +373,95 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
             </p>
           )}
         </div>
+      )}
+
+      {/* Signed-in: aggregate patterns across saved pulls */}
+      {isAuthenticated && historyLoaded && (
+        <section className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-display text-lg text-ananael-gold">
+              Your patterns
+            </h2>
+            {onNavigate && (
+              <button
+                type="button"
+                onClick={() => onNavigate('journal', { filter: 'divination' })}
+                className="text-xs text-ananael-violet hover:underline"
+              >
+                View in Journal
+              </button>
+            )}
+          </div>
+          {history.length === 0 ? (
+            <p className="text-sm text-ananael-muted">
+              Save readings to see recurring cards, suits, and trends here.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {historyAggregate.topCards.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-[0.12em] text-ananael-muted">
+                    Frequent cards
+                  </p>
+                  <ul className="mt-1.5 space-y-1">
+                    {historyAggregate.topCards.map((c) => (
+                      <li
+                        key={c.cardId}
+                        className="flex justify-between gap-3 text-sm text-zinc-300"
+                      >
+                        <span>{c.name}</span>
+                        <span className="text-ananael-muted">{c.count}×</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {historyAggregate.minorCount > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-[0.12em] text-ananael-muted">
+                    Suit mix
+                  </p>
+                  <ul className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-300">
+                    {(
+                      Object.keys(SUIT_LABELS) as MinorSuit[]
+                    ).map((suit) => (
+                      <li key={suit}>
+                        {SUIT_LABELS[suit]}{' '}
+                        <span className="text-ananael-muted">
+                          {historyAggregate.suitCounts[suit]} (
+                          {historyAggregate.suitPercents[suit]}%)
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p className="text-sm text-zinc-400">
+                Reversals{' '}
+                <span className="text-zinc-300">
+                  {Math.round(historyAggregate.reversalRate * 100)}%
+                </span>
+                <span className="text-ananael-muted"> · </span>
+                Major / Minor{' '}
+                <span className="text-zinc-300">
+                  {historyAggregate.majorCount} / {historyAggregate.minorCount}
+                </span>
+              </p>
+              {historyAggregate.trends.length > 0 && (
+                <ul className="space-y-1.5 border-t border-ananael-border/40 pt-3">
+                  {historyAggregate.trends.map((t, i) => (
+                    <li
+                      key={`trend-${i}`}
+                      className="text-xs leading-relaxed text-ananael-muted"
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </section>
       )}
 
       {isAuthenticated && dealt.length === 0 && onNavigate && (

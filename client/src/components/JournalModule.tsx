@@ -616,6 +616,17 @@ export default function JournalModule({
                     {summary}
                   </p>
                 )}
+                {typeof entry.payload?.summary === 'string' &&
+                  entry.payload.summary.trim() !== '' && (
+                    <div className="mt-2">
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-ananael-muted">
+                        Summary
+                      </p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-ananael-muted line-clamp-4 whitespace-pre-wrap">
+                        {entry.payload.summary}
+                      </p>
+                    </div>
+                  )}
                 {entry.body && (
                   <p className="mt-1 text-sm text-zinc-400 line-clamp-3 whitespace-pre-wrap">
                     {entry.body}
