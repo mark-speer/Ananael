@@ -78,6 +78,7 @@ export default function SolomonicCircleModule() {
   const [saving, setSaving] = useState(false);
   const [spiritFilter, setSpiritFilter] = useState('');
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
+  const [exportTransparentBg, setExportTransparentBg] = useState(false);
 
   const layout = buildCircleLayout(config);
   const cx = SVG_CENTER;
@@ -250,13 +251,19 @@ export default function SolomonicCircleModule() {
     const vbH = vb[3] || SVG_SIZE;
     clone.setAttribute('width', String(vbW));
     clone.setAttribute('height', String(vbH));
-    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    bg.setAttribute('x', String(vb[0] ?? 0));
-    bg.setAttribute('y', String(vb[1] ?? 0));
-    bg.setAttribute('width', String(vbW));
-    bg.setAttribute('height', String(vbH));
-    bg.setAttribute('fill', '#0c0a12');
-    clone.insertBefore(bg, clone.firstChild);
+
+    if (exportTransparentBg) {
+      const pageBg = clone.querySelector('rect[fill="#0c0a12"]');
+      pageBg?.remove();
+    } else {
+      const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bg.setAttribute('x', String(vb[0] ?? 0));
+      bg.setAttribute('y', String(vb[1] ?? 0));
+      bg.setAttribute('width', String(vbW));
+      bg.setAttribute('height', String(vbH));
+      bg.setAttribute('fill', '#0c0a12');
+      clone.insertBefore(bg, clone.firstChild);
+    }
 
     const xml = new XMLSerializer().serializeToString(clone);
     const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
@@ -269,8 +276,10 @@ export default function SolomonicCircleModule() {
       canvas.height = vbH;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
-      ctx.fillStyle = '#0c0a12';
-      ctx.fillRect(0, 0, vbW, vbH);
+      if (!exportTransparentBg) {
+        ctx.fillStyle = '#0c0a12';
+        ctx.fillRect(0, 0, vbW, vbH);
+      }
       ctx.drawImage(img, 0, 0);
       const png = canvas.toDataURL('image/png');
       const a = document.createElement('a');
@@ -938,7 +947,7 @@ export default function SolomonicCircleModule() {
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => void exportPng()}
@@ -963,6 +972,15 @@ export default function SolomonicCircleModule() {
                 {saving ? 'Saving…' : savedId ? 'Update' : 'Save'}
               </button>
             )}
+            <label className="flex items-center gap-1.5 text-xs text-zinc-400">
+              <input
+                type="checkbox"
+                checked={exportTransparentBg}
+                onChange={(e) => setExportTransparentBg(e.target.checked)}
+                className="accent-ananael-gold"
+              />
+              Transparent background
+            </label>
           </div>
           {saveStatus && (
             <p className="text-xs text-ananael-muted">{saveStatus}</p>
