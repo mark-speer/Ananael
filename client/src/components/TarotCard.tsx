@@ -45,114 +45,132 @@ export default function TarotCard({
       ? getTarotCardImageUrl(card.id)
       : undefined;
   const compact = size === 'compact';
+  const cardHeight = compact ? 'h-[170px]' : 'h-[220px]';
+  const cardWidth = compact ? 'w-[110px]' : 'w-[140px] sm:w-[160px]';
 
-  const shell = (
-    <button
-      type="button"
-      onClick={onFlip}
-      aria-label={
-        isFlipped
-          ? `${card.name}${isReversed ? ' (reversed)' : ''}`
-          : `Reveal card for ${position}`
-      }
-      className={[
-        'perspective w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ananael-gold',
-        compact ? 'h-[170px]' : 'h-[220px]',
-        crossing ? 'rotate-90' : '',
-      ].join(' ')}
+  const faces = (
+    <div
+      className={['card-flip relative h-full w-full', isFlipped ? 'is-flipped' : ''].join(
+        ' '
+      )}
     >
-      <div
-        className={['card-flip relative h-full w-full', isFlipped ? 'is-flipped' : ''].join(
-          ' '
-        )}
-      >
-        {/* Face down */}
-        <div className="card-face absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-ananael-gold/40 bg-gradient-to-br from-ananael-violet-deep via-ananael-surface to-ananael-bg shadow-glow">
-          <div className="flex h-[85%] w-[80%] items-center justify-center rounded border border-ananael-gold/30">
-            <span
-              className={[
-                'font-display text-ananael-gold/80',
-                compact ? 'text-2xl' : 'text-3xl',
-              ].join(' ')}
-            >
-              ✦
-            </span>
-          </div>
+      {/* Face down */}
+      <div className="card-face absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-ananael-gold/40 bg-gradient-to-br from-ananael-violet-deep via-ananael-surface to-ananael-bg shadow-glow">
+        <div className="flex h-[85%] w-[80%] items-center justify-center rounded border border-ananael-gold/30">
+          <span
+            className={[
+              'font-display text-ananael-gold/80',
+              compact ? 'text-2xl' : 'text-3xl',
+            ].join(' ')}
+          >
+            ✦
+          </span>
         </div>
+      </div>
 
-        {/* Face up */}
-        <div className="card-face card-face-back absolute inset-0 overflow-hidden rounded-lg border border-ananael-bronze/50 bg-ananael-panel shadow-gold">
-          {imageUrl ? (
-            <div
-              className={[
-                'relative h-full w-full',
-                isReversed ? 'card-reversed' : '',
-              ].join(' ')}
-            >
-              <img
-                src={imageUrl}
-                alt={card.name}
-                className="h-full w-full object-cover"
-                draggable={false}
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ananael-bg/90 via-ananael-bg/50 to-transparent px-2 pb-2 pt-6">
-                <p
-                  className={[
-                    'font-display text-center leading-tight text-ananael-gold',
-                    compact ? 'text-[10px]' : 'text-xs',
-                  ].join(' ')}
-                >
-                  {card.name}
-                </p>
-                {isReversed && (
-                  <p className="mt-0.5 text-center text-[10px] uppercase tracking-wider text-ananael-bronze">
-                    Reversed
-                  </p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div
-              className={[
-                'flex h-full flex-col p-3',
-                isReversed ? 'card-reversed' : '',
-              ].join(' ')}
-            >
+      {/* Face up */}
+      <div className="card-face card-face-back absolute inset-0 overflow-hidden rounded-lg border border-ananael-bronze/50 bg-ananael-panel shadow-gold">
+        {imageUrl ? (
+          <div
+            className={[
+              'relative h-full w-full',
+              isReversed ? 'card-reversed' : '',
+            ].join(' ')}
+          >
+            <img
+              src={imageUrl}
+              alt={card.name}
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ananael-bg/90 via-ananael-bg/50 to-transparent px-2 pb-2 pt-6">
               <p
                 className={[
                   'font-display text-center leading-tight text-ananael-gold',
-                  compact ? 'text-xs' : 'text-sm',
+                  compact ? 'text-[10px]' : 'text-xs',
                 ].join(' ')}
               >
                 {card.name}
               </p>
-              <div className="my-2 flex flex-1 items-center justify-center">
-                <span
-                  className={[
-                    'text-ananael-violet',
-                    compact ? 'text-3xl' : 'text-4xl',
-                  ].join(' ')}
-                >
-                  {arcanaGlyph(card.arcana)}
-                </span>
-              </div>
               {isReversed && (
-                <p className="text-center text-[10px] uppercase tracking-wider text-ananael-bronze">
+                <p className="mt-0.5 text-center text-[10px] uppercase tracking-wider text-ananael-bronze">
                   Reversed
                 </p>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div
+            className={[
+              'flex h-full flex-col p-3',
+              isReversed ? 'card-reversed' : '',
+            ].join(' ')}
+          >
+            <p
+              className={[
+                'font-display text-center leading-tight text-ananael-gold',
+                compact ? 'text-xs' : 'text-sm',
+              ].join(' ')}
+            >
+              {card.name}
+            </p>
+            <div className="my-2 flex flex-1 items-center justify-center">
+              <span
+                className={[
+                  'text-ananael-violet',
+                  compact ? 'text-3xl' : 'text-4xl',
+                ].join(' ')}
+              >
+                {arcanaGlyph(card.arcana)}
+              </span>
+            </div>
+            {isReversed && (
+              <p className="text-center text-[10px] uppercase tracking-wider text-ananael-bronze">
+                Reversed
+              </p>
+            )}
+          </div>
+        )}
       </div>
+    </div>
+  );
+
+  const ariaLabel = isFlipped
+    ? `${card.name}${isReversed ? ' (reversed)' : ''}`
+    : `Reveal card for ${position}`;
+
+  /**
+   * Crossing cards: hit target matches the visible horizontal band (170×110).
+   * Rotating the button itself left a tall untransformed hit box that covered Present.
+   */
+  const shell = crossing ? (
+    <button
+      type="button"
+      onClick={onFlip}
+      aria-label={ariaLabel}
+      className="relative h-[110px] w-[170px] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-ananael-gold"
+    >
+      <div
+        className={`pointer-events-none absolute left-1/2 top-1/2 ${cardHeight} w-[110px] -translate-x-1/2 -translate-y-1/2 rotate-90`}
+      >
+        <div className="perspective h-full w-full">{faces}</div>
+      </div>
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={onFlip}
+      aria-label={ariaLabel}
+      className={[
+        'perspective w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ananael-gold',
+        cardHeight,
+      ].join(' ')}
+    >
+      {faces}
     </button>
   );
 
-  const outerWidth = crossing
-    ? 'w-[170px]'
-    : compact
-      ? 'w-[110px]'
-      : 'w-[140px] sm:w-[160px]';
+  const outerWidth = crossing ? 'w-[170px]' : cardWidth;
 
   return (
     <div className={['flex flex-col items-center gap-2', outerWidth].join(' ')}>
@@ -162,13 +180,7 @@ export default function TarotCard({
         </p>
       )}
 
-      {crossing ? (
-        <div className="flex h-[110px] w-[170px] items-center justify-center">
-          <div className="w-[110px]">{shell}</div>
-        </div>
-      ) : (
-        shell
-      )}
+      {shell}
 
       {!hideMeaning && isFlipped && (
         <p className="min-h-[3.5rem] text-center text-xs leading-relaxed text-zinc-400">
