@@ -212,23 +212,25 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
       </div>
 
       {/* Interactive board */}
-      {dealt.length > 0 && (
-        <div
-          className={[
-            'flex flex-wrap justify-center gap-6 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-6',
-            spreadType === 'celtic' ? 'max-w-5xl' : '',
-          ].join(' ')}
-        >
-          {dealt.map((card, index) => (
-            <TarotCard
-              key={`${card.card.id}-${card.position}`}
-              dealt={card}
-              onFlip={() => flipCard(index)}
-              deckStyle={deckStyle}
-            />
-          ))}
-        </div>
-      )}
+      {dealt.length > 0 &&
+        (spreadType === 'celtic' ? (
+          <CelticCrossBoard
+            dealt={dealt}
+            deckStyle={deckStyle}
+            onFlip={flipCard}
+          />
+        ) : (
+          <div className="flex flex-wrap justify-center gap-6 rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-6">
+            {dealt.map((card, index) => (
+              <TarotCard
+                key={`${card.card.id}-${card.position}`}
+                dealt={card}
+                onFlip={() => flipCard(index)}
+                deckStyle={deckStyle}
+              />
+            ))}
+          </div>
+        ))}
 
       {/* Journal sync */}
       {isAuthenticated && dealt.length > 0 && (
@@ -302,6 +304,151 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
         <p className="text-sm text-ananael-muted">
           Sign in to save readings to your Magical Journal.
         </p>
+      )}
+    </div>
+  );
+}
+
+/** Deal indices for the classic Celtic Cross cross + staff layout. */
+const CELTIC_CROSS_SLOTS = {
+  crown: 4,
+  past: 3,
+  foundation: 2,
+  future: 5,
+} as const;
+
+const CELTIC_STAFF_INDICES = [6, 7, 8, 9] as const; // Self → Outcome (bottom → top via flex-col-reverse)
+
+interface CelticCrossBoardProps {
+  dealt: DealtCard[];
+  deckStyle: DeckStyle;
+  onFlip: (index: number) => void;
+}
+
+/**
+ * Standard Celtic Cross: cross (positions 1–6) with Challenge across Present, plus staff (7–10).
+ */
+function CelticCrossBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
+  const present = dealt[0];
+  const challenge = dealt[1];
+  const flipped = dealt.filter((d) => d.isFlipped);
+
+  const slotCard = (index: number) => {
+    const card = dealt[index];
+    if (!card) return null;
+    return (
+      <TarotCard
+        key={`${card.card.id}-${card.position}`}
+        dealt={card}
+        onFlip={() => onFlip(index)}
+        deckStyle={deckStyle}
+        size="compact"
+        hideMeaning
+      />
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface/40 p-6">
+        <div className="mx-auto flex min-w-[700px] items-center justify-center gap-10">
+          {/* Cross */}
+          <div
+            className="grid grid-cols-3 grid-rows-3 place-items-center gap-x-3 gap-y-1"
+            style={{
+              gridTemplateAreas: `
+                ". crown ."
+                "past center future"
+                ". foundation ."
+              `,
+            }}
+          >
+            <div style={{ gridArea: 'crown' }}>
+              {slotCard(CELTIC_CROSS_SLOTS.crown)}
+            </div>
+            <div style={{ gridArea: 'past' }}>
+              {slotCard(CELTIC_CROSS_SLOTS.past)}
+            </div>
+
+            {/* Present with Challenge crossing */}
+            <div
+              className="relative flex flex-col items-center gap-2"
+              style={{ gridArea: 'center' }}
+            >
+              <div className="flex flex-col items-center gap-0.5 text-center">
+                <p className="text-[11px] uppercase tracking-[0.15em] text-ananael-muted">
+                  Present
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.12em] text-ananael-muted/80">
+                  Challenge
+                </p>
+              </div>
+              <div className="relative flex h-[180px] w-[170px] items-center justify-center">
+                {present && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <TarotCard
+                      dealt={present}
+                      onFlip={() => onFlip(0)}
+                      deckStyle={deckStyle}
+                      size="compact"
+                      hideMeaning
+                      hideLabel
+                    />
+                  </div>
+                )}
+                {challenge && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center">
+                    <TarotCard
+                      dealt={challenge}
+                      onFlip={() => onFlip(1)}
+                      deckStyle={deckStyle}
+                      size="compact"
+                      crossing
+                      hideMeaning
+                      hideLabel
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ gridArea: 'future' }}>
+              {slotCard(CELTIC_CROSS_SLOTS.future)}
+            </div>
+            <div style={{ gridArea: 'foundation' }}>
+              {slotCard(CELTIC_CROSS_SLOTS.foundation)}
+            </div>
+          </div>
+
+          {/* Staff: Outcome on top, Self on bottom */}
+          <div className="flex flex-col-reverse gap-3 border-l border-ananael-border/40 pl-8">
+            {CELTIC_STAFF_INDICES.map((index) => slotCard(index))}
+          </div>
+        </div>
+      </div>
+
+      {/* Meanings listed below so the cross stays readable */}
+      {flipped.length > 0 && (
+        <ul className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
+          {flipped.map((d) => {
+            const meaning = d.isReversed ? d.card.reversed : d.card.upright;
+            return (
+              <li key={`${d.card.id}-${d.position}`} className="text-sm">
+                <span className="font-medium text-ananael-gold">
+                  {d.position}
+                </span>
+                <span className="text-ananael-muted"> · </span>
+                <span className="text-zinc-200">
+                  {d.card.name}
+                  {d.isReversed ? ' (reversed)' : ''}
+                </span>
+                <p className="mt-0.5 text-xs leading-relaxed text-zinc-400">
+                  {meaning}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );
