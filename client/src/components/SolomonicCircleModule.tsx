@@ -29,6 +29,7 @@ import {
   type Weekday,
 } from '../data/solomonicCircles';
 import { apiFetch } from '../lib/api';
+import CircleGlyph from './CircleGlyph';
 import CircleLayoutModal from './CircleLayoutModal';
 import {
   SVG_CENTER,
@@ -39,42 +40,12 @@ import {
   cardinalPositions,
   circleArcPath,
   conjurationViewBox,
-  glyphPointLabels,
-  hexagramTriangles,
-  hexagramVertices,
   inscribedSquarePoints,
-  pentagramPoints,
-  pentagramVertices,
   triangleOfArt,
 } from '../lib/solomonicGeometry';
 
 function ringPx(relative: number): number {
   return absoluteRadius(relative);
-}
-
-function GlyphPointTexts({
-  labels,
-  fontSize,
-}: {
-  labels: { char: string; x: number; y: number }[];
-  fontSize: number;
-}) {
-  if (labels.length === 0) return null;
-  return (
-    <g fill="#e8d48b" fontFamily="Cinzel, Georgia, serif" fontSize={fontSize}>
-      {labels.map((l, i) => (
-        <text
-          key={`${l.char}-${i}-${l.x.toFixed(1)}`}
-          x={l.x}
-          y={l.y}
-          textAnchor="middle"
-          dominantBaseline="middle"
-        >
-          {l.char}
-        </text>
-      ))}
-    </g>
-  );
 }
 
 interface SavedCircle {
@@ -402,28 +373,6 @@ export default function SolomonicCircleModule() {
   const glyphR = innerR * 0.32;
   const squareR = innerR * 0.72;
   const centerSpec = layout.centerGlyph;
-  const hex =
-    centerSpec.kind === 'hexagram'
-      ? hexagramTriangles(cx, cy, glyphR)
-      : null;
-  const centerLabels =
-    centerSpec.kind === 'hexagram'
-      ? glyphPointLabels(
-          cx,
-          cy,
-          hexagramVertices(cx, cy, glyphR),
-          centerSpec.letters,
-          14
-        )
-      : centerSpec.kind === 'pentagram'
-        ? glyphPointLabels(
-            cx,
-            cy,
-            pentagramVertices(cx, cy, glyphR, centerSpec.rotationDeg),
-            centerSpec.letters,
-            14
-          )
-        : [];
   const compass = cardinalPositions(cx, cy, outerR + 22);
   const quarterGlyphs = cardinalGlyphLayout(cx, cy, innerR, glyphR * 1.15);
 
@@ -730,83 +679,29 @@ export default function SolomonicCircleModule() {
               />
             )}
 
-            {centerSpec.kind === 'hexagram' && hex && (
-              <g stroke="#c9a227" strokeWidth={1.25} fill="none" opacity={0.9}>
-                <polygon points={hex.up} />
-                <polygon points={hex.down} />
-              </g>
-            )}
-
-            {centerSpec.kind === 'pentagram' && (
-              <polyline
-                points={pentagramPoints(
-                  cx,
-                  cy,
-                  glyphR,
-                  centerSpec.rotationDeg
-                )}
-                fill="none"
-                stroke="#c9a227"
-                strokeWidth={1.25}
-                opacity={0.9}
-              />
-            )}
-
-            <GlyphPointTexts labels={centerLabels} fontSize={13} />
+            <CircleGlyph
+              spec={centerSpec}
+              cx={cx}
+              cy={cy}
+              radius={glyphR}
+              strokeWidth={1.25}
+              labelFontSize={13}
+              labelOutward={14}
+            />
 
             {/* Cardinal quarter glyphs (Lesser Key style) */}
-            {quarterGlyphs.map((q) => {
-              const spec = layout.cardinalGlyphs[q.dir];
-              if (spec.kind === 'none') return null;
-              if (spec.kind === 'hexagram') {
-                const h = hexagramTriangles(q.x, q.y, q.radius);
-                const labels = glyphPointLabels(
-                  q.x,
-                  q.y,
-                  hexagramVertices(q.x, q.y, q.radius),
-                  spec.letters,
-                  8
-                );
-                return (
-                  <g key={`cardinal-${q.dir}`}>
-                    <g
-                      stroke="#c9a227"
-                      strokeWidth={1}
-                      fill="none"
-                      opacity={0.9}
-                    >
-                      <polygon points={h.up} />
-                      <polygon points={h.down} />
-                    </g>
-                    <GlyphPointTexts labels={labels} fontSize={9} />
-                  </g>
-                );
-              }
-              const labels = glyphPointLabels(
-                q.x,
-                q.y,
-                pentagramVertices(q.x, q.y, q.radius, spec.rotationDeg),
-                spec.letters,
-                8
-              );
-              return (
-                <g key={`cardinal-${q.dir}`}>
-                  <polyline
-                    points={pentagramPoints(
-                      q.x,
-                      q.y,
-                      q.radius,
-                      spec.rotationDeg
-                    )}
-                    fill="none"
-                    stroke="#c9a227"
-                    strokeWidth={1}
-                    opacity={0.9}
-                  />
-                  <GlyphPointTexts labels={labels} fontSize={9} />
-                </g>
-              );
-            })}
+            {quarterGlyphs.map((q) => (
+              <CircleGlyph
+                key={`cardinal-${q.dir}`}
+                spec={layout.cardinalGlyphs[q.dir]}
+                cx={q.x}
+                cy={q.y}
+                radius={q.radius}
+                strokeWidth={1}
+                labelFontSize={9}
+                labelOutward={8}
+              />
+            ))}
 
             {/* Curved ring text — clockwise paths keep lettering outside each ring */}
             {layout.rings.map((r) =>

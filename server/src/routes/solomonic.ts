@@ -28,7 +28,7 @@ interface SanitizedRing {
 }
 
 interface SanitizedGlyphSpec {
-  kind: 'none' | 'hexagram' | 'pentagram';
+  kind: GlyphKind;
   letters: string;
   rotationDeg: number;
 }
@@ -61,10 +61,61 @@ const MAX_GLYPH_LETTERS = 16;
 /** Accept goetia-01 … goetia-72 style ids without importing the full catalog. */
 const SPIRIT_ID_RE = /^goetia-(0[1-9]|[1-6][0-9]|7[0-2])$/;
 
-type GlyphKind = 'none' | 'hexagram' | 'pentagram';
+type GlyphKind =
+  | 'none'
+  | 'hexagram'
+  | 'pentagram'
+  | 'heptagram'
+  | 'circle'
+  | 'triangle'
+  | 'square'
+  | 'pentagon'
+  | 'hexagon'
+  | 'heptagon'
+  | 'alchemy_fire'
+  | 'alchemy_water'
+  | 'alchemy_air'
+  | 'alchemy_earth'
+  | 'alchemy_sun'
+  | 'alchemy_moon'
+  | 'alchemy_mercury'
+  | 'alchemy_venus'
+  | 'alchemy_mars'
+  | 'alchemy_jupiter'
+  | 'alchemy_saturn'
+  | 'alchemy_salt'
+  | 'alchemy_sulfur';
+
+const GLYPH_KIND_SET = new Set<GlyphKind>([
+  'none',
+  'hexagram',
+  'pentagram',
+  'heptagram',
+  'circle',
+  'triangle',
+  'square',
+  'pentagon',
+  'hexagon',
+  'heptagon',
+  'alchemy_fire',
+  'alchemy_water',
+  'alchemy_air',
+  'alchemy_earth',
+  'alchemy_sun',
+  'alchemy_moon',
+  'alchemy_mercury',
+  'alchemy_venus',
+  'alchemy_mars',
+  'alchemy_jupiter',
+  'alchemy_saturn',
+  'alchemy_salt',
+  'alchemy_sulfur',
+]);
 
 function parseGlyphKind(value: unknown): GlyphKind {
-  return value === 'hexagram' || value === 'pentagram' ? value : 'none';
+  return typeof value === 'string' && GLYPH_KIND_SET.has(value as GlyphKind)
+    ? (value as GlyphKind)
+    : 'none';
 }
 
 function normalizeRotation(value: number): number {

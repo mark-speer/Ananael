@@ -54,6 +54,22 @@ export function circleArcPath(
   ].join(' ');
 }
 
+/** Regular polygon vertices. startAngleDeg: first vertex in compass degrees. */
+export function regularPolygonVertices(
+  cx: number,
+  cy: number,
+  radius: number,
+  sides: number,
+  startAngleDeg = 0
+): { x: number; y: number }[] {
+  const verts: { x: number; y: number }[] = [];
+  for (let i = 0; i < sides; i++) {
+    const a = startAngleDeg + (i * 360) / sides;
+    verts.push(polarToCartesian(cx, cy, radius, a));
+  }
+  return verts;
+}
+
 /** Regular polygon points. startAngleDeg: first vertex in compass degrees. */
 export function regularPolygonPoints(
   cx: number,
@@ -62,13 +78,9 @@ export function regularPolygonPoints(
   sides: number,
   startAngleDeg = 0
 ): string {
-  const pts: string[] = [];
-  for (let i = 0; i < sides; i++) {
-    const a = startAngleDeg + (i * 360) / sides;
-    const p = polarToCartesian(cx, cy, radius, a);
-    pts.push(`${p.x},${p.y}`);
-  }
-  return pts.join(' ');
+  return regularPolygonVertices(cx, cy, radius, sides, startAngleDeg)
+    .map((p) => `${p.x},${p.y}`)
+    .join(' ');
 }
 
 /** Five-pointed star vertices (tip first at rotationDeg). */
@@ -78,11 +90,7 @@ export function pentagramVertices(
   radius: number,
   rotationDeg = 0
 ): { x: number; y: number }[] {
-  const verts: { x: number; y: number }[] = [];
-  for (let i = 0; i < 5; i++) {
-    verts.push(polarToCartesian(cx, cy, radius, rotationDeg + i * 72));
-  }
-  return verts;
+  return regularPolygonVertices(cx, cy, radius, 5, rotationDeg);
 }
 
 /** Five-pointed star (pentagram) as a closed polyline. */
@@ -97,29 +105,54 @@ export function pentagramPoints(
   return order.map((i) => `${verts[i].x},${verts[i].y}`).join(' ');
 }
 
+/** Seven-pointed star vertices (tip first at rotationDeg). */
+export function heptagramVertices(
+  cx: number,
+  cy: number,
+  radius: number,
+  rotationDeg = 0
+): { x: number; y: number }[] {
+  return regularPolygonVertices(cx, cy, radius, 7, rotationDeg);
+}
+
+/** Seven-pointed star (heptagram {7/2}) as a closed polyline. */
+export function heptagramPoints(
+  cx: number,
+  cy: number,
+  radius: number,
+  rotationDeg = 0
+): string {
+  const verts = heptagramVertices(cx, cy, radius, rotationDeg);
+  // Skip-2 star polygon {7/2}.
+  const order: number[] = [];
+  for (let i = 0; i < 7; i++) {
+    order.push((i * 2) % 7);
+  }
+  order.push(0);
+  return order.map((i) => `${verts[i].x},${verts[i].y}`).join(' ');
+}
+
 /** Hexagram = upright + inverted equilateral triangles. */
 export function hexagramTriangles(
   cx: number,
   cy: number,
-  radius: number
+  radius: number,
+  rotationDeg = 0
 ): { up: string; down: string } {
   return {
-    up: regularPolygonPoints(cx, cy, radius, 3, 0),
-    down: regularPolygonPoints(cx, cy, radius, 3, 180),
+    up: regularPolygonPoints(cx, cy, radius, 3, rotationDeg),
+    down: regularPolygonPoints(cx, cy, radius, 3, rotationDeg + 180),
   };
 }
 
-/** Six star-of-David points at 0°, 60°, … (compass), tip North first. */
+/** Six star-of-David points at rotation + 0°, 60°, … (compass). */
 export function hexagramVertices(
   cx: number,
   cy: number,
-  radius: number
+  radius: number,
+  rotationDeg = 0
 ): { x: number; y: number }[] {
-  const verts: { x: number; y: number }[] = [];
-  for (let i = 0; i < 6; i++) {
-    verts.push(polarToCartesian(cx, cy, radius, i * 60));
-  }
-  return verts;
+  return regularPolygonVertices(cx, cy, radius, 6, rotationDeg);
 }
 
 /**

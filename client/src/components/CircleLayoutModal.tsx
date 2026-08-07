@@ -2,9 +2,12 @@ import { useEffect, useRef } from 'react';
 import {
   CARDINAL_DIRS,
   CARDINAL_DIR_LABELS,
+  CENTER_GLYPH_GROUPS,
   CENTER_GLYPH_LABELS,
   WEEKDAY_LABELS,
   WEEKDAYS,
+  glyphHasVertexLetters,
+  glyphSupportsRotation,
   type CardinalDir,
   type CenterGlyph,
   type CircleConfig,
@@ -21,8 +24,77 @@ interface CircleLayoutModalProps {
   patchCardinalGlyph: (dir: CardinalDir, patch: Partial<GlyphSpec>) => void;
 }
 
+function GlyphKindSelect({
+  value,
+  onChange,
+  id,
+  ariaLabel,
+}: {
+  value: CenterGlyph;
+  onChange: (kind: CenterGlyph) => void;
+  id?: string;
+  ariaLabel?: string;
+}) {
+  return (
+    <select
+      id={id}
+      value={value}
+      aria-label={ariaLabel}
+      onChange={(e) => onChange(e.target.value as CenterGlyph)}
+      className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+    >
+      {CENTER_GLYPH_GROUPS.map((group) =>
+        group.kinds.length === 1 && group.kinds[0] === 'none' ? (
+          <option key="none" value="none">
+            {CENTER_GLYPH_LABELS.none}
+          </option>
+        ) : (
+          <optgroup key={group.label} label={group.label}>
+            {group.kinds.map((g) => (
+              <option key={g} value={g}>
+                {CENTER_GLYPH_LABELS[g]}
+              </option>
+            ))}
+          </optgroup>
+        )
+      )}
+    </select>
+  );
+}
+
+function RotationInput({
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  value: number;
+  onChange: (deg: number) => void;
+  ariaLabel?: string;
+}) {
+  return (
+    <label className="flex items-center gap-2 text-xs text-ananael-muted">
+      Rotate
+      <input
+        type="number"
+        min={0}
+        max={359}
+        step={1}
+        value={Math.round(value)}
+        aria-label={ariaLabel}
+        onChange={(e) => {
+          const n = Number(e.target.value);
+          const deg = Number.isFinite(n) ? ((n % 360) + 360) % 360 : 0;
+          onChange(deg);
+        }}
+        className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+      />
+      °
+    </label>
+  );
+}
+
 /**
- * Modal for weekday and center/cardinal hexagram–pentagram glyph controls.
+ * Modal for weekday and center/cardinal glyph controls.
  */
 export default function CircleLayoutModal({
   open,
@@ -54,6 +126,8 @@ export default function CircleLayoutModal({
   }, [open]);
 
   if (!open) return null;
+
+  const centerKind = config.centerGlyph.kind;
 
   return (
     <div
@@ -113,61 +187,35 @@ export default function CircleLayoutModal({
             <div className="flex flex-wrap items-center gap-3">
               <label className="flex items-center gap-2 text-xs text-ananael-muted">
                 Kind
-                <select
-                  value={config.centerGlyph.kind}
-                  onChange={(e) =>
-                    patchCenterGlyph({ kind: e.target.value as CenterGlyph })
-                  }
-                  className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                >
-                  {(Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]).map(
-                    (g) => (
-                      <option key={g} value={g}>
-                        {CENTER_GLYPH_LABELS[g]}
-                      </option>
-                    )
-                  )}
-                </select>
+                <GlyphKindSelect
+                  value={centerKind}
+                  onChange={(kind) => patchCenterGlyph({ kind })}
+                />
               </label>
-              {config.centerGlyph.kind !== 'none' && (
-                <>
-                  <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                    Letters
-                    <input
-                      type="text"
-                      value={config.centerGlyph.letters}
-                      onChange={(e) =>
-                        patchCenterGlyph({
-                          letters: e.target.value.slice(0, 16),
-                        })
-                      }
-                      placeholder="YHVH"
-                      maxLength={16}
-                      className="w-24 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                    />
-                  </label>
-                  {config.centerGlyph.kind === 'pentagram' && (
-                    <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                      Rotate
-                      <input
-                        type="number"
-                        min={0}
-                        max={359}
-                        step={1}
-                        value={Math.round(config.centerGlyph.rotationDeg)}
-                        onChange={(e) => {
-                          const n = Number(e.target.value);
-                          const deg = Number.isFinite(n)
-                            ? ((n % 360) + 360) % 360
-                            : 0;
-                          patchCenterGlyph({ rotationDeg: deg });
-                        }}
-                        className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                      />
-                      °
-                    </label>
-                  )}
-                </>
+              {glyphHasVertexLetters(centerKind) && (
+                <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                  Letters
+                  <input
+                    type="text"
+                    value={config.centerGlyph.letters}
+                    onChange={(e) =>
+                      patchCenterGlyph({
+                        letters: e.target.value.slice(0, 16),
+                      })
+                    }
+                    placeholder="YHVH"
+                    maxLength={16}
+                    className="w-24 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                  />
+                </label>
+              )}
+              {glyphSupportsRotation(centerKind) && (
+                <RotationInput
+                  value={config.centerGlyph.rotationDeg}
+                  onChange={(rotationDeg) =>
+                    patchCenterGlyph({ rotationDeg })
+                  }
+                />
               )}
             </div>
           </section>
@@ -186,66 +234,40 @@ export default function CircleLayoutModal({
                   >
                     <label className="flex items-center gap-2 text-xs text-ananael-muted">
                       {CARDINAL_DIR_LABELS[dir]}
-                      <select
+                      <GlyphKindSelect
                         value={spec.kind}
-                        onChange={(e) =>
-                          patchCardinalGlyph(dir, {
-                            kind: e.target.value as CenterGlyph,
-                          })
+                        onChange={(kind) =>
+                          patchCardinalGlyph(dir, { kind })
                         }
-                        className="rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                        aria-label={`Cardinal ${CARDINAL_DIR_LABELS[dir]} glyph`}
-                      >
-                        {(
-                          Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]
-                        ).map((g) => (
-                          <option key={g} value={g}>
-                            {CENTER_GLYPH_LABELS[g]}
-                          </option>
-                        ))}
-                      </select>
+                        ariaLabel={`Cardinal ${CARDINAL_DIR_LABELS[dir]} glyph`}
+                      />
                     </label>
-                    {spec.kind !== 'none' && (
-                      <>
-                        <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                          Letters
-                          <input
-                            type="text"
-                            value={spec.letters}
-                            onChange={(e) =>
-                              patchCardinalGlyph(dir, {
-                                letters: e.target.value.slice(0, 16),
-                              })
-                            }
-                            placeholder="YHVH"
-                            maxLength={16}
-                            className="w-20 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                            aria-label={`${CARDINAL_DIR_LABELS[dir]} letters`}
-                          />
-                        </label>
-                        {spec.kind === 'pentagram' && (
-                          <label className="flex items-center gap-2 text-xs text-ananael-muted">
-                            Rotate
-                            <input
-                              type="number"
-                              min={0}
-                              max={359}
-                              step={1}
-                              value={Math.round(spec.rotationDeg)}
-                              onChange={(e) => {
-                                const n = Number(e.target.value);
-                                const deg = Number.isFinite(n)
-                                  ? ((n % 360) + 360) % 360
-                                  : 0;
-                                patchCardinalGlyph(dir, { rotationDeg: deg });
-                              }}
-                              className="w-16 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
-                              aria-label={`${CARDINAL_DIR_LABELS[dir]} rotation`}
-                            />
-                            °
-                          </label>
-                        )}
-                      </>
+                    {glyphHasVertexLetters(spec.kind) && (
+                      <label className="flex items-center gap-2 text-xs text-ananael-muted">
+                        Letters
+                        <input
+                          type="text"
+                          value={spec.letters}
+                          onChange={(e) =>
+                            patchCardinalGlyph(dir, {
+                              letters: e.target.value.slice(0, 16),
+                            })
+                          }
+                          placeholder="YHVH"
+                          maxLength={16}
+                          className="w-20 rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+                          aria-label={`${CARDINAL_DIR_LABELS[dir]} letters`}
+                        />
+                      </label>
+                    )}
+                    {glyphSupportsRotation(spec.kind) && (
+                      <RotationInput
+                        value={spec.rotationDeg}
+                        onChange={(rotationDeg) =>
+                          patchCardinalGlyph(dir, { rotationDeg })
+                        }
+                        ariaLabel={`${CARDINAL_DIR_LABELS[dir]} rotation`}
+                      />
                     )}
                   </div>
                 );

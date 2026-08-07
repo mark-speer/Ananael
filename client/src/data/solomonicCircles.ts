@@ -18,16 +18,39 @@ export type Weekday =
   | 'friday'
   | 'saturday';
 
-export type CenterGlyph = 'none' | 'hexagram' | 'pentagram';
+export type CenterGlyph =
+  | 'none'
+  | 'hexagram'
+  | 'pentagram'
+  | 'heptagram'
+  | 'circle'
+  | 'triangle'
+  | 'square'
+  | 'pentagon'
+  | 'hexagon'
+  | 'heptagon'
+  | 'alchemy_fire'
+  | 'alchemy_water'
+  | 'alchemy_air'
+  | 'alchemy_earth'
+  | 'alchemy_sun'
+  | 'alchemy_moon'
+  | 'alchemy_mercury'
+  | 'alchemy_venus'
+  | 'alchemy_mars'
+  | 'alchemy_jupiter'
+  | 'alchemy_saturn'
+  | 'alchemy_salt'
+  | 'alchemy_sulfur';
 
 export type CardinalDir = 'n' | 'e' | 's' | 'w';
 
-/** Per-glyph kind, point letters, and pentagram rotation. */
+/** Per-glyph kind, point letters, and rotation. */
 export interface GlyphSpec {
   kind: CenterGlyph;
   /** Characters mapped onto vertices in order; extras ignored. */
   letters: string;
-  /** Compass degrees (0 = tip North, CW); used when kind === 'pentagram'. */
+  /** Compass degrees (0 = tip North, CW) for geometric / alchemical glyphs. */
   rotationDeg: number;
 }
 
@@ -110,7 +133,93 @@ export const CENTER_GLYPH_LABELS: Record<CenterGlyph, string> = {
   none: 'None',
   hexagram: 'Hexagram',
   pentagram: 'Pentagram',
+  heptagram: 'Heptagram',
+  circle: 'Circle',
+  triangle: 'Triangle',
+  square: 'Square',
+  pentagon: 'Pentagon',
+  hexagon: 'Hexagon',
+  heptagon: 'Heptagon',
+  alchemy_fire: 'Fire',
+  alchemy_water: 'Water',
+  alchemy_air: 'Air',
+  alchemy_earth: 'Earth',
+  alchemy_sun: 'Sun',
+  alchemy_moon: 'Moon',
+  alchemy_mercury: 'Mercury',
+  alchemy_venus: 'Venus',
+  alchemy_mars: 'Mars',
+  alchemy_jupiter: 'Jupiter',
+  alchemy_saturn: 'Saturn',
+  alchemy_salt: 'Salt',
+  alchemy_sulfur: 'Sulfur',
 };
+
+/** Optgroup sections for the glyph kind select. */
+export const CENTER_GLYPH_GROUPS: {
+  label: string;
+  kinds: CenterGlyph[];
+}[] = [
+  { label: 'None', kinds: ['none'] },
+  {
+    label: 'Stars & figures',
+    kinds: ['hexagram', 'pentagram', 'heptagram', 'circle'],
+  },
+  {
+    label: 'Polygons',
+    kinds: ['triangle', 'square', 'pentagon', 'hexagon', 'heptagon'],
+  },
+  {
+    label: 'Elements',
+    kinds: [
+      'alchemy_fire',
+      'alchemy_water',
+      'alchemy_air',
+      'alchemy_earth',
+    ],
+  },
+  {
+    label: 'Planets',
+    kinds: [
+      'alchemy_sun',
+      'alchemy_moon',
+      'alchemy_mercury',
+      'alchemy_venus',
+      'alchemy_mars',
+      'alchemy_jupiter',
+      'alchemy_saturn',
+    ],
+  },
+  { label: 'Principles', kinds: ['alchemy_salt', 'alchemy_sulfur'] },
+];
+
+const GLYPH_KIND_SET = new Set<string>(
+  Object.keys(CENTER_GLYPH_LABELS) as CenterGlyph[]
+);
+
+/** Vertex-letter kinds (stars + polygons). */
+const VERTEX_LETTER_KINDS: ReadonlySet<CenterGlyph> = new Set([
+  'hexagram',
+  'pentagram',
+  'heptagram',
+  'triangle',
+  'square',
+  'pentagon',
+  'hexagon',
+  'heptagon',
+]);
+
+export function glyphHasVertexLetters(kind: CenterGlyph): boolean {
+  return VERTEX_LETTER_KINDS.has(kind);
+}
+
+export function glyphSupportsRotation(kind: CenterGlyph): boolean {
+  return kind !== 'none';
+}
+
+export function isAlchemicalGlyph(kind: CenterGlyph): boolean {
+  return kind.startsWith('alchemy_');
+}
 
 export const CARDINAL_DIRS: CardinalDir[] = ['n', 'e', 's', 'w'];
 
@@ -150,7 +259,9 @@ function normalizeRotation(value: number): number {
 }
 
 function parseGlyphKind(value: unknown): CenterGlyph {
-  return value === 'hexagram' || value === 'pentagram' ? value : 'none';
+  return typeof value === 'string' && GLYPH_KIND_SET.has(value)
+    ? (value as CenterGlyph)
+    : 'none';
 }
 
 /** Coerce legacy string kinds or partial objects into GlyphSpec. */
@@ -355,7 +466,7 @@ export function applyTraditionPreset(
     const bank = useHebrew ? GOETIA_HEBREW : GOETIA_LATIN;
     const script: RingScript = useHebrew ? 'hebrew' : 'latin';
     const cardinalGlyphs =
-      opts?.cardinalGlyphs ?? defaultCardinalGlyphs('pentagram');
+      opts?.cardinalGlyphs ?? defaultCardinalGlyphs('hexagram');
     return {
       tradition,
       weekday,
