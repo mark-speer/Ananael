@@ -12,19 +12,34 @@ A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magi
 | Server  | Express, TypeScript, Mongoose, JWT, bcrypt |
 | Data    | MongoDB (`ananael` database)               |
 
-In production Docker, Express serves the built React app **and** the API on **port 443** (HTTPS when TLS certs are mounted).
+In production Docker, Express serves the built React app **and** the API on **port 80** by default (plain HTTP). HTTPS on **443** is optional when TLS certs are mounted.
 
 ## Quick start (Docker Compose)
 
-1. Put TLS certs in `./certs/fullchain.pem` and `./certs/privkey.pem` (or set `SSL_CERT_DIR`).
-2. Set `JWT_SECRET` (min 32 chars) in the environment.
-3. From the repository root:
+1. Set `JWT_SECRET` (min 32 chars) in the environment.
+2. From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Then open **https://localhost/** — that is the full web app. Health: `/api/health`.
+Then open **http://localhost/** — that is the full web app. Health: `/api/health`.
+
+### HTTPS (optional)
+
+Mount certs and override env, for example:
+
+```bash
+PORT=443 HOST_PORT=443 \
+COOKIE_SECURE=true \
+CLIENT_ORIGIN=https://your-host \
+SSL_CERT_PATH=/certs/fullchain.pem \
+SSL_KEY_PATH=/certs/privkey.pem \
+SSL_CERT_DIR=./certs \
+docker compose up --build
+```
+
+Then open **https://your-host/**. Without cert files, do **not** use `https://` — that causes an SSL protocol error (browser speaks TLS, app speaks HTTP).
 
 ### Portainer
 
@@ -32,11 +47,11 @@ Then open **https://localhost/** — that is the full web app. Health: `/api/hea
 2. In Portainer → **Stacks** → **Add stack** (Repository deploy from git, or paste `docker-compose.yml` with **build context = repository root**).
 3. In the stack **Environment variables** section (required before deploy/pull), set:
    - `JWT_SECRET` — at least 32 characters (e.g. run `openssl rand -hex 32` and paste the value). The API will not start without this.
-   - `CLIENT_ORIGIN` — your public origin, e.g. `https://your-host` (defaults to `https://localhost`)
-   - Optionally `SSL_CERT_DIR` / cert mount with `fullchain.pem` + `privkey.pem` for HTTPS on `:443`
+   - `CLIENT_ORIGIN` — must match the browser URL, e.g. `http://192.168.x.x` or `https://your-host`
+   - Leave `COOKIE_SECURE=false` for HTTP. For HTTPS, set `COOKIE_SECURE=true`, `PORT=443`, `HOST_PORT=443`, and provide certs via `SSL_CERT_DIR` + `SSL_CERT_PATH` / `SSL_KEY_PATH`.
 4. Deploy and wait for `ananael-mongo` and `ananael-server` to be **running**.
 5. **Pull/rebuild** so the image is rebuilt from the latest commit (Portainer → stack → **Pull and redeploy** / recreate with rebuild).
-6. Open **`https://<vm-ip>/`** (port 443)
+6. Open **`http://<vm-ip>/`** (port 80)
 
 You should see the Ananael dashboard, not JSON and not `Cannot GET /`.
 
