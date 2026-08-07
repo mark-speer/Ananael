@@ -18,6 +18,7 @@ export interface TreeNavigateOptions {
   gematriaPrefill?: string;
   /** Prefill Correspondences search when navigating there. */
   correspondencesQuery?: string;
+  divinationTab?: 'tarot' | 'iching' | 'geomancy' | 'runes';
 }
 
 interface TreeOfLifeModuleProps {
@@ -306,7 +307,9 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
                     </button>
                     <button
                       type="button"
-                      onClick={() => onNavigate('tarot')}
+                      onClick={() =>
+                        onNavigate('divination', { divinationTab: 'tarot' })
+                      }
                       className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
                     >
                       View in Tarot

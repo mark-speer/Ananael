@@ -3,15 +3,19 @@ import AccountMenu from './components/AccountMenu';
 import CelestialTimingModule from './components/CelestialTimingModule';
 import CorrespondencesModule from './components/CorrespondencesModule';
 import DashboardModule from './components/DashboardModule';
+import DivinationModule, {
+  type DivinationTab,
+} from './components/DivinationModule';
+import EnochianModule from './components/EnochianModule';
 import GematriaModule from './components/GematriaModule';
-import IChingModule from './components/IChingModule';
 import JournalModule from './components/JournalModule';
+import LiturgyModule from './components/LiturgyModule';
 import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { MODULES, type ModuleId } from './components/Sidebar';
 import SolomonicCircleModule from './components/SolomonicCircleModule';
 import SplashPage from './components/SplashPage';
-import TarotModule from './components/TarotModule';
+import TalismanModule from './components/TalismanModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
 } from './components/TreeOfLifeModule';
@@ -20,7 +24,19 @@ import { useAuth } from './context/AuthContext';
 
 export type AppNavigateOptions = TreeNavigateOptions & {
   filter?: JournalEntryType | 'all';
+  divinationTab?: DivinationTab;
+  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections';
 };
+
+function resolveModule(module: ModuleId): {
+  module: ModuleId;
+  divinationTab?: DivinationTab;
+} {
+  if (module === 'tarot') return { module: 'divination', divinationTab: 'tarot' };
+  if (module === 'iching')
+    return { module: 'divination', divinationTab: 'iching' };
+  return { module };
+}
 
 /**
  * App shell: fixed sidebar + main content area.
@@ -39,8 +55,12 @@ export default function App() {
   const [journalFilter, setJournalFilter] = useState<
     JournalEntryType | 'all'
   >('all');
+  const [divinationTab, setDivinationTab] = useState<DivinationTab>('tarot');
+  const [planetaryPanel, setPlanetaryPanel] = useState<
+    'hours' | 'planets' | 'zodiac' | 'elections'
+  >('hours');
+  const [talismanPrefill, setTalismanPrefill] = useState<string | undefined>();
 
-  // Sign-out returns visitors to the splash.
   useEffect(() => {
     if (wasAuthenticated.current && !isAuthenticated) {
       setEnteredAsGuest(false);
@@ -49,20 +69,39 @@ export default function App() {
   }, [isAuthenticated]);
 
   const navigateToModule = (module: ModuleId, opts?: AppNavigateOptions) => {
-    if (module === 'gematria' && opts?.gematriaPrefill !== undefined) {
+    const resolved = resolveModule(module);
+    const target = resolved.module;
+
+    if (target === 'gematria' && opts?.gematriaPrefill !== undefined) {
       setGematriaPrefill(opts.gematriaPrefill);
     } else {
       setGematriaPrefill(undefined);
     }
-    if (module === 'correspondences' && opts?.correspondencesQuery !== undefined) {
+    if (
+      target === 'correspondences' &&
+      opts?.correspondencesQuery !== undefined
+    ) {
       setCorrespondencesQuery(opts.correspondencesQuery);
     } else {
       setCorrespondencesQuery(undefined);
     }
-    if (module === 'journal') {
+    if (target === 'journal') {
       setJournalFilter(opts?.filter ?? 'all');
     }
-    setActiveModule(module);
+    if (target === 'divination') {
+      setDivinationTab(
+        opts?.divinationTab ?? resolved.divinationTab ?? 'tarot'
+      );
+    }
+    if (target === 'planetary') {
+      setPlanetaryPanel(opts?.planetaryPanel ?? 'hours');
+    }
+    if (target === 'talisman' && opts?.gematriaPrefill !== undefined) {
+      setTalismanPrefill(opts.gematriaPrefill);
+    } else if (target !== 'talisman') {
+      setTalismanPrefill(undefined);
+    }
+    setActiveModule(target);
   };
 
   if (isLoading) {
@@ -81,18 +120,28 @@ export default function App() {
     switch (activeModule) {
       case 'dashboard':
         return <DashboardModule onNavigate={navigateToModule} />;
+      case 'divination':
       case 'tarot':
-        return <TarotModule onNavigate={navigateToModule} />;
+      case 'iching':
+        return (
+          <DivinationModule
+            initialTab={divinationTab}
+            onNavigate={navigateToModule}
+          />
+        );
       case 'journal':
         return <JournalModule initialFilter={journalFilter} />;
       case 'gematria':
         return <GematriaModule initialText={gematriaPrefill} />;
       case 'planetary':
-        return <CelestialTimingModule onNavigate={navigateToModule} />;
+        return (
+          <CelestialTimingModule
+            initialPanel={planetaryPanel}
+            onNavigate={navigateToModule}
+          />
+        );
       case 'translator':
         return <ScriptTranslatorModule />;
-      case 'iching':
-        return <IChingModule onNavigate={navigateToModule} />;
       case 'tree':
         return <TreeOfLifeModule onNavigate={navigateToModule} />;
       case 'correspondences':
@@ -106,6 +155,17 @@ export default function App() {
         return <RitualSpaceModule />;
       case 'solomonic':
         return <SolomonicCircleModule />;
+      case 'talisman':
+        return (
+          <TalismanModule
+            initialName={talismanPrefill}
+            onNavigate={navigateToModule}
+          />
+        );
+      case 'enochian':
+        return <EnochianModule onNavigate={navigateToModule} />;
+      case 'liturgy':
+        return <LiturgyModule onNavigate={navigateToModule} />;
       default:
         return null;
     }
@@ -127,7 +187,11 @@ export default function App() {
             <label className="block text-xs text-ananael-muted">
               <span className="sr-only">Module</span>
               <select
-                value={activeModule}
+                value={
+                  activeModule === 'tarot' || activeModule === 'iching'
+                    ? 'divination'
+                    : activeModule
+                }
                 onChange={(e) =>
                   navigateToModule(e.target.value as ModuleId)
                 }

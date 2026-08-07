@@ -69,13 +69,18 @@ const SPREADS: SpreadConfig[] = [
 const REVERSAL_CHANCE = 0.2;
 
 interface TarotModuleProps {
+  /** When true, hide the standalone page header (used inside Divination portal). */
+  embedded?: boolean;
   onNavigate?: (module: ModuleId, opts?: { filter?: 'divination' }) => void;
 }
 
 /**
  * Virtual Tarot module: spread selection, interactive board, save to Magical Journal.
  */
-export default function TarotModule({ onNavigate }: TarotModuleProps) {
+export default function TarotModule({
+  embedded = false,
+  onNavigate,
+}: TarotModuleProps) {
   const { isAuthenticated } = useAuth();
   const [spreadType, setSpreadType] = useState<SpreadType>('three');
   const [deckStyle, setDeckStyle] = useState<DeckStyle>(() => loadDeckStyle());
@@ -219,14 +224,18 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="font-display text-3xl text-ananael-gold">Virtual Tarot</h1>
-        <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          Select a spread, draw the cards face-down, then reveal each by clicking.
-          Approximately one in five cards arrives reversed. Saved readings live in
-          the Magical Journal.
-        </p>
-      </header>
+      {!embedded && (
+        <header>
+          <h1 className="font-display text-3xl text-ananael-gold">
+            Virtual Tarot
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
+            Select a spread, draw the cards face-down, then reveal each by
+            clicking. Approximately one in five cards arrives reversed. Saved
+            readings live in the Magical Journal.
+          </p>
+        </header>
+      )}
 
       {/* Spread selector */}
       <div className="flex flex-wrap gap-3">

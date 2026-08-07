@@ -18,6 +18,7 @@ import {
 } from '../lib/hinduAstrology';
 import {
   buildPlanetaryHours,
+  CHALDEAN_ORDER,
   formatTime,
   type PlanetId,
 } from '../lib/planetaryHours';
@@ -25,8 +26,14 @@ import { loadPlanetaryLocation } from '../lib/planetaryLocation';
 import { WESTERN_SIGN_GLYPHS } from '../lib/westernZodiac';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
+import {
+  findElectionWindows,
+  type ElectionFilters,
+} from '../lib/elections';
 
-type PanelId = 'hours' | 'planets' | 'zodiac';
+type PanelId = 'hours' | 'planets' | 'zodiac' | 'elections';
+
+export type PlanetaryPanelId = PanelId;
 
 function toDateInputValue(d: Date): string {
   const y = d.getFullYear();
@@ -59,7 +66,11 @@ function formatAlt(alt: number | undefined): string {
 }
 
 interface CelestialTimingModuleProps {
-  onNavigate?: (module: ModuleId, opts?: TreeNavigateOptions) => void;
+  initialPanel?: PanelId;
+  onNavigate?: (
+    module: ModuleId,
+    opts?: TreeNavigateOptions & { planetaryPanel?: PanelId }
+  ) => void;
 }
 
 /**
@@ -67,6 +78,7 @@ interface CelestialTimingModuleProps {
  * Location syncs to the signed-in user profile when authenticated.
  */
 export default function CelestialTimingModule({
+  initialPanel = 'hours',
   onNavigate,
 }: CelestialTimingModuleProps) {
   const { location: authLocation, saveLocation, isAuthenticated } = useAuth();
@@ -78,7 +90,16 @@ export default function CelestialTimingModule({
   const [timeStr, setTimeStr] = useState(toTimeInputValue(nowInit));
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [coordsTouched, setCoordsTouched] = useState(false);
-  const [panel, setPanel] = useState<PanelId>('hours');
+  const [panel, setPanel] = useState<PanelId>(initialPanel);
+  const [electionDay, setElectionDay] = useState<PlanetId | 'any'>('any');
+  const [electionHour, setElectionHour] = useState<PlanetId>('Mercury');
+  const [electionMoon, setElectionMoon] =
+    useState<ElectionFilters['moon']>('any');
+  const [avoidRetro, setAvoidRetro] = useState<PlanetId | 'none'>('none');
+
+  useEffect(() => {
+    setPanel(initialPanel);
+  }, [initialPanel]);
 
   const lat = Number(latitude);
   const lon = Number(longitude);
@@ -190,7 +211,28 @@ export default function CelestialTimingModule({
     { id: 'hours', label: 'Hours' },
     { id: 'planets', label: 'Planets' },
     { id: 'zodiac', label: 'Zodiac' },
+    { id: 'elections', label: 'Elections' },
   ];
+
+  const electionWindows = useMemo(() => {
+    if (!coordsValid || panel !== 'elections') return [];
+    return findElectionWindows(referenceNow, lat, lon, {
+      dayPlanet: electionDay,
+      hourPlanet: electionHour,
+      moon: electionMoon,
+      avoidRetrograde: avoidRetro,
+    });
+  }, [
+    coordsValid,
+    panel,
+    referenceNow,
+    lat,
+    lon,
+    electionDay,
+    electionHour,
+    electionMoon,
+    avoidRetro,
+  ]);
 
   return (
     <div className="space-y-8">
@@ -579,6 +621,143 @@ export default function CelestialTimingModule({
               ))}
             </dl>
           </section>
+        </div>
+      )}
+
+      {panel === 'elections' && (
+        <div className="space-y-6">
+          <p className="text-sm text-ananael-muted">
+            Explainable windows for the next seven days from your location and
+            the reference date/time above. Filters combine planetary day, hour
+            ruler, moon phase, and optional retrograde avoidance.
+          </p>
+          {!coordsValid && (
+            <p className="text-sm text-zinc-400">
+              Enter a valid latitude and longitude to compute elections.
+            </p>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="block text-sm text-ananael-muted">
+              Preferred day
+              <select
+                value={electionDay}
+                onChange={(e) =>
+                  setElectionDay(e.target.value as PlanetId | 'any')
+                }
+                className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              >
+                <option value="any">Any day</option>
+                {CHALDEAN_ORDER.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm text-ananael-muted">
+              Hour planet
+              <select
+                value={electionHour}
+                onChange={(e) =>
+                  setElectionHour(e.target.value as PlanetId)
+                }
+                className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              >
+                {CHALDEAN_ORDER.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm text-ananael-muted">
+              Moon
+              <select
+                value={electionMoon}
+                onChange={(e) =>
+                  setElectionMoon(e.target.value as ElectionFilters['moon'])
+                }
+                className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              >
+                <option value="any">Any phase</option>
+                <option value="waxing">Waxing</option>
+                <option value="waning">Waning</option>
+                <option value="new">New</option>
+                <option value="full">Full</option>
+              </select>
+            </label>
+            <label className="block text-sm text-ananael-muted">
+              Avoid retrograde
+              <select
+                value={avoidRetro}
+                onChange={(e) =>
+                  setAvoidRetro(e.target.value as PlanetId | 'none')
+                }
+                className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              >
+                <option value="none">None</option>
+                {CHALDEAN_ORDER.filter((p) => p !== 'Sun' && p !== 'Moon').map(
+                  (p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  )
+                )}
+              </select>
+            </label>
+          </div>
+
+          {coordsValid && electionWindows.length === 0 && (
+            <p className="text-sm text-zinc-400">
+              No matching windows in the next seven days for these filters.
+            </p>
+          )}
+
+          {electionWindows.length > 0 && (
+            <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
+                    <th className="px-4 py-3 font-medium">When</th>
+                    <th className="px-4 py-3 font-medium">Day</th>
+                    <th className="px-4 py-3 font-medium">Hour</th>
+                    <th className="px-4 py-3 font-medium">Moon</th>
+                    <th className="px-4 py-3 font-medium">Why</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {electionWindows.map((w) => (
+                    <tr
+                      key={w.start.toISOString()}
+                      className="border-b border-ananael-border/30 last:border-0"
+                    >
+                      <td className="px-4 py-2 text-zinc-200">
+                        {w.start.toLocaleString(undefined, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                        <span className="text-ananael-muted">
+                          {' '}
+                          – {formatTime(w.end)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">{w.dayRuler}</td>
+                      <td className="px-4 py-2 text-ananael-gold">
+                        {w.hourPlanet}
+                      </td>
+                      <td className="px-4 py-2">{w.moonPhase}</td>
+                      <td className="px-4 py-2 text-xs text-ananael-muted">
+                        {w.reasons.join(' · ')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

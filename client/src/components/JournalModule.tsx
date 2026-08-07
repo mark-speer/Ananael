@@ -99,6 +99,17 @@ function payloadSummary(entry: JournalEntry): string | null {
         : '';
     return `Hexagram ${p.primaryNumber}${rel}`;
   }
+  if (p.system === 'geomancy' && typeof p.judge === 'string') {
+    return `Judge: ${String(p.judge).replace(/-/g, ' ')}`;
+  }
+  if (p.system === 'runes' && Array.isArray(p.runesDrawn)) {
+    return (p.runesDrawn as Array<{ runeId: string; name?: string; isReversed: boolean }>)
+      .map((r) => {
+        const label = r.name ?? r.runeId;
+        return r.isReversed ? `${label} (rev)` : label;
+      })
+      .join(', ');
+  }
   return null;
 }
 

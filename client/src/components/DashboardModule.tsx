@@ -20,6 +20,8 @@ const SKY_REFRESH_MS = 60_000;
 export interface DashboardNavigateOptions {
   filter?: JournalEntryType | 'all';
   gematriaPrefill?: string;
+  divinationTab?: 'tarot' | 'iching' | 'geomancy' | 'runes';
+  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections';
 }
 
 interface DashboardModuleProps {
@@ -218,7 +220,9 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               )}
               <TileLink
                 label="Celestial Timing"
-                onClick={() => onNavigate('planetary')}
+                onClick={() =>
+                  onNavigate('planetary', { planetaryPanel: 'elections' })
+                }
                 tone="gold"
               />
             </div>
@@ -311,7 +315,9 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             </div>
             <TileLink
               label="Full Tarot"
-              onClick={() => onNavigate('tarot')}
+              onClick={() =>
+                onNavigate('divination', { divinationTab: 'tarot' })
+              }
               tone="gold"
             />
           </div>
@@ -464,7 +470,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             Ritual builders
           </h2>
           <p className="mt-1 text-sm text-ananael-muted">
-            Altar layouts and Solomonic circle geometry.
+            Altar layouts, Solomonic circles, talismans, Enochian, and liturgy.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <TileLink
@@ -476,6 +482,28 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               label="Solomonic Circles"
               onClick={() => onNavigate('solomonic')}
               tone="bronze"
+            />
+            <TileLink
+              label="Talisman"
+              onClick={() => onNavigate('talisman')}
+              tone="bronze"
+            />
+            <TileLink
+              label="Enochian"
+              onClick={() => onNavigate('enochian')}
+              tone="violet"
+            />
+            <TileLink
+              label="Ritual Library"
+              onClick={() => onNavigate('liturgy')}
+              tone="gold"
+            />
+            <TileLink
+              label="Divination"
+              onClick={() =>
+                onNavigate('divination', { divinationTab: 'tarot' })
+              }
+              tone="gold"
             />
           </div>
         </section>

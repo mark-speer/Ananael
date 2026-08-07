@@ -13,12 +13,17 @@ import { getAllowedOrigins } from './lib/origins';
 import { csrfProtect } from './middleware/csrf';
 import authRoutes from './routes/auth';
 import gematriaRoutes from './routes/gematria';
+import geomancyRoutes from './routes/geomancy';
 import ichingRoutes from './routes/iching';
 import tarotRoutes from './routes/tarot';
+import runesRoutes from './routes/runes';
 import treeRoutes from './routes/tree';
 import ritualRoutes from './routes/ritual';
 import solomonicRoutes from './routes/solomonic';
 import journalRoutes from './routes/journal';
+import talismanRoutes from './routes/talisman';
+import enochianRoutes from './routes/enochian';
+import liturgyRoutes from './routes/liturgy';
 
 dotenv.config();
 
@@ -88,12 +93,17 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tarot', tarotRoutes);
+app.use('/api/runes', runesRoutes);
 app.use('/api/gematria', gematriaRoutes);
+app.use('/api/geomancy', geomancyRoutes);
 app.use('/api/iching', ichingRoutes);
 app.use('/api/tree', treeRoutes);
 app.use('/api/ritual', ritualRoutes);
 app.use('/api/solomonic', solomonicRoutes);
 app.use('/api/journal', journalRoutes);
+app.use('/api/talisman', talismanRoutes);
+app.use('/api/enochian', enochianRoutes);
+app.use('/api/liturgy', liturgyRoutes);
 
 if (hasClient) {
   app.use(express.static(publicDir));

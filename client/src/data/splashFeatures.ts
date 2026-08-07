@@ -6,7 +6,7 @@ export const SPLASH_MISSION = {
   headline: 'Tools for the work, gathered in one sanctum.',
   support:
     'Ananael is a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, ritual design, and a journal for your workings.',
-  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast tarot and I Ching, calculate gematria and celestial timing, study the Tree of Life and Liber 777–style correspondences, plan altar layouts and Solomonic circles, and keep a Magical Journal of rituals, dreams, and readings. Whether you are exploring Golden Dawn symbolism, Goetia and Heptameron circle work, or daily sky conditions for timing, Magical OS keeps every module within reach.`,
+  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, and Enochian tablets; craft kamea and sigils; plan altar layouts and Solomonic circles; browse a Ritual Library; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
 } as const;
 
 export interface SplashFeature {
@@ -23,10 +23,10 @@ export const SPLASH_FEATURES: SplashFeature[] = [
       'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues, quick tarot, active journal workings, Liber 777 correspondences search, and deep links into ritual builders—so the day’s conditions and tools stay in one view.',
   },
   {
-    id: 'tarot',
-    title: 'Tarot',
+    id: 'divination',
+    title: 'Divination',
     description:
-      'Virtual Rider–Waite–style tarot with Single Card, Three-Card, and Celtic Cross spreads. Flip cards, honor reversed meanings, and save readings to your Magical Journal when signed in.',
+      'One portal for Tarot (Single / Three-Card / Celtic Cross), I Ching (coins or yarrow), classical Geomancy charts, and Elder Futhark rune casts—save readings to your Magical Journal when signed in.',
   },
   {
     id: 'journal',
@@ -44,19 +44,13 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'planetary',
     title: 'Celestial Timing',
     description:
-      'Chaldean planetary hours, live ephemeris with retrogrades, and Western tropical, Hindu sidereal (Lahiri + nakshatra), and Chinese sexagenary timing from your place and moment.',
+      'Chaldean planetary hours, live ephemeris with retrogrades, Western / Hindu / Chinese zodiac, and an Elections panel for explainable upcoming windows from your place and moment.',
   },
   {
     id: 'translator',
     title: 'Script Translator',
     description:
       'Transliterate Latin text into Hebrew, Greek, and Elder Futhark runes—useful for consecrations, talismans, and working names across classical and Northern scripts.',
-  },
-  {
-    id: 'iching',
-    title: 'I Ching',
-    description:
-      'Cast the Book of Changes with coin or yarrow stalk methods. Read King Wen hexagram text, changing lines, and save casts to your Magical Journal.',
   },
   {
     id: 'tree',
@@ -81,5 +75,23 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     title: 'Solomonic Circles',
     description:
       'Build Goetia, Heptameron, and generic magician’s circles with Triangle of Art, Ars Goetia spirit selection, and labeled seal slots for classical Solomonic work.',
+  },
+  {
+    id: 'talisman',
+    title: 'Talisman Atelier',
+    description:
+      'Planetary kamea (magic squares) and sigil craft—trace names on the square or build chaos-style stroke sigils, then export PNG/JSON or save designs to your account.',
+  },
+  {
+    id: 'enochian',
+    title: 'Enochian',
+    description:
+      'Elemental tablet samples and the Calls for study, with deep-links into Gematria, Correspondences, and Script Translator, plus optional saved study notes.',
+  },
+  {
+    id: 'liturgy',
+    title: 'Ritual Library',
+    description:
+      'Searchable liturgy and rite sketches (LBRP, Middle Pillar, and Solomonic study forms) with suggested planetary hours and one-click Magical Journal workings.',
   },
 ];

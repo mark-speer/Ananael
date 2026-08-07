@@ -147,13 +147,18 @@ function HexagramPanel({
 }
 
 interface IChingModuleProps {
+  /** When true, hide the standalone page header (used inside Divination portal). */
+  embedded?: boolean;
   onNavigate?: (module: ModuleId, opts?: { filter?: 'divination' }) => void;
 }
 
 /**
  * I Ching module: coin/yarrow cast, King Wen text, save to Magical Journal.
  */
-export default function IChingModule({ onNavigate }: IChingModuleProps) {
+export default function IChingModule({
+  embedded = false,
+  onNavigate,
+}: IChingModuleProps) {
   const { isAuthenticated } = useAuth();
   const [method, setMethod] = useState<CastMethod>('coins');
   const [result, setResult] = useState<CastResult | null>(null);
@@ -231,14 +236,16 @@ export default function IChingModule({ onNavigate }: IChingModuleProps) {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="font-display text-3xl text-ananael-gold">I Ching</h1>
-        <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          Cast with three coins or yarrow stalk probabilities. Changing lines
-          yield a relating hexagram. Guests may cast freely; sign in to archive
-          readings in the Magical Journal.
-        </p>
-      </header>
+      {!embedded && (
+        <header>
+          <h1 className="font-display text-3xl text-ananael-gold">I Ching</h1>
+          <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
+            Cast with three coins or yarrow stalk probabilities. Changing lines
+            yield a relating hexagram. Guests may cast freely; sign in to
+            archive readings in the Magical Journal.
+          </p>
+        </header>
+      )}
 
       <div className="flex flex-wrap gap-3">
         {METHODS.map((m) => (

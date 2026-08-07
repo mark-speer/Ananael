@@ -16,16 +16,23 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 
 | Module               | Status  | Phase        |
 |----------------------|---------|--------------|
-| Tarot                | Active  | 1            |
+| Tarot                | Active  | 1 (in Divination) |
 | Gematria             | Active  | 2a           |
-| Celestial Timing     | Active  | 2b+          |
+| Celestial Timing     | Active  | 2b+ / 13     |
 | Script Translator    | Active  | 2c           |
-| I Ching              | Active  | 3            |
+| I Ching              | Active  | 3 (in Divination) |
 | Tree of Life         | Active  | 4a           |
 | Ritual Space Planner | Active  | 4b           |
 | Solomonic Circles    | Active  | 5–6          |
 | Magical Journal      | Active  | 7            |
 | Magical OS Dashboard | Active  | 8            |
+| Divination portal    | Active  | 9–11         |
+| Geomancy             | Active  | 10 (tab)     |
+| Runes                | Active  | 11 (tab)     |
+| Talisman Atelier     | Active  | 12           |
+| Elections            | Active  | 13 (timing)  |
+| Enochian             | Active  | 14           |
+| Ritual Library       | Active  | 15           |
 
 ---
 
@@ -167,6 +174,62 @@ Unified dashboard centerpiece (default home) composing:
 Modules remain individually navigable; the dashboard interconnects them and shares correspondence context automatically.
 
 **Done when:** dashboard is the default home; each tile deep-links into live modules; active workings surface from journal.
+
+---
+
+## Phase 9 — Divination portal — Shipped
+
+Single sidebar **Divination** module with tabs wrapping Tarot and I Ching (legacy `tarot` / `iching` ModuleIds redirect). Magical OS / Tree / Correspondences deep-link via `divinationTab`.
+
+**Done when:** Tarot and I Ching cast/save work from tabs; deep-links open the correct tab.
+
+---
+
+## Phase 10 — Geomancy — Shipped
+
+Geomancy tab: random/manual mothers, full chart (daughters, nephews, witnesses, judge, reconciler), `POST /api/geomancy/save` → journal `payload.system: 'geomancy'`.
+
+**Done when:** cast → interpret → signed-in save in Journal divination filter.
+
+---
+
+## Phase 11 — Rune casting — Shipped
+
+Elder Futhark tab: single / Norns / five-rune cross; `POST /api/runes/save` → journal `payload.system: 'runes'`.
+
+**Done when:** cast → meanings → save; Divination tabs are Tarot | I Ching | Geomancy | Runes.
+
+---
+
+## Phase 12 — Talisman Atelier — Shipped
+
+Planetary kamea + planetary/chaos sigils; PNG/JSON export; `POST/GET/PUT /api/talisman/designs`.
+
+**Done when:** build kamea and both sigil modes; export; signed-in save/reload.
+
+---
+
+## Phase 13 — Electional calendar — Shipped
+
+Celestial Timing **Elections** panel: day/hour/moon/retrograde filters over the next seven days; Magical OS / Ritual Library deep-link via `planetaryPanel: 'elections'`.
+
+**Done when:** filters yield explainable upcoming windows for lat/lon.
+
+---
+
+## Phase 14 — Enochian — Shipped
+
+Elemental tablet samples + Calls reader; notes via `POST/GET /api/enochian/notes`; deep-links to Gematria / Correspondences / Translator.
+
+**Done when:** browse tablets + Calls; notes save when signed in.
+
+---
+
+## Phase 15 — Ritual Library — Shipped
+
+Searchable liturgy corpus; suggested Elections deep-link; “Log working” → journal `working` entry; links to Ritual Space / Solomonic where relevant.
+
+**Done when:** browse/search rites; signed-in log working; Magical OS deep-link present.
 
 ---
 

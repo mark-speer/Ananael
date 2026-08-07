@@ -2,16 +2,20 @@ import AccountMenu from './AccountMenu';
 
 export type ModuleId =
   | 'dashboard'
+  | 'divination'
   | 'tarot'
-  | 'planetary'
   | 'iching'
+  | 'planetary'
   | 'gematria'
   | 'tree'
   | 'translator'
   | 'ritual'
   | 'solomonic'
   | 'correspondences'
-  | 'journal';
+  | 'journal'
+  | 'talisman'
+  | 'enochian'
+  | 'liturgy';
 
 export interface ModuleDef {
   id: ModuleId;
@@ -22,16 +26,18 @@ export interface ModuleDef {
 
 export const MODULES: ModuleDef[] = [
   { id: 'dashboard', label: 'Magical OS' },
-  { id: 'tarot', label: 'Tarot' },
+  { id: 'divination', label: 'Divination' },
   { id: 'journal', label: 'Magical Journal' },
   { id: 'gematria', label: 'Gematria' },
   { id: 'planetary', label: 'Celestial Timing' },
   { id: 'translator', label: 'Script Translator' },
-  { id: 'iching', label: 'I Ching' },
   { id: 'tree', label: 'Tree of Life' },
   { id: 'correspondences', label: 'Correspondences' },
   { id: 'ritual', label: 'Ritual Space Planner' },
   { id: 'solomonic', label: 'Solomonic Circles' },
+  { id: 'talisman', label: 'Talisman Atelier' },
+  { id: 'enochian', label: 'Enochian' },
+  { id: 'liturgy', label: 'Ritual Library' },
 ];
 
 interface SidebarProps {
@@ -44,6 +50,11 @@ interface SidebarProps {
  * Active modules are clickable; optional Soon badge via comingSoon.
  */
 export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
+  const highlightId =
+    activeModule === 'tarot' || activeModule === 'iching'
+      ? 'divination'
+      : activeModule;
+
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-ananael-border/60 bg-ananael-surface/90 backdrop-blur-sm">
       <div className="border-b border-ananael-border/60 px-5 py-6">
@@ -57,7 +68,7 @@ export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Modules">
         {MODULES.map((mod) => {
-          const isActive = activeModule === mod.id;
+          const isActive = highlightId === mod.id;
 
           return (
             <button

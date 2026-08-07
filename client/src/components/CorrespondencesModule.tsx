@@ -371,7 +371,9 @@ function KeyDetailPanel({
         {keyData.tarotId && (
           <button
             type="button"
-            onClick={() => onNavigate('tarot')}
+            onClick={() =>
+              onNavigate('divination', { divinationTab: 'tarot' })
+            }
             className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
           >
             View in Tarot
@@ -380,7 +382,9 @@ function KeyDetailPanel({
         {trigrams.length > 0 && (
           <button
             type="button"
-            onClick={() => onNavigate('iching')}
+            onClick={() =>
+              onNavigate('divination', { divinationTab: 'iching' })
+            }
             className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
           >
             Open I Ching
