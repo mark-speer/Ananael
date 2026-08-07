@@ -15,6 +15,7 @@ import {
   GRID_ROWS,
   GRID_WIDTH,
   CELL_SIZE,
+  gridCenterPx,
   nextQuarterLabel,
   sanitizeItems,
   shouldShowCircle,
@@ -365,6 +366,7 @@ export default function RitualSpaceModule({
   };
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
+  const { cx: centerCx, cy: centerCy } = gridCenterPx();
 
   return (
     <div className="space-y-6">
@@ -512,24 +514,24 @@ export default function RitualSpaceModule({
             {/* Center crosshair */}
             <g stroke="#3d3554" strokeWidth={1} strokeDasharray="4 4">
               <line
-                x1={GRID_WIDTH / 2}
+                x1={centerCx}
                 y1={0}
-                x2={GRID_WIDTH / 2}
+                x2={centerCx}
                 y2={GRID_HEIGHT}
               />
               <line
                 x1={0}
-                y1={GRID_HEIGHT / 2}
+                y1={centerCy}
                 x2={GRID_WIDTH}
-                y2={GRID_HEIGHT / 2}
+                y2={centerCy}
               />
             </g>
 
             {/* LBRP circle */}
             {showCircle && (
               <circle
-                cx={GRID_WIDTH / 2}
-                cy={GRID_HEIGHT / 2}
+                cx={centerCx}
+                cy={centerCy}
                 r={8 * CELL_SIZE}
                 fill="none"
                 stroke="#c9a227"
@@ -542,8 +544,8 @@ export default function RitualSpaceModule({
             <g pointerEvents="none">
               {/* subtle altar square */}
               <rect
-                x={GRID_WIDTH / 2 - 4 * CELL_SIZE}
-                y={GRID_HEIGHT / 2 - 4 * CELL_SIZE}
+                x={centerCx - 4 * CELL_SIZE}
+                y={centerCy - 4 * CELL_SIZE}
                 width={8 * CELL_SIZE}
                 height={8 * CELL_SIZE}
                 fill="none"

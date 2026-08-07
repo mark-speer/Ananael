@@ -83,6 +83,11 @@ export function cellCenter(x: number, y: number): { cx: number; cy: number } {
   };
 }
 
+/** Pixel center of the template/center cell (floor(n/2)), not the geometric midpoint. */
+export function gridCenterPx(): { cx: number; cy: number } {
+  return cellCenter(Math.floor(GRID_COLS / 2), Math.floor(GRID_ROWS / 2));
+}
+
 export function createItem(
   type: RitualToolType,
   x: number,
