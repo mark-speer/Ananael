@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import AccountMenu from './components/AccountMenu';
+import CelestialTimingModule from './components/CelestialTimingModule';
 import CorrespondencesModule from './components/CorrespondencesModule';
 import DashboardModule from './components/DashboardModule';
 import GematriaModule from './components/GematriaModule';
 import IChingModule from './components/IChingModule';
 import JournalModule from './components/JournalModule';
-import PlanetaryHoursModule from './components/PlanetaryHoursModule';
 import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { MODULES, type ModuleId } from './components/Sidebar';
@@ -33,6 +33,9 @@ export default function App() {
   const wasAuthenticated = useRef(false);
   const [activeModule, setActiveModule] = useState<ModuleId>('dashboard');
   const [gematriaPrefill, setGematriaPrefill] = useState<string | undefined>();
+  const [correspondencesQuery, setCorrespondencesQuery] = useState<
+    string | undefined
+  >();
   const [journalFilter, setJournalFilter] = useState<
     JournalEntryType | 'all'
   >('all');
@@ -50,6 +53,11 @@ export default function App() {
       setGematriaPrefill(opts.gematriaPrefill);
     } else {
       setGematriaPrefill(undefined);
+    }
+    if (module === 'correspondences' && opts?.correspondencesQuery !== undefined) {
+      setCorrespondencesQuery(opts.correspondencesQuery);
+    } else {
+      setCorrespondencesQuery(undefined);
     }
     if (module === 'journal') {
       setJournalFilter(opts?.filter ?? 'all');
@@ -80,7 +88,7 @@ export default function App() {
       case 'gematria':
         return <GematriaModule initialText={gematriaPrefill} />;
       case 'planetary':
-        return <PlanetaryHoursModule />;
+        return <CelestialTimingModule onNavigate={navigateToModule} />;
       case 'translator':
         return <ScriptTranslatorModule />;
       case 'iching':
@@ -88,7 +96,12 @@ export default function App() {
       case 'tree':
         return <TreeOfLifeModule onNavigate={navigateToModule} />;
       case 'correspondences':
-        return <CorrespondencesModule onNavigate={navigateToModule} />;
+        return (
+          <CorrespondencesModule
+            onNavigate={navigateToModule}
+            initialQuery={correspondencesQuery}
+          />
+        );
       case 'ritual':
         return <RitualSpaceModule />;
       case 'solomonic':

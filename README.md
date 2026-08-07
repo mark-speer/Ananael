@@ -2,7 +2,7 @@
 
 A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic.
 
-**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Planetary Hours, and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot. **Phase 7** adds Magical Journal — unified ritual / dream / divination / mood logs with moon and planetary-hour tags (Tarot and I Ching saves land here). **Phase 8** adds Magical OS — the default-home dashboard composing sky conditions, quick tarot, journal workings, and deep-links into every module.
+**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Celestial Timing (planetary hours + ephemeris / zodiac), and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot. **Phase 7** adds Magical Journal — unified ritual / dream / divination / mood logs with moon and planetary-hour tags (Tarot and I Ching saves land here). **Phase 8** adds Magical OS — the default-home dashboard composing sky conditions, quick tarot, journal workings, and deep-links into every module.
 
 ## Stack
 
@@ -73,7 +73,7 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 | Tarot                | Active                        |
 | Magical Journal      | Active (Phase 7)              |
 | Gematria             | Active (Phase 2a)             |
-| Planetary Hours      | Active (Phase 2b)             |
+| Celestial Timing     | Active (Phase 2b+)            |
 | Script Translator    | Active (Phase 2c)             |
 | I Ching              | Active (Phase 3)              |
 | Tree of Life         | Active (Phase 4a)             |
@@ -88,7 +88,7 @@ Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 - `POST /api/auth/register` — `{ username, email, password }`
 - `POST /api/auth/login` — `{ email, password }`
 - `GET /api/auth/me` — Bearer JWT; current user (includes `location`)
-- `PUT /api/auth/location` — Bearer JWT; `{ lat, lon }` saved on the user profile for planetary hours / Magical OS / journal sky
+- `PUT /api/auth/location` — Bearer JWT; `{ lat, lon }` saved on the user profile for Celestial Timing / Magical OS / journal sky
 - `POST /api/tarot/save` — Bearer JWT; saves a Magical Journal divination entry (`spreadType`, `cardsDrawn`, `userNotes?`, `sky?`)
 - `GET /api/tarot/history` — Bearer JWT; recent tarot journal entries (compat shape)
 - `POST /api/gematria/save` — Bearer JWT; `{ text, system, total, notes? }`

@@ -205,7 +205,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 Sky clock
               </h2>
               <p className="mt-0.5 text-xs text-ananael-muted">
-                Moon and planetary day / hour
+                Moon, planetary hour, Sun sign, and day pillar
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -217,14 +217,14 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 />
               )}
               <TileLink
-                label="Planetary Hours"
+                label="Celestial Timing"
                 onClick={() => onNavigate('planetary')}
                 tone="gold"
               />
             </div>
           </div>
 
-          <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <div>
               <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
                 Moon
@@ -264,11 +264,23 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                   : '—'}
               </dd>
             </div>
+            <div>
+              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                Sun
+              </dt>
+              <dd className="mt-1 text-zinc-100">{sky.sunSign ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                Day pillar
+              </dt>
+              <dd className="mt-1 text-zinc-100">{sky.chineseDay ?? '—'}</dd>
+            </div>
           </dl>
 
           {!loc && (
             <p className="mt-3 text-xs text-ananael-muted">
-              Set a location (here or in Planetary Hours) for the current
+              Set a location (here or in Celestial Timing) for the current
               planetary hour
               {isAuthenticated
                 ? ' — it is saved to your account.'

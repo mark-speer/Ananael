@@ -6,7 +6,7 @@ export const SPLASH_MISSION = {
   headline: 'Tools for the work, gathered in one sanctum.',
   support:
     'Ananael is a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, ritual design, and a journal for your workings.',
-  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast tarot and I Ching, calculate gematria and planetary hours, study the Tree of Life and Liber 777–style correspondences, plan altar layouts and Solomonic circles, and keep a Magical Journal of rituals, dreams, and readings. Whether you are exploring Golden Dawn symbolism, Goetia and Heptameron circle work, or daily sky conditions for timing, Magical OS keeps every module within reach.`,
+  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast tarot and I Ching, calculate gematria and celestial timing, study the Tree of Life and Liber 777–style correspondences, plan altar layouts and Solomonic circles, and keep a Magical Journal of rituals, dreams, and readings. Whether you are exploring Golden Dawn symbolism, Goetia and Heptameron circle work, or daily sky conditions for timing, Magical OS keeps every module within reach.`,
 } as const;
 
 export interface SplashFeature {
@@ -20,7 +20,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'dashboard',
     title: 'Magical OS',
     description:
-      'Your default home: a living sky clock with moon phase and planetary hours, quick tarot, active journal workings, Liber 777 correspondences search, and deep links into ritual builders—so the day’s conditions and tools stay in one view.',
+      'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues, quick tarot, active journal workings, Liber 777 correspondences search, and deep links into ritual builders—so the day’s conditions and tools stay in one view.',
   },
   {
     id: 'tarot',
@@ -32,7 +32,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'journal',
     title: 'Magical Journal',
     description:
-      'A unified log for rituals, dreams, divination, mood, and workings—tagged with moon phase and planetary hour so your practice history stays tied to the sky.',
+      'A unified log for rituals, dreams, divination, mood, and workings—tagged with moon phase, planetary hour, and zodiac cues so your practice history stays tied to the sky.',
   },
   {
     id: 'gematria',
@@ -42,9 +42,9 @@ export const SPLASH_FEATURES: SplashFeature[] = [
   },
   {
     id: 'planetary',
-    title: 'Planetary Hours',
+    title: 'Celestial Timing',
     description:
-      'Compute Chaldean unequal planetary hours from your latitude, longitude, and date. Sync location to time elections, talisman work, and day-of-the-week rulers with precision.',
+      'Chaldean planetary hours, live ephemeris with retrogrades, and Western tropical, Hindu sidereal (Lahiri + nakshatra), and Chinese sexagenary timing from your place and moment.',
   },
   {
     id: 'translator',

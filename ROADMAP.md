@@ -18,7 +18,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 |----------------------|---------|--------------|
 | Tarot                | Active  | 1            |
 | Gematria             | Active  | 2a           |
-| Planetary Hours      | Active  | 2b           |
+| Celestial Timing     | Active  | 2b+          |
 | Script Translator    | Active  | 2c           |
 | I Ching              | Active  | 3            |
 | Tree of Life         | Active  | 4a           |
@@ -53,14 +53,17 @@ Ship in this order within the phase.
 
 **Done when:** Soon badge off; guest use works; signed-in users can save queries.
 
-### 2b — Planetary Hours — Shipped
+### 2b — Celestial Timing (was Planetary Hours) — Shipped / expanded
 
 - Location + date/time inputs (browser geolocation optional)
 - Sunrise/sunset–based diurnal/nocturnal hour table, current hour highlight, planetary day ruler
 - Pure TS utility (`client/src/lib/planetaryHours.ts`); NOAA solar calculator attribution in file header
+- Ephemeris via `astronomy-engine`: Sun–Pluto longitudes, retrogrades, altitude; moon phase from the library
+- Western tropical, Hindu sidereal (Lahiri + Moon nakshatra), Chinese sexagenary pillars (year/month/day/hour)
+- Module UI: Hours / Planets / Zodiac panels (`CelestialTimingModule`); Magical OS + journal sky tags enriched
 - Optional later: `POST /api/planetary/save` for bookmarked charts
 
-**Done when:** accurate table for a known lat/lon/date; clear current-hour state.
+**Done when:** accurate hour table for a known lat/lon/date; clear current-hour state; ephemeris + three zodiac systems visible.
 
 ### 2c — Script Translator — Shipped
 
@@ -139,7 +142,7 @@ Same sidebar module (`solomonic`); deepens Phase 5 canvas:
 Auth-gated unified journal as the shared notes / history layer (not the homepage).
 
 - Entry types: ritual, dream, divination, mood, working, note
-- Moon phase + planetary day/hour auto-tags (`client/src/lib/moonPhase.ts`, reuse planetary hours + saved location)
+- Moon phase + planetary day/hour auto-tags, plus Sun sign / nakshatra / Chinese day pillar (`client/src/lib/moonPhase.ts`, `journalSky.ts`, Celestial Timing location)
 - Entity tags searchable via Liber 777 / Goetia vocabulary
 - Tarot / I Ching **Save** writes journal divination entries; module history panels retired in favor of Journal deep-links
 - Idempotent migration of legacy `TarotReading` / `IChingCast` into `JournalEntry` on journal load

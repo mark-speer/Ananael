@@ -1,5 +1,5 @@
 /**
- * Persist / load location used by Planetary Hours, Magical Journal sky tags,
+ * Persist / load location used by Celestial Timing, Magical Journal sky tags,
  * and Magical OS. localStorage is the guest/offline cache; signed-in users
  * also sync to /api/auth/location on the User document.
  */

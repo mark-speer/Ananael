@@ -39,6 +39,9 @@ export interface IJournalSky {
   moonIllum?: number;
   dayRuler?: string;
   hourRuler?: string;
+  sunSign?: string;
+  nakshatra?: string;
+  chineseDay?: string;
   lat?: number;
   lon?: number;
 }
@@ -108,6 +111,9 @@ const JournalSkySchema = new Schema<IJournalSky>(
     moonIllum: { type: Number, min: 0, max: 1 },
     dayRuler: { type: String },
     hourRuler: { type: String },
+    sunSign: { type: String },
+    nakshatra: { type: String },
+    chineseDay: { type: String },
     lat: { type: Number },
     lon: { type: Number },
   },

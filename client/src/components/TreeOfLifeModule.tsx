@@ -16,6 +16,8 @@ import type { ModuleId } from './Sidebar';
 
 export interface TreeNavigateOptions {
   gematriaPrefill?: string;
+  /** Prefill Correspondences search when navigating there. */
+  correspondencesQuery?: string;
 }
 
 interface TreeOfLifeModuleProps {

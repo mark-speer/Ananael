@@ -173,7 +173,7 @@ router.get('/me', protect, async (req: AuthRequest, res: Response): Promise<void
 
 /**
  * PUT /api/auth/location
- * Body: { lat, lon } — persist coordinates for planetary hours / sky tags.
+ * Body: { lat, lon } — persist coordinates for Celestial Timing / sky tags.
  */
 router.put(
   '/location',

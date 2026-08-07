@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   CORRESPONDENCE_FACETS,
   FACET_LABELS,
@@ -21,6 +21,7 @@ import type { TreeNavigateOptions } from './TreeOfLifeModule';
 
 interface CorrespondencesModuleProps {
   onNavigate: (module: ModuleId, opts?: TreeNavigateOptions) => void;
+  initialQuery?: string;
 }
 
 /**
@@ -28,10 +29,18 @@ interface CorrespondencesModuleProps {
  */
 export default function CorrespondencesModule({
   onNavigate,
+  initialQuery = '',
 }: CorrespondencesModuleProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const [facet, setFacet] = useState<CorrespondenceFacet | null>(null);
   const [selectedKey, setSelectedKey] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setQuery(initialQuery);
+      setSelectedKey(null);
+    }
+  }, [initialQuery]);
 
   const result = useMemo(
     () => searchCorrespondences(query, facet),

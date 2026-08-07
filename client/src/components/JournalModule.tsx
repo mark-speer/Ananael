@@ -531,9 +531,24 @@ export default function JournalModule({
               Hour · {skyPreview.hourRuler}
             </span>
           )}
+          {skyPreview.sunSign && (
+            <span className="rounded border border-ananael-border/60 px-2 py-1">
+              Sun · {skyPreview.sunSign}
+            </span>
+          )}
+          {skyPreview.nakshatra && (
+            <span className="rounded border border-ananael-border/60 px-2 py-1">
+              {skyPreview.nakshatra}
+            </span>
+          )}
+          {skyPreview.chineseDay && (
+            <span className="rounded border border-ananael-border/60 px-2 py-1">
+              {skyPreview.chineseDay}
+            </span>
+          )}
           {!skyPreview.hourRuler && (
             <span className="text-zinc-500">
-              Set location in Planetary Hours for hour tags.
+              Set location in Celestial Timing for hour tags.
             </span>
           )}
         </div>
@@ -646,6 +661,21 @@ export default function JournalModule({
                   {entry.sky?.hourRuler && (
                     <span className="rounded border border-ananael-border/50 px-1.5 py-0.5 text-[10px] text-ananael-muted">
                       Hour {entry.sky.hourRuler}
+                    </span>
+                  )}
+                  {entry.sky?.sunSign && (
+                    <span className="rounded border border-ananael-border/50 px-1.5 py-0.5 text-[10px] text-ananael-muted">
+                      {entry.sky.sunSign}
+                    </span>
+                  )}
+                  {entry.sky?.nakshatra && (
+                    <span className="rounded border border-ananael-border/50 px-1.5 py-0.5 text-[10px] text-ananael-muted">
+                      {entry.sky.nakshatra}
+                    </span>
+                  )}
+                  {entry.sky?.chineseDay && (
+                    <span className="rounded border border-ananael-border/50 px-1.5 py-0.5 text-[10px] text-ananael-muted">
+                      {entry.sky.chineseDay}
                     </span>
                   )}
                   {(entry.entities ?? []).slice(0, 8).map((e) => (

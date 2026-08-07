@@ -47,6 +47,9 @@ export interface JournalSky {
   moonIllum?: number;
   dayRuler?: string;
   hourRuler?: string;
+  sunSign?: string;
+  nakshatra?: string;
+  chineseDay?: string;
   lat?: number;
   lon?: number;
 }

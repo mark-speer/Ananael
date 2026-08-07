@@ -1,7 +1,10 @@
 /**
- * Build sky auto-tags (moon phase + planetary day/hour) for journal entries.
+ * Build sky auto-tags (moon, planetary day/hour, zodiac cues) for journal entries.
  */
 
+import { dayPillar, formatPillarShort } from './chineseAstrology';
+import { buildSkySnapshot, getBody } from './celestialEphemeris';
+import { nakshatraFromSidereal, siderealFromTropical } from './hinduAstrology';
 import { getMoonPhase } from './moonPhase';
 import {
   buildPlanetaryHours,
@@ -15,6 +18,12 @@ export interface JournalSky {
   moonIllum?: number;
   dayRuler?: string;
   hourRuler?: string;
+  /** Tropical Sun sign. */
+  sunSign?: string;
+  /** Moon nakshatra name (Lahiri). */
+  nakshatra?: string;
+  /** Chinese day pillar short label (element + animal). */
+  chineseDay?: string;
   lat?: number;
   lon?: number;
 }
@@ -35,9 +44,25 @@ export function buildJournalSky(
       ? { lat, lon }
       : loadPlanetaryLocation();
 
+  const skySnap = buildSkySnapshot(
+    when,
+    loc?.lat,
+    loc?.lon
+  );
+  const sun = getBody(skySnap, 'Sun');
+  const moonBody = getBody(skySnap, 'Moon');
+  const nakshatra = moonBody
+    ? nakshatraFromSidereal(
+        siderealFromTropical(moonBody.longitude, when).longitude
+      ).name
+    : undefined;
+
   const sky: JournalSky = {
     moonPhase: moon.name,
     moonIllum: Math.round(moon.illumination * 1000) / 1000,
+    sunSign: sun?.tropical.sign,
+    nakshatra,
+    chineseDay: formatPillarShort(dayPillar(when)),
   };
 
   if (loc) {

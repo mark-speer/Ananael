@@ -25,7 +25,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'tarot', label: 'Tarot' },
   { id: 'journal', label: 'Magical Journal' },
   { id: 'gematria', label: 'Gematria' },
-  { id: 'planetary', label: 'Planetary Hours' },
+  { id: 'planetary', label: 'Celestial Timing' },
   { id: 'translator', label: 'Script Translator' },
   { id: 'iching', label: 'I Ching' },
   { id: 'tree', label: 'Tree of Life' },

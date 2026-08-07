@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-/** Lat/lon used for planetary hours and journal sky tags. */
+/** Lat/lon used for Celestial Timing and journal sky tags. */
 export interface IUserLocation {
   lat: number;
   lon: number;
