@@ -53,8 +53,10 @@ export default function CorrespondencesModule({
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Digital Liber 777 — Golden Dawn key scale 1–32. Search by sephirah,
           planet, zodiac, Hebrew letter, angel, deity, element, color, incense,
-          stone, or plant. Pantheon parallels (Egyptian, Greek, Roman, Norse)
-          follow Crowley’s traditional tables.
+          stone, or plant. Pantheon parallels (Egyptian, Greek, Roman, Norse,
+          Hindu, Mesoamerican) relate deities on the same Liber 777 key.
+          Egyptian–Hindu follow Crowley’s tables; Mesoamerican uses
+          planetary and elemental tradition maps.
         </p>
       </header>
 
@@ -288,8 +290,11 @@ function KeyDetailPanel({
             ))}
           </dl>
           <p className="mt-3 text-xs text-ananael-muted">
-            Attributions follow Liber 777 / Golden Dawn tables — tradition maps
-            on the key scale, not claims of identity between deities.
+            Egyptian, Greek, Roman, Norse, and Hindu attributions follow Liber
+            777 / Golden Dawn tables. Mesoamerican names follow planetary and
+            elemental tradition maps (Crowley left Mexican columns blank). These
+            are tradition maps on the key scale, not claims of identity between
+            deities.
           </p>
         </div>
       )}
