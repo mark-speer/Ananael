@@ -42,3 +42,46 @@ body {
 .card-reversed {
   transform: rotate(180deg);
 }
+
+@keyframes splash-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes splash-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateX(-50%) translateY(4px);
+  }
+}
+
+.splash-fade-up {
+  animation: splash-fade-up 0.85s ease-out both;
+}
+
+.splash-fade-up-delay {
+  animation-delay: 0.18s;
+}
+
+.splash-breathe {
+  animation: splash-breathe 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-fade-up,
+  .splash-fade-up-delay,
+  .splash-breathe {
+    animation: none;
+  }
+}

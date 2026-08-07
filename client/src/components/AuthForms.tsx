@@ -5,12 +5,14 @@ type Mode = 'login' | 'register';
 
 interface AuthFormsProps {
   onSuccess?: () => void;
+  /** Optional wrapper class for splash / modal layout variants. */
+  className?: string;
 }
 
 /**
- * Login / register form for the account modal; shows welcome + sign out when authenticated.
+ * Login / register form for account modal and splash; shows welcome + sign out when authenticated.
  */
-export default function AuthForms({ onSuccess }: AuthFormsProps) {
+export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
   const { login, register, logout, isAuthenticated, user } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [username, setUsername] = useState('');
@@ -21,7 +23,7 @@ export default function AuthForms({ onSuccess }: AuthFormsProps) {
 
   if (isAuthenticated && user) {
     return (
-      <div className="space-y-4">
+      <div className={['space-y-4', className].filter(Boolean).join(' ')}>
         <p className="text-sm text-zinc-300">
           Welcome back, <span className="text-ananael-gold">{user.username}</span>.
           Your readings can be saved to your profile.
@@ -59,7 +61,7 @@ export default function AuthForms({ onSuccess }: AuthFormsProps) {
   };
 
   return (
-    <div>
+    <div className={className}>
       <div className="mb-4 flex gap-2">
         <button
           type="button"

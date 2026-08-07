@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AccountMenu from './components/AccountMenu';
 import CorrespondencesModule from './components/CorrespondencesModule';
 import DashboardModule from './components/DashboardModule';
@@ -10,6 +10,7 @@ import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { MODULES, type ModuleId } from './components/Sidebar';
 import SolomonicCircleModule from './components/SolomonicCircleModule';
+import SplashPage from './components/SplashPage';
 import TarotModule from './components/TarotModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
@@ -24,14 +25,25 @@ export type AppNavigateOptions = TreeNavigateOptions & {
 /**
  * App shell: fixed sidebar + main content area.
  * Magical OS is the default home; other modules remain individually navigable.
+ * Logged-out visitors see the splash until they sign in or continue as guest.
  */
 export default function App() {
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
+  const [enteredAsGuest, setEnteredAsGuest] = useState(false);
+  const wasAuthenticated = useRef(false);
   const [activeModule, setActiveModule] = useState<ModuleId>('dashboard');
   const [gematriaPrefill, setGematriaPrefill] = useState<string | undefined>();
   const [journalFilter, setJournalFilter] = useState<
     JournalEntryType | 'all'
   >('all');
+
+  // Sign-out returns visitors to the splash.
+  useEffect(() => {
+    if (wasAuthenticated.current && !isAuthenticated) {
+      setEnteredAsGuest(false);
+    }
+    wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated]);
 
   const navigateToModule = (module: ModuleId, opts?: AppNavigateOptions) => {
     if (module === 'gematria' && opts?.gematriaPrefill !== undefined) {
@@ -51,6 +63,10 @@ export default function App() {
         Opening Ananael…
       </div>
     );
+  }
+
+  if (!isAuthenticated && !enteredAsGuest) {
+    return <SplashPage onEnterGuest={() => setEnteredAsGuest(true)} />;
   }
 
   const renderModule = () => {
