@@ -2,7 +2,7 @@
 
 A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic.
 
-**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Celestial Timing (planetary hours + ephemeris / zodiac), and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot. **Phase 7** adds Magical Journal — unified ritual / dream / divination / mood logs with moon and planetary-hour tags (Tarot and I Ching saves land here). **Phase 8** adds Magical OS — the default-home dashboard composing sky conditions, quick tarot, journal workings, and deep-links into every module. **Phases 9–11** consolidate Divination (Tarot, I Ching, Geomancy, Runes). **Phase 12** adds Talisman Atelier (kamea + sigils). **Phase 13** adds electional windows on Celestial Timing. **Phase 14** adds Enochian tablets and Calls. **Phase 15** adds the Ritual Library.
+**Phase 1** ships JWT authentication and a virtual Tarot module (Single / Three-Card / Celtic Cross), packaged for Docker Compose / Portainer on a local Linux VM. **Phase 2** adds Gematria, Celestial Timing (planetary hours + ephemeris / zodiac), and Script Translator (client-side calculation tools). **Phase 3** adds I Ching casting with King Wen text. **Phase 4a** adds an interactive Tree of Life with Golden Dawn correspondences. **Phase 4b** adds a Ritual Space Planner for altar layouts with PNG/JSON export and saved layouts. **Phase 5** adds Solomonic Circles (Goetia / Heptameron / Generic magician’s circle builder). **Phase 6** deepens Solomonic Circles with Ars Goetia spirit selection, Triangle of Art, and a labeled seal slot. **Phase 7** adds Magical Journal — unified ritual / dream / divination / mood logs with moon and planetary-hour tags (Tarot and I Ching saves land here). **Phase 8** adds Magical OS — the default-home dashboard composing sky conditions, quick tarot, journal workings, and deep-links into every module. **Phases 9–11** consolidate Divination (Tarot, I Ching, Geomancy, Runes). **Phase 12** adds Talisman Atelier (kamea + sigils). **Phase 13** adds electional windows on Celestial Timing. **Phase 14** adds Enochian tablets and Calls. **Phase 15** adds the Ritual Library. **Phase 16** expands the Ritual Library with fuller outlines, public-domain Solomonic excerpts, and additional GD / daily rites.
 
 ## Stack
 
@@ -81,7 +81,7 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 | Solomonic Circles    | Active (Phase 5–6)            |
 | Talisman Atelier     | Active (Phase 12)             |
 | Enochian             | Active (Phase 14)             |
-| Ritual Library       | Active (Phase 15)             |
+| Ritual Library       | Active (Phase 15–16)          |
 
 Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 

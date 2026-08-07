@@ -92,6 +92,6 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'liturgy',
     title: 'Ritual Library',
     description:
-      'Searchable liturgy and rite sketches (LBRP, Middle Pillar, and Solomonic study forms) with suggested planetary hours and one-click Magical Journal workings.',
+      'Expanded liturgy corpus (Golden Dawn, Heptameron, Goetia, solar adorations, consecrations) with purpose, notes, sources, suggested planetary hours, Ritual Space templates, and one-click Magical Journal workings.',
   },
 ];

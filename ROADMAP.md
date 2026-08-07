@@ -32,7 +32,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Talisman Atelier     | Active  | 12           |
 | Elections            | Active  | 13 (timing)  |
 | Enochian             | Active  | 14           |
-| Ritual Library       | Active  | 15           |
+| Ritual Library       | Active  | 15–16        |
 
 ---
 
@@ -230,6 +230,20 @@ Elemental tablet samples + Calls reader; notes via `POST/GET /api/enochian/notes
 Searchable liturgy corpus; suggested Elections deep-link; “Log working” → journal `working` entry; links to Ritual Space / Solomonic where relevant.
 
 **Done when:** browse/search rites; signed-in log working; Magical OS deep-link present.
+
+---
+
+## Phase 16 — Ritual Library expansion — Shipped
+
+Deepen the Phase 15 corpus and broaden traditions:
+
+- Schema: `purpose`, `notes`, `sources`; `ritualTemplate` aligned to Ritual Space `TemplateId` (`lbrp` | `altarCross` | `blank`)
+- Expanded outlines for LBRP, Middle Pillar, LHRP; Solomonic forms with public-domain–style excerpts (Heptameron orison / angel of the day / circle consecration; Goetia conjuration, constraint, license)
+- Added GD: SIRP, Rose Cross, Opening by Watchtower (condensed); daily/general: Liber Resh–style solar adorations, tool consecration
+- UI: tradition-grouped list; purpose / notes / sources in detail pane; Ritual Space deep-link applies matching template
+- `GET /api/liturgy/rites` catalog synced to the full id set
+
+**Done when:** ~14 searchable rites with expanded steps; notes/sources visible; template deep-link works; docs/catalog updated.
 
 ---
 

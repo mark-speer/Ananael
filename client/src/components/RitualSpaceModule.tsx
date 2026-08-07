@@ -39,16 +39,26 @@ interface SavedLayout {
 
 type PlaceTool = RitualToolType | null;
 
+interface RitualSpaceModuleProps {
+  /** When set (e.g. from Ritual Library), apply this template on mount. */
+  initialTemplate?: TemplateId;
+}
+
 /**
  * Ritual Space Planner — SVG grid altar layout with templates, export, and save.
  */
-export default function RitualSpaceModule() {
+export default function RitualSpaceModule({
+  initialTemplate,
+}: RitualSpaceModuleProps) {
   const { isAuthenticated } = useAuth();
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const [items, setItems] = useState<RitualItem[]>(() => applyTemplate('lbrp'));
+  const startTemplate: TemplateId = initialTemplate ?? 'lbrp';
+  const [items, setItems] = useState<RitualItem[]>(() =>
+    applyTemplate(startTemplate)
+  );
   const [showCompass, setShowCompass] = useState(true);
-  const [showCircle, setShowCircle] = useState(true);
+  const [showCircle, setShowCircle] = useState(startTemplate === 'lbrp');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placeTool, setPlaceTool] = useState<PlaceTool>('candle');
   const [dirty, setDirty] = useState(false);

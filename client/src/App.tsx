@@ -19,6 +19,7 @@ import TalismanModule from './components/TalismanModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
 } from './components/TreeOfLifeModule';
+import type { TemplateId } from './data/ritualTools';
 import type { JournalEntryType } from './lib/journal';
 import { useAuth } from './context/AuthContext';
 
@@ -26,6 +27,7 @@ export type AppNavigateOptions = TreeNavigateOptions & {
   filter?: JournalEntryType | 'all';
   divinationTab?: DivinationTab;
   planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections';
+  ritualTemplate?: TemplateId;
 };
 
 function resolveModule(module: ModuleId): {
@@ -59,6 +61,9 @@ export default function App() {
   const [planetaryPanel, setPlanetaryPanel] = useState<
     'hours' | 'planets' | 'zodiac' | 'elections'
   >('hours');
+  const [ritualTemplate, setRitualTemplate] = useState<
+    TemplateId | undefined
+  >();
   const [talismanPrefill, setTalismanPrefill] = useState<string | undefined>();
 
   useEffect(() => {
@@ -95,6 +100,11 @@ export default function App() {
     }
     if (target === 'planetary') {
       setPlanetaryPanel(opts?.planetaryPanel ?? 'hours');
+    }
+    if (target === 'ritual') {
+      setRitualTemplate(opts?.ritualTemplate);
+    } else {
+      setRitualTemplate(undefined);
     }
     if (target === 'talisman' && opts?.gematriaPrefill !== undefined) {
       setTalismanPrefill(opts.gematriaPrefill);
@@ -152,7 +162,7 @@ export default function App() {
           />
         );
       case 'ritual':
-        return <RitualSpaceModule />;
+        return <RitualSpaceModule initialTemplate={ritualTemplate} />;
       case 'solomonic':
         return <SolomonicCircleModule />;
       case 'talisman':

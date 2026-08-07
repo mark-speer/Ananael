@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { searchRites, type LiturgyRite } from '../data/liturgy';
+import {
+  groupRitesByTradition,
+  searchRites,
+  type LiturgyRite,
+} from '../data/liturgy';
+import type { TemplateId } from '../data/ritualTools';
 import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
 import type { ModuleId } from './Sidebar';
@@ -8,6 +13,7 @@ import type { ModuleId } from './Sidebar';
 export interface LiturgyNavigateOptions {
   planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections';
   filter?: 'working' | 'ritual' | 'all';
+  ritualTemplate?: TemplateId;
 }
 
 interface LiturgyModuleProps {
@@ -25,6 +31,7 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
   const [saving, setSaving] = useState(false);
 
   const rites = useMemo(() => searchRites(query), [query]);
+  const grouped = useMemo(() => groupRitesByTradition(rites), [rites]);
   const rite: LiturgyRite | undefined =
     rites.find((item) => item.id === selectedId) ?? rites[0] ?? undefined;
 
@@ -68,8 +75,9 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
           Ritual Library
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          Liturgy and rite sketches for practice. Open suggested planetary
-          windows, log a working to the journal, or jump to ritual builders.
+          Study liturgy and practice outlines across Golden Dawn, Solomonic, and
+          daily forms. Open suggested planetary windows, log a working to the
+          journal, or jump to ritual builders.
         </p>
       </header>
 
@@ -84,29 +92,41 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
       </label>
 
       <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
-        <ul className="space-y-1">
-          {rites.map((r) => (
-            <li key={r.id}>
-              <button
-                type="button"
-                onClick={() => setSelectedId(r.id)}
-                className={[
-                  'w-full rounded-md px-3 py-2 text-left text-sm',
-                  rite?.id === r.id
-                    ? 'bg-ananael-violet/25 text-ananael-gold'
-                    : 'text-zinc-300 hover:bg-ananael-panel',
-                ].join(' ')}
-              >
-                {r.title}
-                {r.sketch && (
-                  <span className="mt-0.5 block text-[10px] uppercase tracking-wider text-ananael-muted">
-                    Study sketch
-                  </span>
-                )}
-              </button>
-            </li>
+        <div className="space-y-4">
+          {grouped.map((group) => (
+            <div key={group.tradition}>
+              <p className="mb-1 px-3 text-[10px] uppercase tracking-wider text-ananael-muted">
+                {group.tradition}
+              </p>
+              <ul className="space-y-1">
+                {group.rites.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(r.id)}
+                      className={[
+                        'w-full rounded-md px-3 py-2 text-left text-sm',
+                        rite?.id === r.id
+                          ? 'bg-ananael-violet/25 text-ananael-gold'
+                          : 'text-zinc-300 hover:bg-ananael-panel',
+                      ].join(' ')}
+                    >
+                      {r.title}
+                      {r.sketch && (
+                        <span className="mt-0.5 block text-[10px] uppercase tracking-wider text-ananael-muted">
+                          Study sketch
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+          {rites.length === 0 && (
+            <p className="px-3 text-sm text-ananael-muted">No rites match.</p>
+          )}
+        </div>
 
         {rite && (
           <article className="space-y-4">
@@ -120,6 +140,9 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
                   ? ` · suggested hour of ${rite.suggestedPlanet}`
                   : ''}
               </p>
+              {rite.purpose && (
+                <p className="mt-2 text-sm text-zinc-300">{rite.purpose}</p>
+              )}
               <div className="mt-2 flex flex-wrap gap-1">
                 {rite.tags.map((t) => (
                   <span
@@ -131,6 +154,12 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
                 ))}
               </div>
             </div>
+
+            {rite.notes && (
+              <p className="rounded-md border border-ananael-border/50 bg-ananael-bg/60 px-3 py-2 text-xs text-ananael-muted">
+                {rite.notes}
+              </p>
+            )}
 
             <section>
               <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
@@ -149,7 +178,7 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
               </h3>
               {rite.steps.map((s, i) => (
                 <div
-                  key={s.title}
+                  key={`${rite.id}-${i}-${s.title}`}
                   className="rounded-md border border-ananael-border/50 bg-ananael-panel px-4 py-3"
                 >
                   <p className="text-sm font-medium text-ananael-gold">
@@ -159,6 +188,19 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
                 </div>
               ))}
             </section>
+
+            {rite.sources && rite.sources.length > 0 && (
+              <section>
+                <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+                  Sources
+                </h3>
+                <ul className="mt-1 list-inside list-disc text-xs text-ananael-muted">
+                  {rite.sources.map((src) => (
+                    <li key={src}>{src}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             <div className="flex flex-wrap gap-2">
               <button
@@ -173,7 +215,11 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
               {rite.ritualTemplate && (
                 <button
                   type="button"
-                  onClick={() => onNavigate?.('ritual')}
+                  onClick={() =>
+                    onNavigate?.('ritual', {
+                      ritualTemplate: rite.ritualTemplate,
+                    })
+                  }
                   className="rounded-md border border-ananael-bronze/60 px-3 py-1.5 text-xs text-zinc-200 hover:bg-ananael-panel"
                 >
                   Open Ritual Space
