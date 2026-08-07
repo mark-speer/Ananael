@@ -2,6 +2,8 @@ import { useMemo, useState, type ReactNode } from 'react';
 import {
   CORRESPONDENCE_FACETS,
   FACET_LABELS,
+  PANTHEON_LABELS,
+  PANTHEONS,
   type CorrespondenceFacet,
   type CorrespondenceKey,
 } from '../data/correspondences';
@@ -50,8 +52,9 @@ export default function CorrespondencesModule({
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Digital Liber 777 — Golden Dawn key scale 1–32. Search by sephirah,
-          planet, zodiac, Hebrew letter, angel, archangel, spirit, element,
-          color, incense, stone, or plant.
+          planet, zodiac, Hebrew letter, angel, deity, element, color, incense,
+          stone, or plant. Pantheon parallels (Egyptian, Greek, Roman, Norse)
+          follow Crowley’s traditional tables.
         </p>
       </header>
 
@@ -65,7 +68,7 @@ export default function CorrespondencesModule({
               setQuery(e.target.value);
               setSelectedKey(null);
             }}
-            placeholder="Search — e.g. Venus, Haniel, Netzach, Rose…"
+            placeholder="Search — e.g. Venus, Hathor, Hermes, Netzach…"
             className="w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-ananael-muted focus:border-ananael-violet"
           />
         </label>
@@ -238,6 +241,12 @@ function KeyDetailPanel({
     });
   }
 
+  const deityRows = PANTHEONS.flatMap((p) => {
+    const names = keyData.deities?.[p];
+    if (!names?.length) return [];
+    return [{ pantheon: p, label: PANTHEON_LABELS[p], names }];
+  });
+
   return (
     <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
       <div>
@@ -262,6 +271,28 @@ function KeyDetailPanel({
           </div>
         ))}
       </dl>
+
+      {deityRows.length > 0 && (
+        <div className="border-t border-ananael-border/40 pt-4">
+          <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+            Deities
+          </h3>
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+            {deityRows.map((row) => (
+              <div key={row.pantheon}>
+                <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+                  {row.label}
+                </dt>
+                <dd className="text-sm text-zinc-200">{row.names.join(', ')}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-3 text-xs text-ananael-muted">
+            Attributions follow Liber 777 / Golden Dawn tables — tradition maps
+            on the key scale, not claims of identity between deities.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2 border-t border-ananael-border/40 pt-4">
         <button

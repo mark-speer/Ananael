@@ -2,7 +2,7 @@
  * Shared journal types and entity suggestion helpers.
  */
 
-import { CORRESPONDENCE_KEYS } from '../data/correspondences';
+import { CORRESPONDENCE_KEYS, flattenDeities } from '../data/correspondences';
 import { GOETIA_SPIRITS } from '../data/arsGoetia';
 import { searchCorrespondences } from './correspondences';
 
@@ -24,6 +24,7 @@ export type JournalEntityKind =
   | 'angel'
   | 'archangel'
   | 'spirit'
+  | 'deity'
   | 'element'
   | 'color'
   | 'incense'
@@ -167,6 +168,13 @@ export function suggestJournalEntities(query: string, limit = 12): JournalEntity
         kind: 'element',
         id: match.element.toLowerCase(),
         label: match.element,
+      });
+    }
+    for (const deity of flattenDeities(match.deities)) {
+      add({
+        kind: 'deity',
+        id: deity.toLowerCase(),
+        label: deity,
       });
     }
   }

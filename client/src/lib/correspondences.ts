@@ -5,8 +5,13 @@
 import {
   CORRESPONDENCE_KEYS,
   FACET_LABELS,
+  PANTHEON_LABELS,
+  PANTHEONS,
+  flattenDeities,
+  formatDeityParallels,
   type CorrespondenceFacet,
   type CorrespondenceKey,
+  type PantheonId,
 } from '../data/correspondences';
 import { getCardById } from '../data/tarotDeck';
 
@@ -62,6 +67,10 @@ function fieldStrings(key: CorrespondenceKey): string[] {
     ...(key.incense ?? []),
     ...(key.stone ?? []),
     ...(key.plant ?? []),
+    ...flattenDeities(key.deities),
+    ...PANTHEONS.filter((p) => (key.deities?.[p]?.length ?? 0) > 0).map(
+      (p) => PANTHEON_LABELS[p],
+    ),
   ];
 
   if (key.tarotId) {
@@ -125,6 +134,13 @@ function facetFieldValues(
       return key.archangel ? [key.archangel] : [];
     case 'spirit':
       return key.spirit ? [key.spirit] : [];
+    case 'deity': {
+      const names = flattenDeities(key.deities);
+      const labels = PANTHEONS.filter(
+        (p) => (key.deities?.[p]?.length ?? 0) > 0,
+      ).map((p) => PANTHEON_LABELS[p]);
+      return [...names, ...labels];
+    }
     case 'element':
       return key.element ? [key.element] : [];
     case 'color':
@@ -225,6 +241,10 @@ function buildPlanetCluster(
   if (sephira.spirit) {
     highlights.push({ label: 'Spirit', value: sephira.spirit });
   }
+  const parallels = formatDeityParallels(sephira.deities);
+  if (parallels) {
+    highlights.push({ label: 'Parallels', value: parallels });
+  }
 
   return {
     label: planet,
@@ -234,12 +254,66 @@ function buildPlanetCluster(
   };
 }
 
+function pantheonOfDeity(
+  key: CorrespondenceKey,
+  deityName: string,
+): PantheonId | undefined {
+  const n = normalize(deityName);
+  for (const p of PANTHEONS) {
+    if ((key.deities?.[p] ?? []).some((d) => normalize(d) === n)) {
+      return p;
+    }
+  }
+  return undefined;
+}
+
+function buildDeityCluster(
+  matchedName: string,
+  key: CorrespondenceKey,
+): EntityCluster {
+  const highlights: { label: string; value: string }[] = [];
+  const pantheon = pantheonOfDeity(key, matchedName);
+  if (pantheon) {
+    highlights.push({ label: 'Pantheon', value: PANTHEON_LABELS[pantheon] });
+  }
+  const parallels = formatDeityParallels(key.deities);
+  if (parallels) {
+    highlights.push({ label: 'Parallels', value: parallels });
+  }
+  highlights.push({
+    label: key.kind === 'sephira' ? 'Sephirah' : 'Path',
+    value: `Key ${key.key} · ${key.name}`,
+  });
+  if (key.planet) highlights.push({ label: 'Planet', value: key.planet });
+  if (key.zodiac) highlights.push({ label: 'Zodiac', value: key.zodiac });
+  if (key.element) highlights.push({ label: 'Element', value: key.element });
+  if (key.tarotId) {
+    const card = getCardById(key.tarotId);
+    highlights.push({ label: 'Tarot', value: card?.name ?? key.tarotId });
+  }
+  return {
+    label: matchedName,
+    facet: 'deity',
+    highlights,
+    primaryKey: key.key,
+  };
+}
+
 function resolveCluster(
   rawQuery: string,
   matches: CorrespondenceKey[],
 ): EntityCluster | undefined {
   const q = normalize(rawQuery);
   if (!q) return undefined;
+
+  // Exact deity name → pantheon parallels cluster
+  for (const key of CORRESPONDENCE_KEYS) {
+    for (const name of flattenDeities(key.deities)) {
+      if (normalize(name) === q) {
+        return buildDeityCluster(name, key);
+      }
+    }
+  }
 
   // Planet / day hub
   for (const hub of PLANET_HUBS) {

@@ -1,11 +1,26 @@
 /**
  * Liber 777–style correspondence tables (Golden Dawn / Crowley key scale 1–32).
- * Practitioner columns only: planet, zodiac, element, letter, angels, colors,
- * incense, stone, plant, metal, day, tarot. Tarot IDs match tarotDeck.ts;
- * Hebrew latin keys match gematria alphabets and treeOfLife paths.
+ * Practitioner columns: planet, zodiac, element, letter, angels, colors,
+ * incense, stone, plant, metal, day, tarot, and pantheon deities
+ * (Egyptian / Greek / Roman / Norse from Liber 777 cols. XIX, XXXIII–XXXV).
+ * Tarot IDs match tarotDeck.ts; Hebrew latin keys match gematria alphabets
+ * and treeOfLife paths.
  */
 
 export type CorrespondenceKeyKind = 'sephira' | 'path';
+
+/** Liber 777 pantheon columns included in v1 (Hindu deferred). */
+export const PANTHEONS = ['egyptian', 'greek', 'roman', 'norse'] as const;
+export type PantheonId = (typeof PANTHEONS)[number];
+
+export const PANTHEON_LABELS: Record<PantheonId, string> = {
+  egyptian: 'Egyptian',
+  greek: 'Greek',
+  roman: 'Roman',
+  norse: 'Norse',
+};
+
+export type PantheonDeities = Partial<Record<PantheonId, string[]>>;
 
 export interface CorrespondenceKey {
   key: number;
@@ -30,6 +45,8 @@ export interface CorrespondenceKey {
   spirit?: string;
   tarotId?: string;
   divineName?: string;
+  /** Liber 777 pantheon attributions (tradition map, not identity claims). */
+  deities?: PantheonDeities;
   notes?: string;
 }
 
@@ -42,6 +59,7 @@ export const CORRESPONDENCE_FACETS = [
   'angel',
   'archangel',
   'spirit',
+  'deity',
   'element',
   'color',
   'incense',
@@ -59,12 +77,35 @@ export const FACET_LABELS: Record<CorrespondenceFacet, string> = {
   angel: 'Angel',
   archangel: 'Archangel',
   spirit: 'Spirit',
+  deity: 'Deity',
   element: 'Element',
   color: 'Color',
   incense: 'Incense',
   stone: 'Stone',
   plant: 'Plant',
 };
+
+/** Flatten all pantheon deity names on a key. */
+export function flattenDeities(deities?: PantheonDeities): string[] {
+  if (!deities) return [];
+  return PANTHEONS.flatMap((p) => deities[p] ?? []);
+}
+
+/** Cross-pantheon parallel line for cluster / summary display. */
+export function formatDeityParallels(deities?: PantheonDeities): string | undefined {
+  const names = flattenDeities(deities);
+  if (names.length === 0) return undefined;
+  // Dedupe while preserving order
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const n of names) {
+    const k = n.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    unique.push(n);
+  }
+  return unique.join(' · ');
+}
 
 export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
   // ── Sephiroth (1–10) ──────────────────────────────────────────────
@@ -83,6 +124,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     archangel: 'Metatron',
     angel: 'Chaioth ha-Qadesh',
     divineName: 'Eheieh',
+    deities: {
+      egyptian: ['Ptah', 'Asar un Nefer', 'Hadit'],
+      greek: ['Zeus', 'Iacchus'],
+      roman: ['Jupiter'],
+      norse: ['Wotan'],
+    },
     notes: 'Root of the Tree; pure unity before form.',
   },
   {
@@ -101,6 +148,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     archangel: 'Raziel',
     angel: 'Auphanim',
     divineName: 'Yah',
+    deities: {
+      egyptian: ['Amoun', 'Thoth', 'Nuit'],
+      greek: ['Athena', 'Uranus', 'Hermes'],
+      roman: ['Janus', 'Mercury'],
+      norse: ['Odin'],
+    },
     notes: 'Dynamic creative force; the father principle.',
   },
   {
@@ -120,6 +173,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Aralim',
     spirit: 'Zazel',
     divineName: 'YHVH Elohim',
+    deities: {
+      egyptian: ['Maut', 'Isis', 'Nephthys'],
+      greek: ['Cybele', 'Demeter', 'Rhea', 'Hera', 'Psyche', 'Kronos'],
+      roman: ['Juno', 'Cybele', 'Saturn', 'Hecate'],
+      norse: ['Frigga'],
+    },
     notes: 'Form-giving intelligence; the mother principle.',
   },
   {
@@ -139,6 +198,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Chashmalim',
     spirit: 'Hismael',
     divineName: 'El',
+    deities: {
+      egyptian: ['Amoun', 'Isis', 'Hathor'],
+      greek: ['Poseidon', 'Zeus'],
+      roman: ['Jupiter', 'Libitina'],
+      norse: ['Wotan'],
+    },
     notes: 'Expansion, benevolence, and ordered authority.',
   },
   {
@@ -158,6 +223,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Seraphim',
     spirit: 'Bartzabel',
     divineName: 'Elohim Gibor',
+    deities: {
+      egyptian: ['Horus', 'Nephthys'],
+      greek: ['Ares', 'Hades'],
+      roman: ['Mars'],
+      norse: ['Thor'],
+    },
     notes: 'Strength, judgment, and the refining fire.',
   },
   {
@@ -177,6 +248,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Malachim',
     spirit: 'Sorath',
     divineName: 'YHVH Eloah ve-Daath',
+    deities: {
+      egyptian: ['Asar', 'Ra', 'On', 'Hrumachis'],
+      greek: ['Iacchus', 'Apollo', 'Adonis', 'Dionysus', 'Bacchus'],
+      roman: ['Apollo', 'Bacchus', 'Aurora'],
+    },
     notes: 'Harmony and the heart of the Tree.',
   },
   {
@@ -196,6 +272,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Elohim',
     spirit: 'Kedemel',
     divineName: 'YHVH Tzabaoth',
+    deities: {
+      egyptian: ['Hathor'],
+      greek: ['Aphrodite', 'Nike'],
+      roman: ['Venus'],
+      norse: ['Freya'],
+    },
     notes: 'Instinct, desire, and enduring life-force.',
   },
   {
@@ -215,6 +297,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Beni Elohim',
     spirit: 'Taphthartharath',
     divineName: 'Elohim Tzabaoth',
+    deities: {
+      egyptian: ['Anubis'],
+      greek: ['Hermes'],
+      roman: ['Mercury'],
+      norse: ['Odin', 'Loki'],
+    },
     notes: 'Intellect, language, and magical technique.',
   },
   {
@@ -234,6 +322,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Cherubim',
     spirit: 'Chasmodai',
     divineName: 'Shaddai El Chai',
+    deities: {
+      egyptian: ['Shu', 'Hermanubis'],
+      greek: ['Zeus', 'Diana of Ephesus', 'Eros'],
+      roman: ['Diana', 'Terminus', 'Jupiter'],
+    },
     notes: 'Astral foundation gathering force toward form.',
   },
   {
@@ -252,6 +345,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     archangel: 'Sandalphon',
     angel: 'Ashim',
     divineName: 'Adonai ha-Aretz',
+    deities: {
+      egyptian: ['Seb', 'Isis', 'Nephthys', 'Sphinx'],
+      greek: ['Persephone', 'Adonis', 'Psyche'],
+      roman: ['Ceres'],
+    },
     notes: 'The kingdom of form; dwelling of the Shekhinah.',
   },
 
@@ -270,6 +368,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Aspen', 'Poplar'],
     archangel: 'Raphael',
     tarotId: 'major-00',
+    deities: {
+      egyptian: ['Nu', 'Hoor-pa-kraat'],
+      greek: ['Zeus'],
+      roman: ['Jupiter', 'Juno', 'Aeolus'],
+      norse: ['Valkyries'],
+    },
     notes: 'Breath of spirit between Kether and Chokmah — the Fool.',
   },
   {
@@ -290,6 +394,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Tiriel',
     spirit: 'Taphthartharath',
     tarotId: 'major-01',
+    deities: {
+      egyptian: ['Thoth', 'Cynocephalus'],
+      greek: ['Hermes'],
+      roman: ['Mercury'],
+    },
     notes: 'Directed will from Crown into Understanding — the Magician.',
   },
   {
@@ -309,6 +418,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     archangel: 'Gabriel',
     spirit: 'Chasmodai',
     tarotId: 'major-02',
+    deities: {
+      egyptian: ['Khonsu'],
+      greek: ['Artemis', 'Hecate'],
+      roman: ['Diana'],
+    },
     notes: 'Veiled knowledge from Crown to Beauty — the High Priestess.',
   },
   {
@@ -329,6 +443,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Hagiel',
     spirit: 'Kedemel',
     tarotId: 'major-03',
+    deities: {
+      egyptian: ['Hathor'],
+      greek: ['Aphrodite'],
+      roman: ['Venus'],
+      norse: ['Freya'],
+    },
     notes: 'The door uniting Wisdom and Understanding — the Empress.',
   },
   {
@@ -347,6 +467,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Tiger lily', 'Geranium'],
     archangel: 'Melchidael',
     tarotId: 'major-04',
+    deities: {
+      egyptian: ['Men Thu'],
+      greek: ['Athena'],
+      roman: ['Mars', 'Minerva'],
+    },
     notes: 'Sovereign initiative from Wisdom into the heart — the Emperor.',
   },
   {
@@ -365,6 +490,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Mallow'],
     archangel: 'Asmodel',
     tarotId: 'major-05',
+    deities: {
+      egyptian: ['Asar', 'Ameshet', 'Apis'],
+      greek: ['Hera'],
+      roman: ['Venus', 'Hymen'],
+    },
     notes: 'Tradition linking Wisdom to Mercy — the Hierophant.',
   },
   {
@@ -383,6 +513,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Orchid', 'Hybrid plants'],
     archangel: 'Ambriel',
     tarotId: 'major-06',
+    deities: {
+      egyptian: ['Rekht', 'Merti', 'Heru-Ra-Ha'],
+      greek: ['Castor', 'Pollux', 'Apollo', 'Eros'],
+      roman: ['Castor', 'Pollux', 'Janus', 'Hymen'],
+    },
     notes: 'Discriminating love from Understanding into Beauty — the Lovers.',
   },
   {
@@ -401,6 +536,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Lotus', 'Water plants'],
     archangel: 'Muriel',
     tarotId: 'major-07',
+    deities: {
+      egyptian: ['Khephra'],
+      greek: ['Apollo'],
+      roman: ['Mercury', 'Lares', 'Penates'],
+    },
     notes: 'The chariot of will between Understanding and Severity.',
   },
   {
@@ -419,6 +559,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Sunflower', 'Marigold'],
     archangel: 'Verchiel',
     tarotId: 'major-08',
+    deities: {
+      egyptian: ['Ra-Hoor-Khuit', 'Pasht', 'Sekhet', 'Mau'],
+      greek: ['Demeter'],
+      roman: ['Venus'],
+    },
     notes: 'Strength balancing Mercy and Severity — the serpent power.',
   },
   {
@@ -437,6 +582,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Snowdrop', 'Lily'],
     archangel: 'Hamaliel',
     tarotId: 'major-09',
+    deities: {
+      egyptian: ['Isis'],
+      greek: ['Attis'],
+      roman: ['Attis', 'Ceres', 'Adonis', 'Vesta', 'Flora'],
+    },
     notes: 'The hermit’s lamp from Mercy into the solar heart.',
   },
   {
@@ -457,6 +607,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Iophiel',
     spirit: 'Hismael',
     tarotId: 'major-10',
+    deities: {
+      egyptian: ['Amoun-Ra'],
+      greek: ['Zeus'],
+      roman: ['Jupiter', 'Pluto'],
+    },
     notes: 'Fortune’s wheel turning Mercy toward Victory.',
   },
   {
@@ -475,6 +630,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Aloe'],
     archangel: 'Zuriel',
     tarotId: 'major-11',
+    deities: {
+      egyptian: ['Ma'],
+      greek: ['Themis', 'Minos', 'Aeacus', 'Rhadamanthus'],
+      roman: ['Vulcan', 'Venus', 'Nemesis'],
+    },
     notes: 'Justice weighing Severity against Beauty.',
   },
   {
@@ -491,6 +651,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Lotus', 'Ash'],
     archangel: 'Gabriel',
     tarotId: 'major-12',
+    deities: {
+      egyptian: ['Tum', 'Ptah', 'Auramoth', 'Asar', 'Hekar', 'Isis', 'Hathor'],
+      greek: ['Poseidon'],
+      roman: ['Neptune', 'Rhea'],
+    },
     notes: 'Sacrifice and inversion from Severity into Splendor.',
   },
   {
@@ -509,6 +674,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Cactus', 'Nettle'],
     archangel: 'Barkiel',
     tarotId: 'major-13',
+    deities: {
+      egyptian: ['Merti', 'Typhon', 'Apep', 'Khephra'],
+      greek: ['Ares', 'Apollo', 'Thanatos'],
+      roman: ['Mars', 'Mors'],
+    },
     notes: 'Transformation from Beauty into Victory — death and renewal.',
   },
   {
@@ -527,6 +697,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Rush'],
     archangel: 'Adnachiel',
     tarotId: 'major-14',
+    deities: {
+      egyptian: ['Nephthys'],
+      greek: ['Apollo', 'Artemis'],
+      roman: ['Diana', 'Iris'],
+    },
     notes: 'Temperance testing the path from Beauty to Foundation.',
   },
   {
@@ -545,6 +720,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Thistle', 'Yew'],
     archangel: 'Hanael',
     tarotId: 'major-15',
+    deities: {
+      egyptian: ['Khem', 'Set'],
+      greek: ['Pan', 'Priapus', 'Hermes', 'Bacchus'],
+      roman: ['Pan', 'Vesta', 'Bacchus'],
+    },
     notes: 'Bondage and insight between Beauty and Splendor — the Devil.',
   },
   {
@@ -565,6 +745,12 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Graphiel',
     spirit: 'Bartzabel',
     tarotId: 'major-16',
+    deities: {
+      egyptian: ['Horus'],
+      greek: ['Ares', 'Athena'],
+      roman: ['Mars'],
+      norse: ['Tuisco'],
+    },
     notes: 'Sudden awakening across Victory and Splendor — the Tower.',
   },
   {
@@ -583,6 +769,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Olive', 'Coconut'],
     archangel: 'Cambriel',
     tarotId: 'major-17',
+    deities: {
+      egyptian: ['Ahephi', 'Aroueris'],
+      greek: ['Athena', 'Ganymede'],
+      roman: ['Juno', 'Aeolus'],
+    },
     notes: 'Hope linking Victory to Foundation — the Star (GD Tzaddi).',
   },
   {
@@ -601,6 +792,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Opium poppy', 'Unicellular organisms'],
     archangel: 'Amnitziel',
     tarotId: 'major-18',
+    deities: {
+      egyptian: ['Khephra'],
+      greek: ['Poseidon', 'Hermes Psychopompos'],
+      roman: ['Neptune'],
+    },
     notes: 'Dream-path from Victory into the Kingdom — the Moon.',
   },
   {
@@ -621,6 +817,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Nakhiel',
     spirit: 'Sorath',
     tarotId: 'major-19',
+    deities: {
+      egyptian: ['Ra'],
+      greek: ['Helios', 'Apollo'],
+      roman: ['Apollo', 'Ops'],
+    },
     notes: 'Solar clarity between Splendor and Foundation — the Sun.',
   },
   {
@@ -637,6 +838,17 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     plant: ['Red poppy', 'Hibiscus'],
     archangel: 'Michael',
     tarotId: 'major-20',
+    deities: {
+      egyptian: [
+        'Thoum-aesh-neith',
+        'Mau',
+        'Kabeshunt',
+        'Horus',
+        'Tarpesheth',
+      ],
+      greek: ['Hades'],
+      roman: ['Vulcan', 'Pluto'],
+    },
     notes: 'Awakening fire from Splendor into Malkuth — Judgement.',
   },
   {
@@ -658,6 +870,11 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
     angel: 'Agiel',
     spirit: 'Zazel',
     tarotId: 'major-21',
+    deities: {
+      egyptian: ['Sebek', 'Mako'],
+      greek: ['Athena'],
+      roman: ['Saturn', 'Terminus', 'Astraea'],
+    },
     notes: 'Completion from Foundation to Kingdom — the World.',
   },
 ];
