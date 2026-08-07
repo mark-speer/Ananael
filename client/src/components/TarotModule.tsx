@@ -575,16 +575,18 @@ function CelticCrossBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
                   </div>
                 )}
                 {challenge && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center">
-                    <TarotCard
-                      dealt={challenge}
-                      onFlip={() => onFlip(1)}
-                      deckStyle={deckStyle}
-                      size="compact"
-                      crossing
-                      hideMeaning
-                      hideLabel
-                    />
+                  <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+                    <div className="pointer-events-auto">
+                      <TarotCard
+                        dealt={challenge}
+                        onFlip={() => onFlip(1)}
+                        deckStyle={deckStyle}
+                        size="compact"
+                        crossing
+                        hideMeaning
+                        hideLabel
+                      />
+                    </div>
                   </div>
                 )}
               </div>
