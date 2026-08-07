@@ -25,10 +25,10 @@ services:
       # Required at runtime (min 32 chars). Set in Portainer stack env:
       #   JWT_SECRET=$(openssl rand -hex 32)
       JWT_SECRET: ${JWT_SECRET:-}
-      # Must match the URL you type in the browser (scheme + host[:port], no path).
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5000}
-      # true only when the browser uses HTTPS end-to-end to this app.
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Comma-separated browser origins (CORS + CSRF). Override in Portainer if needed.
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://ananael.tech,https://www.ananael.tech}
+      # true when the browser reaches the app over HTTPS (ananael.tech).
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
       # Optional TLS — only used when both files exist inside the container.
       SSL_CERT_PATH: ${SSL_CERT_PATH:-}
       SSL_KEY_PATH: ${SSL_KEY_PATH:-}

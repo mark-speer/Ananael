@@ -35,8 +35,8 @@ Mount certs and set `COOKIE_SECURE=true`, `CLIENT_ORIGIN=https://your-host`, plu
 2. In Portainer → **Stacks** → **Add stack** (Repository deploy from git, or paste `docker-compose.yml` with **build context = repository root**).
 3. In the stack **Environment variables** section (required before deploy/pull), set:
    - `JWT_SECRET` — at least 32 characters (e.g. run `openssl rand -hex 32` and paste the value). The API will not start without this.
-   - `CLIENT_ORIGIN` — must match the browser URL, e.g. `http://192.168.x.x:5000`
-   - Leave `COOKIE_SECURE=false` for HTTP.
+   - `CLIENT_ORIGIN` — defaults to `https://ananael.tech,https://www.ananael.tech`
+   - `COOKIE_SECURE` — defaults to `true` (HTTPS at ananael.tech)
 4. Deploy and wait for `ananael-mongo` and `ananael-server` to be **running**.
 5. **Pull/rebuild** so the image is rebuilt from the latest commit (Portainer → stack → **Pull and redeploy** / recreate with rebuild).
 6. Open **`http://<vm-ip>:5000/`**
