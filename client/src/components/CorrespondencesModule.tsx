@@ -7,6 +7,10 @@ import {
   type CorrespondenceFacet,
   type CorrespondenceKey,
 } from '../data/correspondences';
+import {
+  getHexagramsForKey,
+  getTrigramsForKey,
+} from '../data/ichingCorrespondences';
 import { getCardById } from '../data/tarotDeck';
 import {
   primaryCorrespondenceLabel,
@@ -52,11 +56,9 @@ export default function CorrespondencesModule({
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Digital Liber 777 — Golden Dawn key scale 1–32. Search by sephirah,
-          planet, zodiac, Hebrew letter, angel, deity, element, color, incense,
-          stone, or plant. Pantheon parallels (Egyptian, Greek, Roman, Norse,
-          Hindu, Mesoamerican) relate deities on the same Liber 777 key.
-          Egyptian–Hindu follow Crowley’s tables; Mesoamerican uses
-          planetary and elemental tradition maps.
+          planet, zodiac, Hebrew letter, angel, deity, hexagram, element, color,
+          incense, stone, or plant. Pantheon parallels and I Ching hexagrams
+          (via trigrams) relate on the same key.
         </p>
       </header>
 
@@ -70,7 +72,7 @@ export default function CorrespondencesModule({
               setQuery(e.target.value);
               setSelectedKey(null);
             }}
-            placeholder="Search — e.g. Venus, Hathor, Hermes, Netzach…"
+            placeholder="Search — e.g. Venus, Hathor, Creative, Netzach…"
             className="w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-ananael-muted focus:border-ananael-violet"
           />
         </label>
@@ -249,6 +251,9 @@ function KeyDetailPanel({
     return [{ pantheon: p, label: PANTHEON_LABELS[p], names }];
   });
 
+  const trigrams = getTrigramsForKey(keyData.key);
+  const hexagrams = getHexagramsForKey(keyData.key);
+
   return (
     <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
       <div>
@@ -299,6 +304,40 @@ function KeyDetailPanel({
         </div>
       )}
 
+      {trigrams.length > 0 && (
+        <div className="border-t border-ananael-border/40 pt-4">
+          <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+            I Ching
+          </h3>
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+                Trigrams
+              </dt>
+              <dd className="text-sm text-zinc-200">
+                {trigrams.map((t) => `${t.name} (${t.chinese})`).join(' · ')}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+                Related hexagrams ({hexagrams.length})
+              </dt>
+              <dd className="mt-1 max-h-40 overflow-y-auto text-sm text-zinc-200">
+                {hexagrams.map((h) => (
+                  <div key={h.number}>
+                    {h.number}. {h.name}
+                  </div>
+                ))}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-3 text-xs text-ananael-muted">
+            Hexagrams whose upper or lower trigram maps to this key (Crowley
+            Book of Thoth trigrams + elemental paths).
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2 border-t border-ananael-border/40 pt-4">
         <button
           type="button"
@@ -327,6 +366,15 @@ function KeyDetailPanel({
             className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
           >
             View in Tarot
+          </button>
+        )}
+        {trigrams.length > 0 && (
+          <button
+            type="button"
+            onClick={() => onNavigate('iching')}
+            className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
+          >
+            Open I Ching
           </button>
         )}
       </div>

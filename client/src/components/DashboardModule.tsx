@@ -435,7 +435,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             Correspondences
           </h2>
           <p className="mt-1 text-sm text-ananael-muted">
-            Liber 777 key scale — search planets, letters, angels, deities, and more.
+            Liber 777 key scale — search planets, letters, angels, deities, hexagrams, and more.
           </p>
           <div className="mt-4">
             <TileLink

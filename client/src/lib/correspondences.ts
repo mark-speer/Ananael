@@ -13,6 +13,14 @@ import {
   type CorrespondenceKey,
   type PantheonId,
 } from '../data/correspondences';
+import { getHexagram } from '../data/iching';
+import {
+  getHexagramStructure,
+  getHexagramsForKey,
+  getKeysForHexagram,
+  getTrigramsForKey,
+  ichingFieldStringsForKey,
+} from '../data/ichingCorrespondences';
 import { getCardById } from '../data/tarotDeck';
 
 export interface EntityCluster {
@@ -71,6 +79,7 @@ function fieldStrings(key: CorrespondenceKey): string[] {
     ...PANTHEONS.filter((p) => (key.deities?.[p]?.length ?? 0) > 0).map(
       (p) => PANTHEON_LABELS[p],
     ),
+    ...ichingFieldStringsForKey(key.key),
   ];
 
   if (key.tarotId) {
@@ -140,6 +149,19 @@ function facetFieldValues(
         (p) => (key.deities?.[p]?.length ?? 0) > 0,
       ).map((p) => PANTHEON_LABELS[p]);
       return [...names, ...labels];
+    }
+    case 'hexagram': {
+      const trigrams = getTrigramsForKey(key.key);
+      if (trigrams.length === 0) return [];
+      const parts: string[] = trigrams.flatMap((t) => [
+        t.name,
+        t.chinese,
+        t.id,
+      ]);
+      for (const h of getHexagramsForKey(key.key)) {
+        parts.push(String(h.number), h.name, h.chinese);
+      }
+      return parts;
     }
     case 'element':
       return key.element ? [key.element] : [];
@@ -299,12 +321,76 @@ function buildDeityCluster(
   };
 }
 
+function buildHexagramCluster(number: number): EntityCluster | undefined {
+  const hex = getHexagram(number);
+  const structure = getHexagramStructure(number);
+  if (!hex || !structure) return undefined;
+
+  const keyNums = getKeysForHexagram(number);
+  const primary =
+    CORRESPONDENCE_KEYS.find((k) => k.key === keyNums[0]) ?? undefined;
+
+  const highlights: { label: string; value: string }[] = [
+    {
+      label: 'Trigrams',
+      value: `${structure.lower.name} / ${structure.upper.name}`,
+    },
+  ];
+  if (keyNums.length) {
+    highlights.push({
+      label: 'Keys',
+      value: keyNums
+        .map((n) => {
+          const k = CORRESPONDENCE_KEYS.find((x) => x.key === n);
+          return k ? `${n} ${k.name}` : String(n);
+        })
+        .join(', '),
+    });
+  }
+  if (primary?.planet) {
+    highlights.push({ label: 'Planet', value: primary.planet });
+  }
+  if (primary?.element) {
+    highlights.push({ label: 'Element', value: primary.element });
+  }
+  highlights.push({ label: 'Chinese', value: hex.chinese });
+
+  return {
+    label: `${hex.number}. ${hex.name}`,
+    facet: 'hexagram',
+    highlights,
+    primaryKey: primary?.key,
+  };
+}
+
 function resolveCluster(
   rawQuery: string,
   matches: CorrespondenceKey[],
 ): EntityCluster | undefined {
   const q = normalize(rawQuery);
   if (!q) return undefined;
+
+  // Exact King Wen number or hexagram name
+  const asNum = Number.parseInt(q, 10);
+  if (
+    Number.isFinite(asNum) &&
+    String(asNum) === q &&
+    asNum >= 1 &&
+    asNum <= 64
+  ) {
+    const cluster = buildHexagramCluster(asNum);
+    if (cluster) return cluster;
+  }
+  for (let n = 1; n <= 64; n++) {
+    const hex = getHexagram(n);
+    if (!hex) continue;
+    if (
+      normalize(hex.name) === q ||
+      normalize(hex.name.replace(/^The\s+/i, '')) === q
+    ) {
+      return buildHexagramCluster(n);
+    }
+  }
 
   // Exact deity name → pantheon parallels cluster
   for (const key of CORRESPONDENCE_KEYS) {

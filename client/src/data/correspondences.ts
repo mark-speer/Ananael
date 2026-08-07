@@ -4,7 +4,8 @@
  * incense, stone, plant, metal, day, tarot, and pantheon deities.
  * Egyptian / Greek / Roman / Norse / Hindu from Liber 777 cols. XIX, XXII,
  * XXXIII–XXXV. Mesoamerican follows planetary & elemental tradition maps
- * (Crowley left Mexican attributions blank). Tarot IDs match tarotDeck.ts;
+ * (Crowley left Mexican attributions blank). I Ching hexagrams attach via
+ * trigrams (Book of Thoth + elemental paths). Tarot IDs match tarotDeck.ts;
  * Hebrew latin keys match gematria alphabets and treeOfLife paths.
  */
 
@@ -70,6 +71,7 @@ export const CORRESPONDENCE_FACETS = [
   'archangel',
   'spirit',
   'deity',
+  'hexagram',
   'element',
   'color',
   'incense',
@@ -88,6 +90,7 @@ export const FACET_LABELS: Record<CorrespondenceFacet, string> = {
   archangel: 'Archangel',
   spirit: 'Spirit',
   deity: 'Deity',
+  hexagram: 'Hexagram',
   element: 'Element',
   color: 'Color',
   incense: 'Incense',

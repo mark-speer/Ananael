@@ -580,6 +580,21 @@ export const HEXAGRAMS: HexagramText[] = [
 
 const BY_NUMBER = new Map(HEXAGRAMS.map((h) => [h.number, h]));
 
+/**
+ * Binary value → King Wen number.
+ * Bit 0 = bottom line; 1 = yang, 0 = yin.
+ */
+export const KING_WEN_BY_BINARY: readonly number[] = [
+  2, 23, 8, 20, 16, 35, 45, 12, // 000000–000111
+  15, 52, 39, 53, 62, 56, 31, 33, // 001000–001111
+  7, 4, 29, 59, 40, 64, 47, 6, // 010000–010111
+  46, 18, 48, 57, 32, 50, 28, 44, // 011000–011111
+  24, 27, 3, 42, 51, 21, 17, 25, // 100000–100111
+  36, 22, 63, 37, 55, 30, 49, 13, // 101000–101111
+  19, 41, 60, 61, 54, 38, 58, 10, // 110000–110111
+  11, 26, 5, 9, 34, 14, 43, 1, // 111000–111111
+];
+
 /** Look up a hexagram by King Wen number (1–64). */
 export function getHexagram(number: number): HexagramText | undefined {
   return BY_NUMBER.get(number);

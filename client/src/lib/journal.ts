@@ -3,6 +3,7 @@
  */
 
 import { CORRESPONDENCE_KEYS, flattenDeities } from '../data/correspondences';
+import { getHexagramsForKey } from '../data/ichingCorrespondences';
 import { GOETIA_SPIRITS } from '../data/arsGoetia';
 import { searchCorrespondences } from './correspondences';
 
@@ -175,6 +176,13 @@ export function suggestJournalEntities(query: string, limit = 12): JournalEntity
         kind: 'deity',
         id: deity.toLowerCase(),
         label: deity,
+      });
+    }
+    for (const hex of getHexagramsForKey(match.key)) {
+      add({
+        kind: 'hexagram',
+        id: String(hex.number),
+        label: `${hex.number}. ${hex.name}`,
       });
     }
   }
