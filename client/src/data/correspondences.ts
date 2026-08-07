@@ -663,7 +663,17 @@ export const CORRESPONDENCE_KEYS: CorrespondenceKey[] = [
 ];
 
 const BY_KEY = new Map(CORRESPONDENCE_KEYS.map((k) => [k.key, k]));
+const BY_TAROT = new Map(
+  CORRESPONDENCE_KEYS.filter((k) => k.tarotId).map((k) => [k.tarotId!, k])
+);
 
 export function getCorrespondenceKey(key: number): CorrespondenceKey | undefined {
   return BY_KEY.get(key);
+}
+
+/** Resolve a Liber 777 path key by Major Arcana tarot deck id. */
+export function getCorrespondenceByTarotId(
+  tarotId: string
+): CorrespondenceKey | undefined {
+  return BY_TAROT.get(tarotId);
 }

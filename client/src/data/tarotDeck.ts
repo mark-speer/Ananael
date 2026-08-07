@@ -12,6 +12,7 @@ export interface TarotCardData {
   number?: number;
   upright: string;
   reversed: string;
+  keywords: string[];
 }
 
 export const TAROT_DECK: TarotCardData[] = [
@@ -23,6 +24,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 0,
     upright: 'New beginnings, innocence, spontaneous leap of faith.',
     reversed: 'Recklessness, naivety, holding back from the unknown.',
+    keywords: ['New beginnings', 'innocence', 'spontaneous leap of faith'],
   },
   {
     id: 'major-01',
@@ -31,6 +33,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 1,
     upright: 'Willpower, skill, manifestation through focused intent.',
     reversed: 'Manipulation, unused talent, scattered energy.',
+    keywords: ['Willpower', 'skill', 'manifestation through focused intent'],
   },
   {
     id: 'major-02',
@@ -39,6 +42,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 2,
     upright: 'Intuition, hidden knowledge, the mysteries unveiled within.',
     reversed: 'Secrets withheld, disconnected from inner voice.',
+    keywords: ['Intuition', 'hidden knowledge', 'the mysteries unveiled within'],
   },
   {
     id: 'major-03',
@@ -47,6 +51,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 3,
     upright: 'Abundance, nurture, creative fertility and beauty.',
     reversed: 'Creative block, dependence, neglected self-care.',
+    keywords: ['Abundance', 'nurture', 'creative fertility and beauty'],
   },
   {
     id: 'major-04',
@@ -55,6 +60,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 4,
     upright: 'Structure, authority, disciplined mastery of the material.',
     reversed: 'Rigidity, domination, loss of control.',
+    keywords: ['Structure', 'authority', 'disciplined mastery of the material'],
   },
   {
     id: 'major-05',
@@ -63,6 +69,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 5,
     upright: 'Tradition, sacred teaching, initiation into shared wisdom.',
     reversed: 'Dogma, rebellion against convention, false teachers.',
+    keywords: ['Tradition', 'sacred teaching', 'initiation into shared wisdom'],
   },
   {
     id: 'major-06',
@@ -71,6 +78,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 6,
     upright: 'Union, meaningful choice, alignment of values and desire.',
     reversed: 'Disharmony, indecision, misaligned partnerships.',
+    keywords: ['Union', 'meaningful choice', 'alignment of values and desire'],
   },
   {
     id: 'major-07',
@@ -79,6 +87,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 7,
     upright: 'Victory through will, directed momentum, triumph.',
     reversed: 'Aggression, lack of direction, stalled progress.',
+    keywords: ['Victory through will', 'directed momentum', 'triumph'],
   },
   {
     id: 'major-08',
@@ -87,6 +96,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 8,
     upright: 'Courage, gentle power, mastery of instinct through compassion.',
     reversed: 'Self-doubt, raw force without temperance.',
+    keywords: ['Courage', 'gentle power', 'mastery of instinct through compassion'],
   },
   {
     id: 'major-09',
@@ -95,6 +105,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 9,
     upright: 'Solitude, inner guidance, the lamp of contemplation.',
     reversed: 'Isolation, withdrawal from needed counsel.',
+    keywords: ['Solitude', 'inner guidance', 'the lamp of contemplation'],
   },
   {
     id: 'major-10',
@@ -103,6 +114,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 10,
     upright: 'Cycles, destiny in motion, turning fortune.',
     reversed: 'Resistance to change, unlucky patterns repeating.',
+    keywords: ['Cycles', 'destiny in motion', 'turning fortune'],
   },
   {
     id: 'major-11',
@@ -111,6 +123,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 11,
     upright: 'Truth, fairness, karmic balance restored.',
     reversed: 'Bias, avoidance of accountability, injustice.',
+    keywords: ['Truth', 'fairness', 'karmic balance restored'],
   },
   {
     id: 'major-12',
@@ -119,6 +132,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 12,
     upright: 'Surrender, new perspective, sacred pause.',
     reversed: 'Stalling, martyrdom, refusal to release.',
+    keywords: ['Surrender', 'new perspective', 'sacred pause'],
   },
   {
     id: 'major-13',
@@ -127,6 +141,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 13,
     upright: 'Transformation, necessary endings, rebirth.',
     reversed: 'Fear of change, clinging to what must pass.',
+    keywords: ['Transformation', 'necessary endings', 'rebirth'],
   },
   {
     id: 'major-14',
@@ -135,6 +150,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 14,
     upright: 'Alchemy, patience, harmonious blending of opposites.',
     reversed: 'Imbalance, excess, impatience with process.',
+    keywords: ['Alchemy', 'patience', 'harmonious blending of opposites'],
   },
   {
     id: 'major-15',
@@ -143,6 +159,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 15,
     upright: 'Bondage to desire, shadow material, confronting attachment.',
     reversed: 'Liberation, breaking chains, reclaiming power.',
+    keywords: ['Bondage to desire', 'shadow material', 'confronting attachment'],
   },
   {
     id: 'major-16',
@@ -151,6 +168,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 16,
     upright: 'Sudden upheaval, revelation, false structures falling.',
     reversed: 'Avoiding catastrophe, delayed reckoning.',
+    keywords: ['Sudden upheaval', 'revelation', 'false structures falling'],
   },
   {
     id: 'major-17',
@@ -159,6 +177,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 17,
     upright: 'Hope, healing, inspiration after the storm.',
     reversed: 'Despair, disconnection from faith and vision.',
+    keywords: ['Hope', 'healing', 'inspiration after the storm'],
   },
   {
     id: 'major-18',
@@ -167,6 +186,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 18,
     upright: 'Illusion, dreams, the subconscious path.',
     reversed: 'Clarity emerging, releasing fear and confusion.',
+    keywords: ['Illusion', 'dreams', 'the subconscious path'],
   },
   {
     id: 'major-19',
@@ -175,6 +195,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 19,
     upright: 'Joy, vitality, radiant success and truth.',
     reversed: 'Temporary clouding, muted confidence.',
+    keywords: ['Joy', 'vitality', 'radiant success and truth'],
   },
   {
     id: 'major-20',
@@ -183,6 +204,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 20,
     upright: 'Awakening, reckoning, answering a higher call.',
     reversed: 'Self-doubt, ignoring the summons to rise.',
+    keywords: ['Awakening', 'reckoning', 'answering a higher call'],
   },
   {
     id: 'major-21',
@@ -191,6 +213,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 21,
     upright: 'Completion, integration, the dance of fulfillment.',
     reversed: 'Incomplete cycles, delayed closure.',
+    keywords: ['Completion', 'integration', 'the dance of fulfillment'],
   },
 
   // —— Wands ——
@@ -201,6 +224,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 1,
     upright: 'Spark of inspiration, creative potential ignited.',
     reversed: 'False starts, blocked passion, delayed spark.',
+    keywords: ['Spark of inspiration', 'creative potential ignited'],
   },
   {
     id: 'wands-02',
@@ -209,6 +233,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 2,
     upright: 'Planning, foresight, choosing a path of ambition.',
     reversed: 'Fear of the unknown, poorly laid plans.',
+    keywords: ['Planning', 'foresight', 'choosing a path of ambition'],
   },
   {
     id: 'wands-03',
@@ -217,6 +242,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 3,
     upright: 'Expansion, looking beyond the horizon, progress.',
     reversed: 'Delays, limited vision, obstacles abroad.',
+    keywords: ['Expansion', 'looking beyond the horizon', 'progress'],
   },
   {
     id: 'wands-04',
@@ -225,6 +251,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 4,
     upright: 'Celebration, homecoming, stable foundation.',
     reversed: 'Instability at home, postponed joy.',
+    keywords: ['Celebration', 'homecoming', 'stable foundation'],
   },
   {
     id: 'wands-05',
@@ -233,6 +260,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 5,
     upright: 'Conflict, competition, creative friction.',
     reversed: 'Avoiding conflict, inner tension unresolved.',
+    keywords: ['Conflict', 'competition', 'creative friction'],
   },
   {
     id: 'wands-06',
@@ -241,6 +269,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 6,
     upright: 'Public recognition, victory parade, confidence.',
     reversed: 'Ego, fall from favor, private success.',
+    keywords: ['Public recognition', 'victory parade', 'confidence'],
   },
   {
     id: 'wands-07',
@@ -249,6 +278,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 7,
     upright: 'Defense of position, courage under pressure.',
     reversed: 'Overwhelm, yielding ground too soon.',
+    keywords: ['Defense of position', 'courage under pressure'],
   },
   {
     id: 'wands-08',
@@ -257,6 +287,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 8,
     upright: 'Swift movement, messages, accelerating events.',
     reversed: 'Delays, miscommunication, scattered force.',
+    keywords: ['Swift movement', 'messages', 'accelerating events'],
   },
   {
     id: 'wands-09',
@@ -265,6 +296,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 9,
     upright: 'Resilience, last stand, guarded perseverance.',
     reversed: 'Exhaustion, paranoia, giving up the fight.',
+    keywords: ['Resilience', 'last stand', 'guarded perseverance'],
   },
   {
     id: 'wands-10',
@@ -273,6 +305,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 10,
     upright: 'Burden, responsibility, carrying too much alone.',
     reversed: 'Release of load, delegating, burnout.',
+    keywords: ['Burden', 'responsibility', 'carrying too much alone'],
   },
   {
     id: 'wands-11',
@@ -280,6 +313,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'wands',
     upright: 'Curious messenger, creative exploration, news of fire.',
     reversed: 'Scattered ideas, immature enthusiasm.',
+    keywords: ['Curious messenger', 'creative exploration', 'news of fire'],
   },
   {
     id: 'wands-12',
@@ -287,6 +321,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'wands',
     upright: 'Bold action, adventure, passionate pursuit.',
     reversed: 'Impulsiveness, reckless haste, burned bridges.',
+    keywords: ['Bold action', 'adventure', 'passionate pursuit'],
   },
   {
     id: 'wands-13',
@@ -294,6 +329,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'wands',
     upright: 'Charisma, warmth, confident creative leadership.',
     reversed: 'Jealousy, insecurity, demanding energy.',
+    keywords: ['Charisma', 'warmth', 'confident creative leadership'],
   },
   {
     id: 'wands-14',
@@ -301,6 +337,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'wands',
     upright: 'Visionary leadership, bold enterprise, mastery of fire.',
     reversed: 'Tyranny, impulsiveness, hollow authority.',
+    keywords: ['Visionary leadership', 'bold enterprise', 'mastery of fire'],
   },
 
   // —— Cups ——
@@ -311,6 +348,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 1,
     upright: 'Overflowing emotion, new love, spiritual opening.',
     reversed: 'Blocked feelings, emptiness, emotional withdrawal.',
+    keywords: ['Overflowing emotion', 'new love', 'spiritual opening'],
   },
   {
     id: 'cups-02',
@@ -319,6 +357,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 2,
     upright: 'Partnership, mutual attraction, sacred bond.',
     reversed: 'Imbalance, broken connection, disharmony.',
+    keywords: ['Partnership', 'mutual attraction', 'sacred bond'],
   },
   {
     id: 'cups-03',
@@ -327,6 +366,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 3,
     upright: 'Friendship, celebration, communal joy.',
     reversed: 'Overindulgence, gossip, social isolation.',
+    keywords: ['Friendship', 'celebration', 'communal joy'],
   },
   {
     id: 'cups-04',
@@ -335,6 +375,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 4,
     upright: 'Apathy, contemplation, missed emotional offers.',
     reversed: 'Awakening interest, accepting what is offered.',
+    keywords: ['Apathy', 'contemplation', 'missed emotional offers'],
   },
   {
     id: 'cups-05',
@@ -343,6 +384,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 5,
     upright: 'Grief, regret, focus on what is lost.',
     reversed: 'Acceptance, moving on, remaining cups seen.',
+    keywords: ['Grief', 'regret', 'focus on what is lost'],
   },
   {
     id: 'cups-06',
@@ -351,6 +393,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 6,
     upright: 'Nostalgia, innocence, gifts from the past.',
     reversed: 'Living in the past, clinging to childhood.',
+    keywords: ['Nostalgia', 'innocence', 'gifts from the past'],
   },
   {
     id: 'cups-07',
@@ -359,6 +402,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 7,
     upright: 'Illusion, many choices, fantasy versus reality.',
     reversed: 'Clarity, decisive choice, waking from dream.',
+    keywords: ['Illusion', 'many choices', 'fantasy versus reality'],
   },
   {
     id: 'cups-08',
@@ -367,6 +411,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 8,
     upright: 'Walking away, seeking deeper meaning.',
     reversed: 'Fear of leaving, stagnation, aimless drift.',
+    keywords: ['Walking away', 'seeking deeper meaning'],
   },
   {
     id: 'cups-09',
@@ -375,6 +420,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 9,
     upright: 'Wish fulfilled, emotional satisfaction, contentment.',
     reversed: 'Greed, shallow satisfaction, unfulfilled desire.',
+    keywords: ['Wish fulfilled', 'emotional satisfaction', 'contentment'],
   },
   {
     id: 'cups-10',
@@ -383,6 +429,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 10,
     upright: 'Harmonious home, lasting emotional fulfillment.',
     reversed: 'Fractured family, broken ideal, disharmony.',
+    keywords: ['Harmonious home', 'lasting emotional fulfillment'],
   },
   {
     id: 'cups-11',
@@ -390,6 +437,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'cups',
     upright: 'Gentle messenger, creative intuition, emotional news.',
     reversed: 'Emotional immaturity, escapism, blocked muse.',
+    keywords: ['Gentle messenger', 'creative intuition', 'emotional news'],
   },
   {
     id: 'cups-12',
@@ -397,6 +445,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'cups',
     upright: 'Romantic quest, following the heart, idealism.',
     reversed: 'Moodiness, unrealistic expectations, fickleness.',
+    keywords: ['Romantic quest', 'following the heart', 'idealism'],
   },
   {
     id: 'cups-13',
@@ -404,6 +453,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'cups',
     upright: 'Empathy, psychic depth, emotional wisdom.',
     reversed: 'Codependency, drowning in emotion, insecurity.',
+    keywords: ['Empathy', 'psychic depth', 'emotional wisdom'],
   },
   {
     id: 'cups-14',
@@ -411,6 +461,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'cups',
     upright: 'Emotional mastery, calm counsel, balanced heart.',
     reversed: 'Manipulation, cold detachment, repressed feeling.',
+    keywords: ['Emotional mastery', 'calm counsel', 'balanced heart'],
   },
 
   // —— Swords ——
@@ -421,6 +472,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 1,
     upright: 'Clarity, breakthrough, the cutting edge of truth.',
     reversed: 'Confusion, misuse of intellect, cloudy judgment.',
+    keywords: ['Clarity', 'breakthrough', 'the cutting edge of truth'],
   },
   {
     id: 'swords-02',
@@ -429,6 +481,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 2,
     upright: 'Stalemate, difficult choice, blindfolded balance.',
     reversed: 'Indecision broken, information revealed.',
+    keywords: ['Stalemate', 'difficult choice', 'blindfolded balance'],
   },
   {
     id: 'swords-03',
@@ -437,6 +490,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 3,
     upright: 'Heartbreak, sorrow, piercing truth.',
     reversed: 'Healing grief, releasing pain, recovery.',
+    keywords: ['Heartbreak', 'sorrow', 'piercing truth'],
   },
   {
     id: 'swords-04',
@@ -445,6 +499,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 4,
     upright: 'Rest, recovery, contemplative stillness.',
     reversed: 'Restlessness, burnout, forced pause ending.',
+    keywords: ['Rest', 'recovery', 'contemplative stillness'],
   },
   {
     id: 'swords-05',
@@ -453,6 +508,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 5,
     upright: 'Hollow victory, conflict, winning at a cost.',
     reversed: 'Reconciliation, walking away from strife.',
+    keywords: ['Hollow victory', 'conflict', 'winning at a cost'],
   },
   {
     id: 'swords-06',
@@ -461,6 +517,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 6,
     upright: 'Transition, passage toward calmer waters.',
     reversed: 'Stuck in trouble, resisting necessary travel.',
+    keywords: ['Transition', 'passage toward calmer waters'],
   },
   {
     id: 'swords-07',
@@ -469,6 +526,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 7,
     upright: 'Strategy, stealth, cunning or deception.',
     reversed: 'Coming clean, getting caught, conscience.',
+    keywords: ['Strategy', 'stealth', 'cunning or deception'],
   },
   {
     id: 'swords-08',
@@ -477,6 +535,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 8,
     upright: 'Mental prison, restriction, self-imposed binds.',
     reversed: 'Liberation, seeing a way out, empowerment.',
+    keywords: ['Mental prison', 'restriction', 'self-imposed binds'],
   },
   {
     id: 'swords-09',
@@ -485,6 +544,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 9,
     upright: 'Anxiety, nightmares, mental anguish.',
     reversed: 'Hope returning, facing fears, release.',
+    keywords: ['Anxiety', 'nightmares', 'mental anguish'],
   },
   {
     id: 'swords-10',
@@ -493,6 +553,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 10,
     upright: 'Painful ending, rock bottom, final blow.',
     reversed: 'Recovery, dawn after ruin, survival.',
+    keywords: ['Painful ending', 'rock bottom', 'final blow'],
   },
   {
     id: 'swords-11',
@@ -500,6 +561,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'swords',
     upright: 'Curiosity, vigilance, sharp new ideas.',
     reversed: 'Gossip, haste, scattered intellect.',
+    keywords: ['Curiosity', 'vigilance', 'sharp new ideas'],
   },
   {
     id: 'swords-12',
@@ -507,6 +569,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'swords',
     upright: 'Swift intellect, assertive charge, direct action.',
     reversed: 'Reckless words, aggression without plan.',
+    keywords: ['Swift intellect', 'assertive charge', 'direct action'],
   },
   {
     id: 'swords-13',
@@ -514,6 +577,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'swords',
     upright: 'Clear perception, independent mind, honest counsel.',
     reversed: 'Bitterness, coldness, overly critical tongue.',
+    keywords: ['Clear perception', 'independent mind', 'honest counsel'],
   },
   {
     id: 'swords-14',
@@ -521,6 +585,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'swords',
     upright: 'Intellectual authority, ethical judgment, truth.',
     reversed: 'Tyrannical logic, misuse of power, cruelty.',
+    keywords: ['Intellectual authority', 'ethical judgment', 'truth'],
   },
 
   // —— Pentacles ——
@@ -531,6 +596,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 1,
     upright: 'Material opportunity, seed of prosperity.',
     reversed: 'Lost chance, unstable foundation, greed.',
+    keywords: ['Material opportunity', 'seed of prosperity'],
   },
   {
     id: 'pentacles-02',
@@ -539,6 +605,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 2,
     upright: 'Juggling resources, adaptable balance.',
     reversed: 'Overwhelmed, poor priorities, imbalance.',
+    keywords: ['Juggling resources', 'adaptable balance'],
   },
   {
     id: 'pentacles-03',
@@ -547,6 +614,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 3,
     upright: 'Collaboration, craftsmanship, shared building.',
     reversed: 'Poor teamwork, mediocrity, lack of skill.',
+    keywords: ['Collaboration', 'craftsmanship', 'shared building'],
   },
   {
     id: 'pentacles-04',
@@ -555,6 +623,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 4,
     upright: 'Conservation, control, holding tightly to security.',
     reversed: 'Generosity, release, reckless spending.',
+    keywords: ['Conservation', 'control', 'holding tightly to security'],
   },
   {
     id: 'pentacles-05',
@@ -563,6 +632,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 5,
     upright: 'Hardship, exclusion, material or spiritual poverty.',
     reversed: 'Recovery, aid accepted, returning to warmth.',
+    keywords: ['Hardship', 'exclusion', 'material or spiritual poverty'],
   },
   {
     id: 'pentacles-06',
@@ -571,6 +641,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 6,
     upright: 'Charity, fair exchange, giving and receiving.',
     reversed: 'Strings attached, debt, unequal power.',
+    keywords: ['Charity', 'fair exchange', 'giving and receiving'],
   },
   {
     id: 'pentacles-07',
@@ -579,6 +650,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 7,
     upright: 'Assessment, patience with long-term growth.',
     reversed: 'Impatience, wasted effort, poor returns.',
+    keywords: ['Assessment', 'patience with long-term growth'],
   },
   {
     id: 'pentacles-08',
@@ -587,6 +659,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 8,
     upright: 'Diligent craft, skill-building, devoted work.',
     reversed: 'Perfectionism, dull labor, lack of ambition.',
+    keywords: ['Diligent craft', 'skill-building', 'devoted work'],
   },
   {
     id: 'pentacles-09',
@@ -595,6 +668,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 9,
     upright: 'Self-sufficiency, refined abundance, independence.',
     reversed: 'Overdependence, superficial luxury, isolation.',
+    keywords: ['Self-sufficiency', 'refined abundance', 'independence'],
   },
   {
     id: 'pentacles-10',
@@ -603,6 +677,7 @@ export const TAROT_DECK: TarotCardData[] = [
     number: 10,
     upright: 'Legacy, lasting wealth, ancestral foundation.',
     reversed: 'Family conflict over resources, unstable legacy.',
+    keywords: ['Legacy', 'lasting wealth', 'ancestral foundation'],
   },
   {
     id: 'pentacles-11',
@@ -610,6 +685,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'pentacles',
     upright: 'Student of the material, new venture, practical study.',
     reversed: 'Procrastination, lack of focus, poor planning.',
+    keywords: ['Student of the material', 'new venture', 'practical study'],
   },
   {
     id: 'pentacles-12',
@@ -617,6 +693,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'pentacles',
     upright: 'Steady progress, reliability, methodical duty.',
     reversed: 'Stubbornness, stagnation, stuck routines.',
+    keywords: ['Steady progress', 'reliability', 'methodical duty'],
   },
   {
     id: 'pentacles-13',
@@ -624,6 +701,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'pentacles',
     upright: 'Nurturing prosperity, practical care, abundance.',
     reversed: 'Smothering, work-life imbalance, self-neglect.',
+    keywords: ['Nurturing prosperity', 'practical care', 'abundance'],
   },
   {
     id: 'pentacles-14',
@@ -631,6 +709,7 @@ export const TAROT_DECK: TarotCardData[] = [
     arcana: 'pentacles',
     upright: 'Mastery of resources, grounded success, provision.',
     reversed: 'Materialism, stubborn greed, poor stewardship.',
+    keywords: ['Mastery of resources', 'grounded success', 'provision'],
   },
 ];
 

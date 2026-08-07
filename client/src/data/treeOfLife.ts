@@ -390,6 +390,7 @@ export const PATHS: TreePath[] = [
 
 const SEPHIRA_BY_ID = new Map(SEPHIROTH.map((s) => [s.id, s]));
 const PATH_BY_ID = new Map(PATHS.map((p) => [p.id, p]));
+const PATH_BY_TAROT = new Map(PATHS.map((p) => [p.tarotId, p]));
 
 export function getSephira(id: number): Sephira | undefined {
   return SEPHIRA_BY_ID.get(id);
@@ -397,6 +398,11 @@ export function getSephira(id: number): Sephira | undefined {
 
 export function getPath(id: number): TreePath | undefined {
   return PATH_BY_ID.get(id);
+}
+
+/** Resolve a Tree path by Major Arcana tarot deck id (e.g. major-00). */
+export function getPathByTarotId(tarotId: string): TreePath | undefined {
+  return PATH_BY_TAROT.get(tarotId);
 }
 
 export function getSephiraCenter(id: number): Point {

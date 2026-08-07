@@ -98,15 +98,21 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
 
   const flipped = useMemo(() => dealt.filter((d) => d.isFlipped), [dealt]);
 
-  const readingSummary = useMemo(
-    () =>
-      flipped.length > 0 ? summarizeReading(flipped, spreadType) : null,
-    [flipped, spreadType]
-  );
-
   const historyAggregate = useMemo(
     () => aggregateTarotHistory(history),
     [history]
+  );
+
+  const readingSummary = useMemo(
+    () =>
+      flipped.length > 0
+        ? summarizeReading(
+            flipped,
+            spreadType,
+            historyLoaded ? historyAggregate : null
+          )
+        : null,
+    [flipped, spreadType, historyLoaded, historyAggregate]
   );
 
   const loadHistory = useCallback(async () => {
@@ -165,7 +171,16 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
     try {
       const now = new Date();
       const sky = buildJournalSky(now);
-      const summaryText = summarizeReading(dealt, spreadType).text;
+      // Match live UI: summarize only flipped (revealed) cards.
+      const revealed = dealt.filter((d) => d.isFlipped);
+      const summaryText =
+        revealed.length > 0
+          ? summarizeReading(
+              revealed,
+              spreadType,
+              historyLoaded ? historyAggregate : null
+            ).text
+          : undefined;
       const res = await apiFetch('/api/tarot/save', {
         method: 'POST',
         headers: {
@@ -181,7 +196,7 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
           userNotes: notes,
           occurredAt: now.toISOString(),
           sky,
-          summary: summaryText,
+          ...(summaryText ? { summary: summaryText } : {}),
           entities: dealt.map((d) => ({
             kind: 'tarot',
             id: d.card.id,
@@ -292,31 +307,82 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
 
       {/* Deterministic reading summary (guests + signed-in) */}
       {readingSummary && (
-        <section className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
+        <section className="max-w-3xl space-y-4 rounded-lg border border-ananael-border/50 bg-ananael-panel/40 p-4">
           <h2 className="font-display text-lg text-ananael-gold">
             Reading summary
           </h2>
-          <ul className="space-y-2">
-            {readingSummary.walkthrough.map((sentence, i) => (
-              <li
-                key={`walk-${i}`}
-                className="text-sm leading-relaxed text-zinc-300"
-              >
-                {sentence}
-              </li>
-            ))}
-          </ul>
-          {readingSummary.patterns.length > 0 && (
-            <ul className="space-y-1.5 border-t border-ananael-border/40 pt-3">
-              {readingSummary.patterns.map((note, i) => (
+          <div className="space-y-2">
+            <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+              Walkthrough
+            </h3>
+            <ul className="space-y-2">
+              {readingSummary.walkthrough.map((sentence, i) => (
                 <li
-                  key={`pat-${i}`}
-                  className="text-xs leading-relaxed text-ananael-muted"
+                  key={`walk-${i}`}
+                  className="text-sm leading-relaxed text-zinc-300"
                 >
-                  {note}
+                  {sentence}
                 </li>
               ))}
             </ul>
+          </div>
+          {readingSummary.patterns.length > 0 && (
+            <div className="space-y-1.5 border-t border-ananael-border/40 pt-3">
+              <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+                Patterns
+              </h3>
+              <ul className="space-y-1.5">
+                {readingSummary.patterns.map((note, i) => (
+                  <li
+                    key={`pat-${i}`}
+                    className="text-xs leading-relaxed text-ananael-muted"
+                  >
+                    {note}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {readingSummary.correspondences.length > 0 && (
+            <div className="space-y-1.5 border-t border-ananael-border/40 pt-3">
+              <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+                Correspondences
+              </h3>
+              <ul className="space-y-1.5">
+                {readingSummary.correspondences.map((note, i) => (
+                  <li
+                    key={`corr-${i}`}
+                    className="text-xs leading-relaxed text-zinc-400"
+                  >
+                    {note}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {readingSummary.prompts.length > 0 && (
+            <div className="space-y-1.5 border-t border-ananael-border/40 pt-3">
+              <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+                Reflect
+              </h3>
+              <ul className="space-y-1.5">
+                {readingSummary.prompts.map((prompt, i) => (
+                  <li
+                    key={`prompt-${i}`}
+                    className="text-xs leading-relaxed text-ananael-gold/80"
+                  >
+                    {prompt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {flipped.length < dealt.length && (
+            <p className="border-t border-ananael-border/40 pt-3 text-xs text-ananael-muted">
+              {dealt.length - flipped.length} card
+              {dealt.length - flipped.length === 1 ? '' : 's'} still face-down —
+              summary covers revealed cards only.
+            </p>
           )}
         </section>
       )}

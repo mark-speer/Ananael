@@ -1,13 +1,17 @@
 /**
  * Deterministic, client-side tarot interpretation.
- * Position-templated walkthroughs + suit / Major / reversal pattern notes.
+ * Position-templated walkthroughs + suit / Major / reversal / dignity /
+ * numerology / court / combo pattern notes, GD correspondences, and prompts.
  */
 
+import { getCorrespondenceByTarotId } from '../data/correspondences';
+import { findComboGlosses } from '../data/tarotCombos';
 import {
   getCardById,
   type Arcana,
   type TarotCardData,
 } from '../data/tarotDeck';
+import { getPathByTarotId } from '../data/treeOfLife';
 
 export type SpreadType = 'single' | 'three' | 'celtic';
 
@@ -20,6 +24,10 @@ export interface SummaryDealtCard {
 export interface ReadingSummary {
   walkthrough: string[];
   patterns: string[];
+  /** Golden Dawn / Tree path notes for Major Arcana in the pull. */
+  correspondences: string[];
+  /** Templated reflection questions. */
+  prompts: string[];
   /** Joined prose for journal payload / display. */
   text: string;
 }
@@ -36,6 +44,8 @@ export interface HistoryReading {
 }
 
 export type MinorSuit = Exclude<Arcana, 'major'>;
+
+export type CourtRank = 'page' | 'knight' | 'queen' | 'king';
 
 export interface SuitCounts {
   wands: number;
@@ -79,6 +89,34 @@ const ELEMENTAL_INTENSIFY: Record<MinorSuit, string> = {
   pentacles: 'This pull is rooted in Pentacles — practical and material stakes prevail.',
 };
 
+/** Classical elemental affinities for dignity (strengthen / weaken). */
+const SUIT_ELEMENT: Record<MinorSuit, 'fire' | 'water' | 'air' | 'earth'> = {
+  wands: 'fire',
+  cups: 'water',
+  swords: 'air',
+  pentacles: 'earth',
+};
+
+const ELEMENT_STRENGTHENS: Record<
+  'fire' | 'water' | 'air' | 'earth',
+  'fire' | 'water' | 'air' | 'earth'
+> = {
+  fire: 'air',
+  air: 'fire',
+  water: 'earth',
+  earth: 'water',
+};
+
+const ELEMENT_WEAKENS: Record<
+  'fire' | 'water' | 'air' | 'earth',
+  'fire' | 'water' | 'air' | 'earth'
+> = {
+  fire: 'water',
+  water: 'fire',
+  air: 'earth',
+  earth: 'air',
+};
+
 const THREE_FRAMES: Record<string, (body: string) => string> = {
   Past: (body) => `In the Past: ${body}`,
   Present: (body) => `In the Present: ${body}`,
@@ -96,6 +134,39 @@ const CELTIC_FRAMES: Record<string, (body: string) => string> = {
   Environment: (body) => `Around you: ${body}`,
   'Hopes & Fears': (body) => `Hopes and fears: ${body}`,
   Outcome: (body) => `The outcome points to: ${body}`,
+};
+
+/** Adjacent Celtic pairs used for elemental dignity checks. */
+const CELTIC_DIGNITY_PAIRS: Array<[string, string]> = [
+  ['Present', 'Challenge'],
+  ['Foundation', 'Recent Past'],
+  ['Crown', 'Near Future'],
+  ['Self', 'Environment'],
+  ['Hopes & Fears', 'Outcome'],
+  ['Present', 'Foundation'],
+  ['Crown', 'Outcome'],
+];
+
+const COURT_RANK_BY_SUFFIX: Record<string, CourtRank> = {
+  '11': 'page',
+  '12': 'knight',
+  '13': 'queen',
+  '14': 'king',
+};
+
+const COURT_LABEL: Record<CourtRank, string> = {
+  page: 'Pages',
+  knight: 'Knights',
+  queen: 'Queens',
+  king: 'Kings',
+};
+
+const REVERSAL_BY_SUIT: Record<MinorSuit | 'major', string> = {
+  cups: 'turned inward — feelings may be blocked, withheld, or privately circulating',
+  wands: 'delayed or misdirected — drive stalls or burns without aim',
+  swords: 'twisted in the mind — clarity clouds into worry or harsh self-talk',
+  pentacles: 'stuck in the material — resources feel scarce, tight, or poorly rooted',
+  major: 'turned inward — archetypal energy may be blocked, delayed, or privately working',
 };
 
 function emptySuitCounts(): SuitCounts {
@@ -129,10 +200,19 @@ export function reversalRate(cards: Array<{ isReversed: boolean }>): number {
   return reversed / cards.length;
 }
 
+/** Page/Knight/Queen/King from minor court ids (…-11 …-14). */
+export function courtRank(card: TarotCardData): CourtRank | null {
+  const m = card.id.match(/^(?:wands|cups|swords|pentacles)-(1[1-4])$/);
+  if (!m) return null;
+  return COURT_RANK_BY_SUFFIX[m[1]] ?? null;
+}
+
 function cardBody(card: TarotCardData, isReversed: boolean): string {
   const orientation = isReversed ? 'reversed' : 'upright';
   const meaning = isReversed ? card.reversed : card.upright;
-  return `${card.name} (${orientation}) — ${meaning}`;
+  const kw =
+    card.keywords?.length > 0 ? `${card.keywords.join(', ')}. ` : '';
+  return `${card.name} (${orientation}) — ${kw}${meaning}`;
 }
 
 function frameSentence(
@@ -175,13 +255,341 @@ function dominantSuit(
   return null;
 }
 
+function byPosition(
+  cards: SummaryDealtCard[],
+  position: string
+): SummaryDealtCard | undefined {
+  return cards.find((c) => c.position === position);
+}
+
+function shortLabel(card: TarotCardData): string {
+  return card.name.replace(/^The\s+/i, '');
+}
+
+function keywordHint(card: TarotCardData): string {
+  if (card.keywords?.length) {
+    return card.keywords.slice(0, 2).join(' / ');
+  }
+  return shortLabel(card);
+}
+
+/** Spread-role synthesis for key position pairs. */
+export function synthesisNotes(
+  cards: SummaryDealtCard[],
+  spreadType: SpreadType
+): string[] {
+  const notes: string[] = [];
+
+  if (spreadType === 'three') {
+    const past = byPosition(cards, 'Past');
+    const future = byPosition(cards, 'Future');
+    if (past && future) {
+      notes.push(
+        `From Past (${shortLabel(past.card)}: ${keywordHint(past.card)}) toward Future (${shortLabel(future.card)}: ${keywordHint(future.card)}) — the arc moves from what was established into what approaches.`
+      );
+    }
+  }
+
+  if (spreadType === 'celtic') {
+    const present = byPosition(cards, 'Present');
+    const challenge = byPosition(cards, 'Challenge');
+    if (present && challenge) {
+      notes.push(
+        `Challenge (${shortLabel(challenge.card)}: ${keywordHint(challenge.card)}) presses against Present (${shortLabel(present.card)}: ${keywordHint(present.card)}) — the crossing force shapes the heart of the matter.`
+      );
+    }
+
+    const crown = byPosition(cards, 'Crown');
+    const outcome = byPosition(cards, 'Outcome');
+    if (crown && outcome) {
+      notes.push(
+        `Crown (${shortLabel(crown.card)}) aims toward Outcome (${shortLabel(outcome.card)}) — influence above meets where the reading tends.`
+      );
+    }
+  }
+
+  return notes;
+}
+
+/** Golden Dawn / Tree path notes for majors in the reading. */
+export function correspondenceNotes(cards: SummaryDealtCard[]): string[] {
+  const notes: string[] = [];
+  const seen = new Set<string>();
+
+  for (const d of cards) {
+    if (d.card.arcana !== 'major' || seen.has(d.card.id)) continue;
+    seen.add(d.card.id);
+
+    const path = getPathByTarotId(d.card.id);
+    const corr = getCorrespondenceByTarotId(d.card.id);
+    if (!path && !corr) continue;
+
+    const letter =
+      path?.letterName ?? corr?.letterName ?? corr?.hebrewLetter ?? null;
+    const sphere =
+      path?.correspondence ??
+      corr?.planet ??
+      corr?.zodiac ??
+      corr?.element ??
+      null;
+    const blurb = path?.blurb ?? corr?.notes ?? null;
+
+    const bits: string[] = [];
+    if (letter) bits.push(`letter ${letter}`);
+    if (sphere) bits.push(sphere);
+    const meta = bits.length > 0 ? ` (${bits.join(', ')})` : '';
+    const detail = blurb ? ` — ${blurb}` : '';
+    notes.push(
+      `${d.card.name} on the Tree${meta}${detail}`
+    );
+  }
+
+  return notes.slice(0, 4);
+}
+
+function dignityRelation(
+  a: MinorSuit,
+  b: MinorSuit
+): 'strengthen' | 'weaken' | 'neutral' | 'same' {
+  if (a === b) return 'same';
+  const ea = SUIT_ELEMENT[a];
+  const eb = SUIT_ELEMENT[b];
+  if (ELEMENT_STRENGTHENS[ea] === eb) return 'strengthen';
+  if (ELEMENT_WEAKENS[ea] === eb) return 'weaken';
+  return 'neutral';
+}
+
+/** Elemental dignity notes between neighboring positions. */
+export function dignityNotes(
+  cards: SummaryDealtCard[],
+  spreadType: SpreadType
+): string[] {
+  const notes: string[] = [];
+  const pairs: Array<[SummaryDealtCard, SummaryDealtCard]> = [];
+
+  if (spreadType === 'three') {
+    const past = byPosition(cards, 'Past');
+    const present = byPosition(cards, 'Present');
+    const future = byPosition(cards, 'Future');
+    if (past && present) pairs.push([past, present]);
+    if (present && future) pairs.push([present, future]);
+  } else if (spreadType === 'celtic') {
+    for (const [pa, pb] of CELTIC_DIGNITY_PAIRS) {
+      const a = byPosition(cards, pa);
+      const b = byPosition(cards, pb);
+      if (a && b) pairs.push([a, b]);
+    }
+  }
+
+  for (const [a, b] of pairs) {
+    if (!isMinorSuit(a.card.arcana) || !isMinorSuit(b.card.arcana)) continue;
+    const rel = dignityRelation(a.card.arcana, b.card.arcana);
+    const left = `${shortLabel(a.card)} (${a.position})`;
+    const right = `${shortLabel(b.card)} (${b.position})`;
+    if (rel === 'strengthen' || rel === 'same') {
+      notes.push(
+        `${left} beside ${right} — elemental support; the suits reinforce each other.`
+      );
+    } else if (rel === 'weaken') {
+      notes.push(
+        `${left} beside ${right} — elemental friction; the suits pull against each other.`
+      );
+    }
+  }
+
+  return notes.slice(0, 2);
+}
+
+/** Numerology / pip progression notes. */
+export function numerologyNotes(
+  cards: SummaryDealtCard[],
+  spreadType: SpreadType
+): string[] {
+  const notes: string[] = [];
+  const numbered = cards.filter((c) => typeof c.card.number === 'number');
+  const byNum = new Map<number, SummaryDealtCard[]>();
+  for (const d of numbered) {
+    const n = d.card.number!;
+    const list = byNum.get(n) ?? [];
+    list.push(d);
+    byNum.set(n, list);
+  }
+
+  for (const [n, list] of [...byNum.entries()].sort((a, b) => a[0] - b[0])) {
+    if (list.length >= 2) {
+      const names = list.map((d) => shortLabel(d.card)).join(', ');
+      notes.push(
+        `Number ${n} repeats (${names}) — a shared stage of the cycle is emphasized.`
+      );
+    }
+  }
+
+  const aces = cards.filter((c) => c.card.number === 1);
+  if (aces.length >= 2) {
+    notes.push(
+      'Multiple Aces — beginnings and seeded potential cluster in this pull.'
+    );
+  }
+
+  if (spreadType === 'three') {
+    const past = byPosition(cards, 'Past');
+    const present = byPosition(cards, 'Present');
+    const future = byPosition(cards, 'Future');
+    const nums = [past, present, future]
+      .map((d) => d?.card.number)
+      .filter((n): n is number => typeof n === 'number');
+    if (nums.length === 3) {
+      if (nums[0] < nums[1] && nums[1] < nums[2]) {
+        notes.push(
+          'Numbers climb from Past to Future — a building, ascending arc.'
+        );
+      } else if (nums[0] > nums[1] && nums[1] > nums[2]) {
+        notes.push(
+          'Numbers descend from Past to Future — a releasing or winding-down arc.'
+        );
+      }
+    }
+  }
+
+  return notes.slice(0, 2);
+}
+
+/** Court-card cluster notes. */
+export function courtNotes(cards: SummaryDealtCard[]): string[] {
+  const notes: string[] = [];
+  const courts = cards.filter((c) => courtRank(c.card) != null);
+  if (courts.length === 0) return notes;
+
+  if (courts.length >= 3) {
+    notes.push(
+      'Many court cards — people, roles, and interpersonal dynamics are strongly in play.'
+    );
+  }
+
+  const byRank = new Map<CourtRank, SummaryDealtCard[]>();
+  for (const d of courts) {
+    const rank = courtRank(d.card)!;
+    const list = byRank.get(rank) ?? [];
+    list.push(d);
+    byRank.set(rank, list);
+  }
+  for (const [rank, list] of byRank) {
+    if (list.length >= 2) {
+      notes.push(
+        `Multiple ${COURT_LABEL[rank]} — the same court rank echoes across suits.`
+      );
+    }
+  }
+
+  const majors = cards.filter((c) => c.card.arcana === 'major');
+  if (courts.length >= 1 && majors.length >= 1) {
+    const court = courts[0];
+    const major = majors[0];
+    notes.push(
+      `${shortLabel(court.card)} faces ${shortLabel(major.card)} — a figure on the larger path.`
+    );
+  }
+
+  return notes.slice(0, 2);
+}
+
+/** Classic combo dictionary hits. */
+export function comboNotes(cards: SummaryDealtCard[]): string[] {
+  return findComboGlosses(cards.map((c) => c.card.id)).slice(0, 2);
+}
+
+/** Note when a card in this pull also leads recent journal history. */
+export function historyRecurrenceNotes(
+  cards: SummaryDealtCard[],
+  history?: Pick<TarotHistoryAggregate, 'topCards'> | null
+): string[] {
+  if (!history?.topCards?.length || cards.length === 0) return [];
+  const notes: string[] = [];
+  const inPull = new Set(cards.map((c) => c.card.id));
+  for (const top of history.topCards) {
+    if (top.count < 2 || !inPull.has(top.cardId)) continue;
+    notes.push(
+      `${top.name} returns — ${top.count} times in your recent journal.`
+    );
+    if (notes.length >= 2) break;
+  }
+  return notes;
+}
+
+/** Templated journaling / reflection prompts. */
+export function journalingPrompts(
+  cards: SummaryDealtCard[],
+  spreadType: SpreadType
+): string[] {
+  if (cards.length === 0) return [];
+
+  const prompts: string[] = [];
+
+  if (spreadType === 'single') {
+    const d = cards[0];
+    prompts.push(
+      `Where is "${keywordHint(d.card)}" asking for attention in your day?`
+    );
+    prompts.push(
+      `What would following ${shortLabel(d.card)}'s guidance look like in one concrete act?`
+    );
+    return prompts.slice(0, 3);
+  }
+
+  if (spreadType === 'three') {
+    const challenge = byPosition(cards, 'Present') ?? cards[1];
+    const future = byPosition(cards, 'Future') ?? cards[cards.length - 1];
+    if (challenge) {
+      prompts.push(
+        `How is the Present (${shortLabel(challenge.card)}) showing up in your week?`
+      );
+    }
+    if (future) {
+      prompts.push(
+        `What small step invites the Future theme of ${shortLabel(future.card)}?`
+      );
+    }
+  }
+
+  if (spreadType === 'celtic') {
+    const challenge = byPosition(cards, 'Challenge');
+    const outcome = byPosition(cards, 'Outcome');
+    const self = byPosition(cards, 'Self');
+    if (challenge) {
+      prompts.push(
+        `Where is the Challenge (${shortLabel(challenge.card)}) meeting you this week?`
+      );
+    }
+    if (self) {
+      prompts.push(
+        `How are you meeting this as ${shortLabel(self.card)} suggests?`
+      );
+    }
+    if (outcome) {
+      prompts.push(
+        `What would align you with the Outcome (${shortLabel(outcome.card)})?`
+      );
+    }
+  }
+
+  // Fallback for any revealed card if templates missed
+  if (prompts.length === 0 && cards[0]) {
+    prompts.push(
+      `What question does ${shortLabel(cards[0].card)} leave you sitting with?`
+    );
+  }
+
+  return prompts.slice(0, 3);
+}
+
 /**
- * Pattern notes from elemental / structural tallies.
- * Skips elemental rules for single-card draws; returns at most 3 notes.
+ * Pattern notes from elemental / structural / synthesis / dignity / number /
+ * court / combo tallies. Skips elemental rules for single-card draws.
  */
 export function readingPatternNotes(
   cards: SummaryDealtCard[],
-  spreadType: SpreadType
+  spreadType: SpreadType,
+  history?: Pick<TarotHistoryAggregate, 'topCards'> | null
 ): string[] {
   if (cards.length === 0) return [];
 
@@ -192,6 +600,9 @@ export function readingPatternNotes(
   const minorTotal = minors.length;
   const majors = countMajors(deckCards);
   const rev = reversalRate(cards);
+
+  // Synthesis first — highest “interpreted” signal
+  notes.push(...synthesisNotes(cards, spreadType));
 
   if (spreadType !== 'single' && cards.length >= 2) {
     const monoSuit =
@@ -223,31 +634,62 @@ export function readingPatternNotes(
   }
 
   if (cards.length >= 2 && rev >= 0.4) {
+    const reversed = cards.filter((c) => c.isReversed);
+    const suitOf = (c: SummaryDealtCard): MinorSuit | 'major' =>
+      isMinorSuit(c.card.arcana) ? c.card.arcana : 'major';
+    const dominantRev = (() => {
+      const counts: Record<string, number> = {};
+      for (const c of reversed) {
+        const k = suitOf(c);
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+      return (Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ??
+        'major') as MinorSuit | 'major';
+    })();
     notes.push(
-      'Many cards arrive reversed — energy may be blocked, delayed, or turned inward.'
+      `Many cards arrive reversed — energy may be ${REVERSAL_BY_SUIT[dominantRev]}.`
     );
   }
 
-  return notes.slice(0, 3);
+  notes.push(...dignityNotes(cards, spreadType));
+  notes.push(...numerologyNotes(cards, spreadType));
+  notes.push(...courtNotes(cards));
+  notes.push(...comboNotes(cards));
+  notes.push(...historyRecurrenceNotes(cards, history));
+
+  return notes.slice(0, 8);
+}
+
+function joinSummaryText(summary: Omit<ReadingSummary, 'text'>): string {
+  const parts = [...summary.walkthrough];
+  if (summary.patterns.length > 0) {
+    parts.push(summary.patterns.join(' '));
+  }
+  if (summary.correspondences.length > 0) {
+    parts.push(summary.correspondences.join(' '));
+  }
+  if (summary.prompts.length > 0) {
+    parts.push(`Reflect: ${summary.prompts.join(' ')}`);
+  }
+  return parts.join(' ');
 }
 
 /** Build a position-templated summary for a dealt (or revealed) set. */
 export function summarizeReading(
   dealt: SummaryDealtCard[],
-  spreadType: SpreadType
+  spreadType: SpreadType,
+  history?: Pick<TarotHistoryAggregate, 'topCards'> | null
 ): ReadingSummary {
   const walkthrough = dealt.map((d) =>
     frameSentence(spreadType, d.position, cardBody(d.card, d.isReversed))
   );
-  const patterns = readingPatternNotes(dealt, spreadType);
-  const parts = [...walkthrough];
-  if (patterns.length > 0) {
-    parts.push(patterns.join(' '));
-  }
+  const patterns = readingPatternNotes(dealt, spreadType, history);
+  const correspondences = correspondenceNotes(dealt);
+  const prompts = journalingPrompts(dealt, spreadType);
+  const base = { walkthrough, patterns, correspondences, prompts };
   return {
-    walkthrough,
-    patterns,
-    text: parts.join(' '),
+    ...base,
+    text: joinSummaryText(base),
   };
 }
 
@@ -276,10 +718,7 @@ function historyTrendNotes(agg: {
     );
   }
 
-  if (
-    agg.totalCards >= 3 &&
-    agg.majorCount / agg.totalCards >= 0.5
-  ) {
+  if (agg.totalCards >= 3 && agg.majorCount / agg.totalCards >= 0.5) {
     trends.push(
       'Major Arcana appear often in your journal — readings lean toward larger life themes.'
     );

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
 import { loadDeckStyle } from '../data/tarotDeckArt';
@@ -10,6 +10,7 @@ import {
   formatTime,
   type PlanetaryHoursChart,
 } from '../lib/planetaryHours';
+import { summarizeReading } from '../lib/tarotSummary';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
 
@@ -176,6 +177,11 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     });
   };
 
+  const quickSummary = useMemo(() => {
+    if (!dealt?.isFlipped) return null;
+    return summarizeReading([dealt], 'single');
+  }, [dealt]);
+
   const openJournal = (filter: JournalEntryType | 'all' = 'all') => {
     onNavigate('journal', { filter });
   };
@@ -321,6 +327,23 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             >
               {dealt ? 'Draw again' : 'Draw'}
             </button>
+            {quickSummary && (
+              <div className="w-full space-y-2 border-t border-ananael-border/40 pt-3 text-left">
+                <p className="text-xs leading-relaxed text-zinc-300">
+                  {quickSummary.walkthrough[0]}
+                </p>
+                {quickSummary.correspondences[0] && (
+                  <p className="text-[11px] leading-relaxed text-ananael-muted">
+                    {quickSummary.correspondences[0]}
+                  </p>
+                )}
+                {quickSummary.prompts[0] && (
+                  <p className="text-[11px] leading-relaxed text-ananael-gold/80">
+                    {quickSummary.prompts[0]}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
