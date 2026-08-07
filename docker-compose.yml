@@ -23,8 +23,9 @@ services:
     environment:
       PORT: "443"
       MONGO_URI: mongodb://mongo:27017/ananael
-      # Required: at least 32 characters. Example: openssl rand -hex 32
-      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET to a random string of at least 32 characters}
+      # Required at runtime (min 32 chars). Set in Portainer stack env or a .env file:
+      #   JWT_SECRET=$(openssl rand -hex 32)
+      JWT_SECRET: ${JWT_SECRET:-}
       # Public browser origin(s). Same-origin Compose: https://localhost (or your host URL).
       # Do not use * in production with cookie auth.
       CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://localhost}

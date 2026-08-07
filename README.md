@@ -30,10 +30,10 @@ Then open **https://localhost/** — that is the full web app. Health: `/api/hea
 
 1. Push this repo to GitHub (or copy it onto the VM).
 2. In Portainer → **Stacks** → **Add stack** (Repository deploy from git, or paste `docker-compose.yml` with **build context = repository root**).
-3. Set environment variables:
-   - `JWT_SECRET` — strong random secret (required, min 32 characters)
-   - `CLIENT_ORIGIN` — defaults to `https://localhost` (use your public `https://` host URL)
-   - Mount or provide `SSL_CERT_DIR` with `fullchain.pem` + `privkey.pem` for HTTPS on `:443`
+3. In the stack **Environment variables** section (required before deploy/pull), set:
+   - `JWT_SECRET` — at least 32 characters (e.g. run `openssl rand -hex 32` and paste the value). The API will not start without this.
+   - `CLIENT_ORIGIN` — your public origin, e.g. `https://your-host` (defaults to `https://localhost`)
+   - Optionally `SSL_CERT_DIR` / cert mount with `fullchain.pem` + `privkey.pem` for HTTPS on `:443`
 4. Deploy and wait for `ananael-mongo` and `ananael-server` to be **running**.
 5. **Pull/rebuild** so the image is rebuilt from the latest commit (Portainer → stack → **Pull and redeploy** / recreate with rebuild).
 6. Open **`https://<vm-ip>/`** (port 443)
