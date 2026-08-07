@@ -10,9 +10,7 @@ services:
     networks:
       - ananael-net
 
-  # Single public entry: React UI + /api
-  # Default = HTTP on :80 (no certs required).
-  # For HTTPS: mount certs, set PORT=443, COOKIE_SECURE=true, CLIENT_ORIGIN=https://your-host
+  # Single public entry: React UI + /api on host port 5000
   server:
     build:
       context: .
@@ -22,20 +20,20 @@ services:
     depends_on:
       - mongo
     environment:
-      PORT: ${PORT:-80}
+      PORT: "5000"
       MONGO_URI: mongodb://mongo:27017/ananael
       # Required at runtime (min 32 chars). Set in Portainer stack env:
       #   JWT_SECRET=$(openssl rand -hex 32)
       JWT_SECRET: ${JWT_SECRET:-}
-      # Must match the URL you type in the browser (scheme + host, no path).
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost}
+      # Must match the URL you type in the browser (scheme + host[:port], no path).
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5000}
       # true only when the browser uses HTTPS end-to-end to this app.
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       # Optional TLS — only used when both files exist inside the container.
       SSL_CERT_PATH: ${SSL_CERT_PATH:-}
       SSL_KEY_PATH: ${SSL_KEY_PATH:-}
     ports:
-      - "${HOST_PORT:-80}:${PORT:-80}"
+      - "5000:5000"
     volumes:
       # Optional: set SSL_CERT_DIR and SSL_CERT_PATH=/certs/fullchain.pem SSL_KEY_PATH=/certs/privkey.pem
       - ${SSL_CERT_DIR:-./certs}:/certs:ro
