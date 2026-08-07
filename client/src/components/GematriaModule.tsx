@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 import {
   computeGematria,
   GEMATRIA_SYSTEMS,
@@ -15,7 +16,7 @@ interface GematriaModuleProps {
  * Gematria calculator: live totals, per-letter breakdown, optional profile save.
  */
 export default function GematriaModule({ initialText }: GematriaModuleProps) {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [text, setText] = useState(initialText ?? '');
   const [system, setSystem] = useState<GematriaSystemId>('hebrew_sofit');
   const [notes, setNotes] = useState('');
@@ -34,15 +35,14 @@ export default function GematriaModule({ initialText }: GematriaModuleProps) {
   const activeMeta = GEMATRIA_SYSTEMS.find((s) => s.id === system)!;
 
   const saveQuery = async () => {
-    if (!token || !text.trim()) return;
+    if (!isAuthenticated || !text.trim()) return;
     setSaving(true);
     setSaveStatus(null);
     try {
-      const res = await fetch('/api/gematria/save', {
+      const res = await apiFetch('/api/gematria/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           text,

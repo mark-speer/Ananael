@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getHexagram, type HexagramText } from '../data/iching';
+import { apiFetch } from '../lib/api';
 import {
   cast,
   isChanging,
@@ -153,7 +154,7 @@ interface IChingModuleProps {
  * I Ching module: coin/yarrow cast, King Wen text, save to Magical Journal.
  */
 export default function IChingModule({ onNavigate }: IChingModuleProps) {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [method, setMethod] = useState<CastMethod>('coins');
   const [result, setResult] = useState<CastResult | null>(null);
   const [notes, setNotes] = useState('');
@@ -166,7 +167,7 @@ export default function IChingModule({ onNavigate }: IChingModuleProps) {
   };
 
   const saveCast = async () => {
-    if (!token || !result) return;
+    if (!isAuthenticated || !result) return;
     setSaving(true);
     setSaveStatus(null);
     try {
@@ -193,11 +194,10 @@ export default function IChingModule({ onNavigate }: IChingModuleProps) {
         });
       }
 
-      const res = await fetch('/api/iching/save', {
+      const res = await apiFetch('/api/iching/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           method: result.method,

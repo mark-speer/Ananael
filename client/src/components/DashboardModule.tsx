@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
 import { loadDeckStyle } from '../data/tarotDeckArt';
+import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
 import type { JournalEntry, JournalEntryType } from '../lib/journal';
 import {
@@ -74,7 +75,7 @@ function TileLink({
  * journal/workings, and deep-links into live modules.
  */
 export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
-  const { isAuthenticated, token, location, saveLocation } = useAuth();
+  const { isAuthenticated, location, saveLocation } = useAuth();
   const [now, setNow] = useState(() => new Date());
   const [dealt, setDealt] = useState<DealtCard | null>(null);
   const [deckStyle] = useState(() => loadDeckStyle());
@@ -137,16 +138,14 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   };
 
   const loadWorkings = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       setWorkings([]);
       return;
     }
     setWorkingsLoading(true);
     setWorkingsError(null);
     try {
-      const res = await fetch('/api/journal/entries?type=working&limit=40', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch('/api/journal/entries?type=working&limit=40');
       if (!res.ok) {
         throw new Error('Failed to load workings');
       }
@@ -161,7 +160,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     } finally {
       setWorkingsLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     void loadWorkings();

@@ -45,6 +45,6 @@ RUN npm install --omit=dev && npm cache clean --force
 COPY --from=server-builder /app/dist ./dist
 COPY --from=client-builder /client/dist ./dist/public
 
-EXPOSE 5000
+EXPOSE 443
 
 CMD ["node", "dist/server.js"]

@@ -10,6 +10,12 @@ build/
 .env.*.local
 server/.env
 
+# TLS certs for Compose (:443)
+certs/
+*.pem
+*.key
+*.crt
+
 # Logs & OS
 logs/
 *.log

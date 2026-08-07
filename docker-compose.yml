@@ -11,7 +11,7 @@ services:
     networks:
       - ananael-net
 
-  # Single public entry: React UI + /api on host port 5000
+  # Single public entry: React UI + /api on host port 443
   server:
     build:
       context: .
@@ -21,12 +21,23 @@ services:
     depends_on:
       - mongo
     environment:
-      PORT: "5000"
+      PORT: "443"
       MONGO_URI: mongodb://mongo:27017/ananael
-      JWT_SECRET: ${JWT_SECRET:-ananael-dev-change-me-in-production}
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-*}
+      # Required: at least 32 characters. Example: openssl rand -hex 32
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET to a random string of at least 32 characters}
+      # Public browser origin(s). Same-origin Compose: https://localhost (or your host URL).
+      # Do not use * in production with cookie auth.
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://localhost}
+      # Set true when serving over HTTPS (default for :443 Compose).
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      # Optional TLS — mount certs and point these at the files inside the container.
+      SSL_CERT_PATH: ${SSL_CERT_PATH:-/certs/fullchain.pem}
+      SSL_KEY_PATH: ${SSL_KEY_PATH:-/certs/privkey.pem}
     ports:
-      - "5000:5000"
+      - "443:443"
+    volumes:
+      # Place fullchain.pem + privkey.pem here (or set SSL_CERT_DIR).
+      - ${SSL_CERT_DIR:-./certs}:/certs:ro
     networks:
       - ananael-net
 

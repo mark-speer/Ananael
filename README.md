@@ -12,28 +12,31 @@ A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magi
 | Server  | Express, TypeScript, Mongoose, JWT, bcrypt |
 | Data    | MongoDB (`ananael` database)               |
 
-In production Docker, Express serves the built React app **and** the API on one port (`5000`).
+In production Docker, Express serves the built React app **and** the API on **port 443** (HTTPS when TLS certs are mounted).
 
 ## Quick start (Docker Compose)
 
-From the repository root:
+1. Put TLS certs in `./certs/fullchain.pem` and `./certs/privkey.pem` (or set `SSL_CERT_DIR`).
+2. Set `JWT_SECRET` (min 32 chars) in the environment.
+3. From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Then open **http://localhost:5000** — that is the full web app. Health: `/api/health`.
+Then open **https://localhost/** — that is the full web app. Health: `/api/health`.
 
 ### Portainer
 
 1. Push this repo to GitHub (or copy it onto the VM).
 2. In Portainer → **Stacks** → **Add stack** (Repository deploy from git, or paste `docker-compose.yml` with **build context = repository root**).
-3. Optionally set environment variables:
-   - `JWT_SECRET` — strong random secret (required for production)
-   - `CLIENT_ORIGIN` — defaults to `*` (same-origin UI+API on `:5000` is typical)
+3. Set environment variables:
+   - `JWT_SECRET` — strong random secret (required, min 32 characters)
+   - `CLIENT_ORIGIN` — defaults to `https://localhost` (use your public `https://` host URL)
+   - Mount or provide `SSL_CERT_DIR` with `fullchain.pem` + `privkey.pem` for HTTPS on `:443`
 4. Deploy and wait for `ananael-mongo` and `ananael-server` to be **running**.
 5. **Pull/rebuild** so the image is rebuilt from the latest commit (Portainer → stack → **Pull and redeploy** / recreate with rebuild).
-6. Open **`http://<vm-ip>:5000/`**
+6. Open **`https://<vm-ip>/`** (port 443)
 
 You should see the Ananael dashboard, not JSON and not `Cannot GET /`.
 

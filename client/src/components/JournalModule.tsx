@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getCardById } from '../data/tarotDeck';
+import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
 import {
   ENTRY_TYPE_LABELS,
@@ -107,7 +108,7 @@ function payloadSummary(entry: JournalEntry): string | null {
 export default function JournalModule({
   initialFilter = 'all',
 }: JournalModuleProps) {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -164,7 +165,7 @@ export default function JournalModule({
   }, []);
 
   const loadEntries = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       setEntries([]);
       return;
     }
@@ -177,9 +178,7 @@ export default function JournalModule({
       if (entityQ.trim()) params.set('entity', entityQ.trim());
       params.set('limit', '80');
 
-      const res = await fetch(`/api/journal/entries?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch(`/api/journal/entries?${params}`);
       const data = (await res.json()) as {
         entries?: JournalEntry[];
         message?: string;
@@ -193,7 +192,7 @@ export default function JournalModule({
     } finally {
       setLoading(false);
     }
-  }, [token, typeFilter, searchQ, entityQ]);
+  }, [isAuthenticated, typeFilter, searchQ, entityQ]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -224,7 +223,7 @@ export default function JournalModule({
       .filter(Boolean);
 
   const saveEntry = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setSaving(true);
     setSaveStatus(null);
     try {
@@ -248,11 +247,10 @@ export default function JournalModule({
         : '/api/journal/entries';
       const method = editingId ? 'PATCH' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -271,12 +269,11 @@ export default function JournalModule({
   };
 
   const deleteEntry = async (id: string) => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     if (!window.confirm('Delete this journal entry?')) return;
     try {
-      const res = await fetch(`/api/journal/entries/${id}`, {
+      const res = await apiFetch(`/api/journal/entries/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
         const data = (await res.json()) as { message?: string };

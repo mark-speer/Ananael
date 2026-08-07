@@ -26,6 +26,7 @@ import {
   type RitualToolType,
   type TemplateId,
 } from '../data/ritualTools';
+import { apiFetch } from '../lib/api';
 
 interface SavedLayout {
   _id: string;
@@ -42,7 +43,7 @@ type PlaceTool = RitualToolType | null;
  * Ritual Space Planner — SVG grid altar layout with templates, export, and save.
  */
 export default function RitualSpaceModule() {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const svgRef = useRef<SVGSVGElement>(null);
 
   const [items, setItems] = useState<RitualItem[]>(() => applyTemplate('lbrp'));
@@ -66,15 +67,13 @@ export default function RitualSpaceModule() {
   } | null>(null);
 
   const loadHistory = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       setHistory([]);
       return;
     }
     setHistoryError(null);
     try {
-      const res = await fetch('/api/ritual/layouts', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch('/api/ritual/layouts');
       const data = (await res.json()) as {
         layouts?: SavedLayout[];
         message?: string;
@@ -86,7 +85,7 @@ export default function RitualSpaceModule() {
     } catch (err) {
       setHistoryError(err instanceof Error ? err.message : 'History failed');
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -274,7 +273,7 @@ export default function RitualSpaceModule() {
   };
 
   const saveLayout = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     const name = layoutName.trim();
     if (!name) {
       setSaveStatus('Name is required.');
@@ -293,11 +292,10 @@ export default function RitualSpaceModule() {
         ? `/api/ritual/layouts/${savedId}`
         : '/api/ritual/layouts';
       const method = savedId ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });

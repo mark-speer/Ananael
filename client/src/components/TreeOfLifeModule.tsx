@@ -11,6 +11,7 @@ import {
   type Sephira,
   type TreePath,
 } from '../data/treeOfLife';
+import { apiFetch } from '../lib/api';
 import type { ModuleId } from './Sidebar';
 
 export interface TreeNavigateOptions {
@@ -50,7 +51,7 @@ function targetLabel(targetType: 'sephira' | 'path', targetId: number): string {
  * Interactive Glyph of the Sephiroth with GD correspondences and study notes.
  */
 export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [selection, setSelection] = useState<Selection | null>({
     kind: 'sephira',
     id: 1,
@@ -62,15 +63,13 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
   const [historyError, setHistoryError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       setHistory([]);
       return;
     }
     setHistoryError(null);
     try {
-      const res = await fetch('/api/tree/notes', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch('/api/tree/notes');
       const data = (await res.json()) as {
         notes?: HistoryItem[];
         message?: string;
@@ -82,7 +81,7 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
     } catch (err) {
       setHistoryError(err instanceof Error ? err.message : 'History failed');
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -103,15 +102,14 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
     selection?.kind === 'path' ? getPath(selection.id) : undefined;
 
   const saveNote = async () => {
-    if (!token || !selection || !notes.trim()) return;
+    if (!isAuthenticated || !selection || !notes.trim()) return;
     setSaving(true);
     setSaveStatus(null);
     try {
-      const res = await fetch('/api/tree/notes', {
+      const res = await apiFetch('/api/tree/notes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           targetType: selection.kind,

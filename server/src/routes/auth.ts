@@ -1,18 +1,13 @@
 import { Router, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 import User, { type IUser, type IUserLocation } from '../models/User';
 import { AuthRequest, protect } from '../middleware/auth';
+import {
+  clearAuthCookie,
+  setAuthCookie,
+  signToken,
+} from '../lib/authCookie';
 
 const router = Router();
-
-/** Sign a JWT for the given user id (7-day expiry). */
-const signToken = (userId: string): string => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET is not configured');
-  }
-  return jwt.sign({ id: userId }, secret, { expiresIn: '7d' });
-};
 
 function serializeLocation(
   location: IUser['location']
@@ -60,6 +55,7 @@ function parseLocationBody(
 /**
  * POST /api/auth/register
  * Body: { username, email, password }
+ * Sets HttpOnly auth cookie; returns { user } only.
  */
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -92,9 +88,9 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     });
 
     const token = signToken(user._id.toString());
+    setAuthCookie(res, token);
 
     res.status(201).json({
-      token,
       user: publicUser(user),
     });
   } catch (error) {
@@ -106,6 +102,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 /**
  * POST /api/auth/login
  * Body: { email, password }
+ * Sets HttpOnly auth cookie; returns { user } only.
  */
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -136,15 +133,24 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = signToken(user._id.toString());
+    setAuthCookie(res, token);
 
     res.json({
-      token,
       user: publicUser(user),
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
   }
+});
+
+/**
+ * POST /api/auth/logout
+ * Clears the HttpOnly auth cookie.
+ */
+router.post('/logout', (_req: Request, res: Response): void => {
+  clearAuthCookie(res);
+  res.status(204).send();
 });
 
 /**

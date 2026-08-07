@@ -1,10 +1,16 @@
 import path from 'path';
 import fs from 'fs';
+import http from 'http';
+import https from 'https';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
+import { getJwtSecret } from './lib/authCookie';
+import { getAllowedOrigins } from './lib/origins';
+import { csrfProtect } from './middleware/csrf';
 import authRoutes from './routes/auth';
 import gematriaRoutes from './routes/gematria';
 import ichingRoutes from './routes/iching';
@@ -18,19 +24,32 @@ dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5000';
+const SSL_CERT_PATH = process.env.SSL_CERT_PATH;
+const SSL_KEY_PATH = process.env.SSL_KEY_PATH;
 
 /** Built React app (copied into dist/public in the Docker image) */
 const publicDir = path.join(__dirname, 'public');
 const hasClient = fs.existsSync(path.join(publicDir, 'index.html'));
 
 /**
- * Security headers.
- * CSP relaxed so the Vite-built SPA can load Google Fonts in production.
+ * Security headers including CSP for the Vite-built SPA + Google Fonts.
  */
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
   })
 );
 
@@ -39,12 +58,16 @@ app.use(
  * Comma-separated CLIENT_ORIGIN values are supported for Portainer / multi-host setups.
  * When the UI is served from this same process, browser calls are same-origin.
  */
-const allowedOrigins = CLIENT_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
+const allowedOrigins = getAllowedOrigins();
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes('*') ||
+        allowedOrigins.includes(origin)
+      ) {
         callback(null, true);
         return;
       }
@@ -55,6 +78,8 @@ app.use(
 );
 
 app.use(express.json({ limit: '1mb' }));
+app.use(cookieParser());
+app.use(csrfProtect);
 
 /** Health check for Compose / Portainer probes */
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -91,12 +116,37 @@ if (hasClient) {
   });
 }
 
-/** Boot: connect DB then listen */
+/** Boot: validate secrets, connect DB, then listen (HTTPS when cert paths are set). */
 const start = async (): Promise<void> => {
+  getJwtSecret();
   await connectDB();
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Ananael server listening on port ${PORT} (client=${hasClient})`);
+  const certOk =
+    Boolean(SSL_CERT_PATH && SSL_KEY_PATH) &&
+    fs.existsSync(SSL_CERT_PATH as string) &&
+    fs.existsSync(SSL_KEY_PATH as string);
+
+  if (SSL_CERT_PATH && SSL_KEY_PATH && !certOk) {
+    console.warn(
+      `TLS paths set but cert/key not found (${SSL_CERT_PATH}, ${SSL_KEY_PATH}); falling back to HTTP`
+    );
+  }
+
+  const server = certOk
+    ? https.createServer(
+        {
+          cert: fs.readFileSync(SSL_CERT_PATH as string),
+          key: fs.readFileSync(SSL_KEY_PATH as string),
+        },
+        app
+      )
+    : http.createServer(app);
+
+  server.listen(PORT, '0.0.0.0', () => {
+    const scheme = certOk ? 'https' : 'http';
+    console.log(
+      `Ananael server listening on ${scheme}://0.0.0.0:${PORT} (client=${hasClient})`
+    );
   });
 };
 

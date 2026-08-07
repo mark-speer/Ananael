@@ -6,6 +6,7 @@ import {
   saveDeckStyle,
   type DeckStyle,
 } from '../data/tarotDeckArt';
+import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
@@ -62,7 +63,7 @@ interface TarotModuleProps {
  * Virtual Tarot module: spread selection, interactive board, save to Magical Journal.
  */
 export default function TarotModule({ onNavigate }: TarotModuleProps) {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [spreadType, setSpreadType] = useState<SpreadType>('three');
   const [deckStyle, setDeckStyle] = useState<DeckStyle>(() => loadDeckStyle());
   const [dealt, setDealt] = useState<DealtCard[]>([]);
@@ -103,17 +104,16 @@ export default function TarotModule({ onNavigate }: TarotModuleProps) {
   };
 
   const saveReading = async () => {
-    if (!token || dealt.length === 0) return;
+    if (!isAuthenticated || dealt.length === 0) return;
     setSaving(true);
     setSaveStatus(null);
     try {
       const now = new Date();
       const sky = buildJournalSky(now);
-      const res = await fetch('/api/tarot/save', {
+      const res = await apiFetch('/api/tarot/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           spreadType,

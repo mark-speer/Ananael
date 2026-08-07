@@ -4,6 +4,8 @@
  * also sync to /api/auth/location on the User document.
  */
 
+import { apiFetch } from './api';
+
 const STORAGE_KEY = 'ananael_planetary_location';
 
 export interface PlanetaryLocation {
@@ -55,20 +57,19 @@ export function savePlanetaryLocation(lat: number, lon: number): void {
 export async function persistPlanetaryLocation(
   lat: number,
   lon: number,
-  token?: string | null
+  syncToAccount = false
 ): Promise<PlanetaryLocation | null> {
   if (!isValidPlanetaryLocation(lat, lon)) {
     return null;
   }
   savePlanetaryLocation(lat, lon);
-  if (!token) {
+  if (!syncToAccount) {
     return { lat, lon };
   }
-  const res = await fetch('/api/auth/location', {
+  const res = await apiFetch('/api/auth/location', {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ lat, lon }),
   });

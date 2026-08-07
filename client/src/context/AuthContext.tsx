@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { apiFetch } from '../lib/api';
 import {
   loadPlanetaryLocation,
   persistPlanetaryLocation,
@@ -22,13 +23,11 @@ export interface AuthUser {
 }
 
 interface AuthResponse {
-  token: string;
   user: AuthUser;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   /** Resolved location: account → localStorage cache. */
@@ -42,18 +41,11 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const STORAGE_KEY = 'ananael_auth';
-
-interface StoredAuth {
-  token: string;
-  user: AuthUser;
-}
-
 async function authRequest(
   path: string,
   body: Record<string, string>
 ): Promise<AuthResponse> {
-  const res = await fetch(path, {
+  const res = await apiFetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -76,7 +68,6 @@ function syncLocationFromUser(user: AuthUser): void {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [locationTick, setLocationTick] = useState(0);
 
@@ -84,78 +75,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLocationTick((n) => n + 1);
   }, []);
 
-  /** Hydrate session from localStorage, then refresh profile from API. */
+  /** Hydrate session from HttpOnly cookie via /api/auth/me. */
   useEffect(() => {
     let cancelled = false;
 
     async function hydrate() {
-      let storedToken: string | null = null;
+      // Clear legacy localStorage JWT if present from older clients.
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as StoredAuth;
-          if (parsed.token && parsed.user) {
-            storedToken = parsed.token;
-            if (!cancelled) {
-              setToken(parsed.token);
-              setUser(parsed.user);
-              syncLocationFromUser(parsed.user);
+        localStorage.removeItem('ananael_auth');
+      } catch {
+        // ignore
+      }
+
+      try {
+        const res = await apiFetch('/api/auth/me');
+        if (res.ok) {
+          const data = (await res.json()) as { user: AuthUser };
+          if (!cancelled) {
+            setUser(data.user);
+            syncLocationFromUser(data.user);
+
+            // If account has no location yet, push guest localStorage up.
+            if (!data.user.location) {
+              const local = loadPlanetaryLocation();
+              if (local) {
+                await persistPlanetaryLocation(local.lat, local.lon, true);
+                const updated: AuthUser = { ...data.user, location: local };
+                setUser(updated);
+              }
             }
+          }
+        } else if (res.status === 401) {
+          if (!cancelled) {
+            setUser(null);
           }
         }
       } catch {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-
-      if (storedToken) {
-        try {
-          const res = await fetch('/api/auth/me', {
-            headers: { Authorization: `Bearer ${storedToken}` },
-          });
-          if (res.ok) {
-            const data = (await res.json()) as { user: AuthUser };
-            if (!cancelled) {
-              setUser(data.user);
-              localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify({
-                  token: storedToken,
-                  user: data.user,
-                } satisfies StoredAuth)
-              );
-              syncLocationFromUser(data.user);
-
-              // If account has no location yet, push guest localStorage up.
-              if (!data.user.location) {
-                const local = loadPlanetaryLocation();
-                if (local) {
-                  await persistPlanetaryLocation(
-                    local.lat,
-                    local.lon,
-                    storedToken
-                  );
-                  const updated: AuthUser = { ...data.user, location: local };
-                  setUser(updated);
-                  localStorage.setItem(
-                    STORAGE_KEY,
-                    JSON.stringify({
-                      token: storedToken,
-                      user: updated,
-                    } satisfies StoredAuth)
-                  );
-                }
-              }
-            }
-          } else if (res.status === 401) {
-            localStorage.removeItem(STORAGE_KEY);
-            if (!cancelled) {
-              setToken(null);
-              setUser(null);
-            }
-          }
-        } catch {
-          // Keep cached session if network fails
-        }
+        // Keep unauthenticated UI if network fails
       }
 
       if (!cancelled) {
@@ -172,15 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const persist = useCallback(
     (next: AuthResponse) => {
-      setToken(next.token);
       setUser(next.user);
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          token: next.token,
-          user: next.user,
-        } satisfies StoredAuth)
-      );
       syncLocationFromUser(next.user);
       refreshLocation();
     },
@@ -195,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const local = loadPlanetaryLocation();
         if (local) {
           try {
-            await persistPlanetaryLocation(local.lat, local.lon, data.token);
+            await persistPlanetaryLocation(local.lat, local.lon, true);
             data.user = { ...data.user, location: local };
           } catch {
             // Keep login even if location sync fails
@@ -219,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const local = loadPlanetaryLocation();
       if (local) {
         try {
-          await persistPlanetaryLocation(local.lat, local.lon, data.token);
+          await persistPlanetaryLocation(local.lat, local.lon, true);
           data.user = { ...data.user, location: local };
         } catch {
           // Keep register even if location sync fails
@@ -231,16 +179,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem(STORAGE_KEY);
-    refreshLocation();
+    void apiFetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+      setUser(null);
+      refreshLocation();
+    });
   }, [refreshLocation]);
 
   const saveLocation = useCallback(
     async (lat: number, lon: number) => {
-      await persistPlanetaryLocation(lat, lon, token);
-      if (token) {
+      await persistPlanetaryLocation(lat, lon, Boolean(user));
+      if (user) {
         setUser((prev) => {
           if (!prev) return prev;
           if (
@@ -249,20 +197,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ) {
             return prev;
           }
-          const nextUser: AuthUser = {
+          return {
             ...prev,
             location: { lat, lon },
           };
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify({ token, user: nextUser } satisfies StoredAuth)
-          );
-          return nextUser;
         });
       }
       refreshLocation();
     },
-    [token, refreshLocation]
+    [user, refreshLocation]
   );
 
   const location = useMemo(() => {
@@ -276,8 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      token,
-      isAuthenticated: Boolean(user && token),
+      isAuthenticated: Boolean(user),
       isLoading,
       location,
       login,
@@ -285,16 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       saveLocation,
     }),
-    [
-      user,
-      token,
-      isLoading,
-      location,
-      login,
-      register,
-      logout,
-      saveLocation,
-    ]
+    [user, isLoading, location, login, register, logout, saveLocation]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -28,6 +28,7 @@ import {
   type TraditionId,
   type Weekday,
 } from '../data/solomonicCircles';
+import { apiFetch } from '../lib/api';
 import CircleLayoutModal from './CircleLayoutModal';
 import {
   SVG_CENTER,
@@ -90,7 +91,7 @@ interface SavedCircle {
  * Parametric SVG from tradition presets, spirit picker, Triangle of Art + seal.
  */
 export default function SolomonicCircleModule() {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const svgRef = useRef<SVGSVGElement>(null);
 
   const [config, setConfig] = useState<CircleConfig>(() =>
@@ -115,15 +116,13 @@ export default function SolomonicCircleModule() {
     : undefined;
 
   const loadHistory = useCallback(async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       setHistory([]);
       return;
     }
     setHistoryError(null);
     try {
-      const res = await fetch('/api/solomonic/circles', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch('/api/solomonic/circles');
       const data = (await res.json()) as {
         circles?: SavedCircle[];
         message?: string;
@@ -135,7 +134,7 @@ export default function SolomonicCircleModule() {
     } catch (err) {
       setHistoryError(err instanceof Error ? err.message : 'History failed');
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -313,7 +312,7 @@ export default function SolomonicCircleModule() {
   };
 
   const saveCircle = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     setSaving(true);
     setSaveStatus(null);
     try {
@@ -326,11 +325,10 @@ export default function SolomonicCircleModule() {
       const url = savedId
         ? `/api/solomonic/circles/${savedId}`
         : '/api/solomonic/circles';
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: savedId ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
