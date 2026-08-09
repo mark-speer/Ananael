@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getCardById } from '../data/tarotDeck';
 import {
@@ -12,6 +18,7 @@ import {
   type TreePath,
 } from '../data/treeOfLife';
 import { apiFetch } from '../lib/api';
+import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import type { ModuleId } from './Sidebar';
 
 export interface TreeNavigateOptions {
@@ -55,6 +62,7 @@ function targetLabel(targetType: 'sephira' | 'path', targetId: number): string {
  */
 export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) {
   const { isAuthenticated } = useAuth();
+  const svgRef = useRef<SVGSVGElement>(null);
   const [selection, setSelection] = useState<Selection | null>({
     kind: 'sephira',
     id: 1,
@@ -142,6 +150,59 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
     setSelection({ kind: 'path', id });
   };
 
+  const exportPng = async () => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    await exportSvgAsPng({
+      svg,
+      filenameBase: 'tree-of-life',
+      fallbackName: 'tree-of-life',
+      width: TREE_VIEWBOX.width * 2,
+      height: TREE_VIEWBOX.height * 2,
+      background: '#0c0a12',
+    });
+  };
+
+  const exportJson = () => {
+    const selected =
+      selectedSephira != null
+        ? {
+            kind: 'sephira' as const,
+            id: selectedSephira.id,
+            name: selectedSephira.name,
+            hebrew: selectedSephira.hebrew,
+            title: selectedSephira.title,
+            correspondence: selectedSephira.correspondence,
+            blurb: selectedSephira.blurb,
+          }
+        : selectedPath != null
+          ? {
+              kind: 'path' as const,
+              id: selectedPath.id,
+              letterName: selectedPath.letterName,
+              letterGlyph: selectedPath.letterGlyph,
+              letterLatin: selectedPath.letterLatin,
+              from: selectedPath.from,
+              to: selectedPath.to,
+              tarotId: selectedPath.tarotId,
+              correspondence: selectedPath.correspondence,
+              blurb: selectedPath.blurb,
+            }
+          : null;
+
+    downloadJson(
+      {
+        name: 'Tree of Life',
+        viewBox: TREE_VIEWBOX,
+        selection: selected,
+        notesDraft: notes.trim() || undefined,
+        exportedAt: new Date().toISOString(),
+      },
+      selectedSephira?.name ?? selectedPath?.letterName ?? 'tree-of-life',
+      'tree-of-life'
+    );
+  };
+
   return (
     <div className="space-y-8">
       <header>
@@ -151,13 +212,30 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Explore the Glyph of the Sephiroth with Golden Dawn path
           correspondences. Click a sphere or path for detail; sign in to save
-          study notes.
+          study notes. Export PNG or JSON of the glyph and current selection.
         </p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-5">
+        <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-5">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void exportPng()}
+              className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
+            >
+              Export PNG
+            </button>
+            <button
+              type="button"
+              onClick={exportJson}
+              className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
+            >
+              Export JSON
+            </button>
+          </div>
           <svg
+            ref={svgRef}
             viewBox={`0 0 ${TREE_VIEWBOX.width} ${TREE_VIEWBOX.height}`}
             className="mx-auto h-auto w-full max-w-none lg:max-w-lg"
             role="img"

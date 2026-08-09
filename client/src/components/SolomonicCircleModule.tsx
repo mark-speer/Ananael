@@ -30,6 +30,7 @@ import {
 } from '../data/solomonicCircles';
 import { apiFetch } from '../lib/api';
 import { goetiaSealAssetPath } from '../lib/goetiaSealArt';
+import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import CircleGlyph from './CircleGlyph';
 import CircleLayoutModal from './CircleLayoutModal';
 import {
@@ -245,93 +246,73 @@ export default function SolomonicCircleModule() {
   };
 
   const exportJson = () => {
-    const doc = {
-      name: layoutName.trim() || 'Untitled circle',
-      tradition: layout.tradition,
-      config: layout,
-      notes: notes.trim() || undefined,
-    };
-    const blob = new Blob([JSON.stringify(doc, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${slugify(layoutName || 'solomonic-circle')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(
+      {
+        name: layoutName.trim() || 'Untitled circle',
+        tradition: layout.tradition,
+        config: layout,
+        notes: notes.trim() || undefined,
+      },
+      layoutName.trim() || 'solomonic-circle',
+      'solomonic-circle'
+    );
   };
 
   const exportPng = async () => {
     const svg = svgRef.current;
     if (!svg) return;
-    const clone = svg.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    const vb = clone.getAttribute('viewBox')?.split(/\s+/).map(Number) ?? [
+    const vb = svg.getAttribute('viewBox')?.split(/\s+/).map(Number) ?? [
       0, 0, SVG_SIZE, SVG_SIZE,
     ];
     const vbW = vb[2] || SVG_SIZE;
     const vbH = vb[3] || SVG_SIZE;
-    clone.setAttribute('width', String(vbW));
-    clone.setAttribute('height', String(vbH));
 
-    if (exportTransparentBg) {
-      const pageBg = clone.querySelector('rect[fill="#0c0a12"]');
-      pageBg?.remove();
-    } else {
-      const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      bg.setAttribute('x', String(vb[0] ?? 0));
-      bg.setAttribute('y', String(vb[1] ?? 0));
-      bg.setAttribute('width', String(vbW));
-      bg.setAttribute('height', String(vbH));
-      bg.setAttribute('fill', '#0c0a12');
-      clone.insertBefore(bg, clone.firstChild);
-    }
-
-    // Inline external seal <image> hrefs so PNG rasterization stays same-origin.
-    const images = Array.from(clone.querySelectorAll('image'));
-    await Promise.all(
-      images.map(async (el) => {
-        const href =
-          el.getAttribute('href') || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
-        if (!href || href.startsWith('data:')) return;
-        try {
-          const res = await fetch(href);
-          if (!res.ok) return;
-          const text = await res.text();
-          const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
-          el.setAttribute('href', dataUrl);
-          el.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
-        } catch {
-          /* leave href; seal may omit from export */
+    await exportSvgAsPng({
+      svg,
+      filenameBase: layoutName || 'solomonic-circle',
+      fallbackName: 'solomonic-circle',
+      width: vbW,
+      height: vbH,
+      background: exportTransparentBg ? null : '#0c0a12',
+      prepareClone: async (clone) => {
+        if (exportTransparentBg) {
+          const pageBg = clone.querySelector('rect[fill="#0c0a12"]');
+          pageBg?.remove();
+        } else {
+          const bg = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'rect'
+          );
+          bg.setAttribute('x', String(vb[0] ?? 0));
+          bg.setAttribute('y', String(vb[1] ?? 0));
+          bg.setAttribute('width', String(vbW));
+          bg.setAttribute('height', String(vbH));
+          bg.setAttribute('fill', '#0c0a12');
+          clone.insertBefore(bg, clone.firstChild);
         }
-      })
-    );
 
-    const xml = new XMLSerializer().serializeToString(clone);
-    const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-
-    try {
-      const img = await loadImage(url);
-      const canvas = document.createElement('canvas');
-      canvas.width = vbW;
-      canvas.height = vbH;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      if (!exportTransparentBg) {
-        ctx.fillStyle = '#0c0a12';
-        ctx.fillRect(0, 0, vbW, vbH);
-      }
-      ctx.drawImage(img, 0, 0);
-      const png = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = png;
-      a.download = `${slugify(layoutName || 'solomonic-circle')}.png`;
-      a.click();
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+        // Inline external seal <image> hrefs so PNG rasterization stays same-origin.
+        const images = Array.from(clone.querySelectorAll('image'));
+        await Promise.all(
+          images.map(async (el) => {
+            const href =
+              el.getAttribute('href') ||
+              el.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            if (!href || href.startsWith('data:')) return;
+            try {
+              const res = await fetch(href);
+              if (!res.ok) return;
+              const text = await res.text();
+              const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
+              el.setAttribute('href', dataUrl);
+              el.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            } catch {
+              /* leave href; seal may omit from export */
+            }
+          })
+        );
+      },
+    });
   };
 
   const saveCircle = async () => {
@@ -1111,20 +1092,3 @@ export default function SolomonicCircleModule() {
   );
 }
 
-function slugify(s: string): string {
-  return (
-    s
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || 'solomonic-circle'
-  );
-}
-
-function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
-  });
-}

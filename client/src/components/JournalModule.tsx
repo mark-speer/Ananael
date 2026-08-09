@@ -16,11 +16,14 @@ import {
 export interface JournalNavigateOptions {
   /** Pre-select entry type filter (e.g. after saving a divination). */
   filter?: JournalEntryType | 'all';
+  /** Open a specific entry into the editor when present in the list. */
+  entryId?: string;
   gematriaPrefill?: string;
 }
 
 interface JournalModuleProps {
   initialFilter?: JournalEntryType | 'all';
+  initialEntryId?: string;
 }
 
 function toDatetimeLocalValue(d: Date): string {
@@ -118,6 +121,7 @@ function payloadSummary(entry: JournalEntry): string | null {
  */
 export default function JournalModule({
   initialFilter = 'all',
+  initialEntryId,
 }: JournalModuleProps) {
   const { isAuthenticated } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -129,6 +133,9 @@ export default function JournalModule({
   );
   const [searchQ, setSearchQ] = useState('');
   const [entityQ, setEntityQ] = useState('');
+  const [pendingEntryId, setPendingEntryId] = useState<string | undefined>(
+    initialEntryId
+  );
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [entryType, setEntryType] = useState<JournalEntryType>('note');
@@ -149,6 +156,10 @@ export default function JournalModule({
   useEffect(() => {
     setTypeFilter(initialFilter);
   }, [initialFilter]);
+
+  useEffect(() => {
+    setPendingEntryId(initialEntryId);
+  }, [initialEntryId]);
 
   const skyPreview = useMemo(
     () => buildJournalSky(parseDatetimeLocal(occurredAt)),
@@ -226,6 +237,34 @@ export default function JournalModule({
     setEntities(entry.entities ?? []);
     setSaveStatus(null);
   };
+
+  useEffect(() => {
+    if (!pendingEntryId || !isAuthenticated) return;
+    const match = entries.find((e) => e._id === pendingEntryId);
+    if (match) {
+      loadIntoForm(match);
+      setPendingEntryId(undefined);
+      return;
+    }
+    if (loading) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await apiFetch(`/api/journal/entries/${pendingEntryId}`);
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { entry?: JournalEntry };
+        if (data.entry && !cancelled) {
+          loadIntoForm(data.entry);
+          setPendingEntryId(undefined);
+        }
+      } catch {
+        /* ignore — list remains usable */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingEntryId, entries, isAuthenticated, loading]);
 
   const parseTags = (): string[] =>
     tagsInput
@@ -341,53 +380,61 @@ export default function JournalModule({
       </header>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-1.5">
-        <button
-          type="button"
-          onClick={() => setTypeFilter('all')}
-          className={`rounded-md border px-2.5 py-1.5 text-xs ${
-            typeFilter === 'all'
-              ? 'border-ananael-gold text-ananael-gold'
-              : 'border-ananael-border text-zinc-400'
-          }`}
+      <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
+        <div
+          className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto px-1 pb-1"
+          role="group"
+          aria-label="Entry type"
         >
-          All
-        </button>
-        {ENTRY_TYPES.map((t) => (
           <button
-            key={t}
             type="button"
-            onClick={() => setTypeFilter(t)}
-            className={`rounded-md border px-2.5 py-1.5 text-xs ${
-              typeFilter === t
-                ? 'border-ananael-gold text-ananael-gold'
-                : 'border-ananael-border text-zinc-400'
+            onClick={() => setTypeFilter('all')}
+            className={`shrink-0 rounded-md border px-2.5 py-1 text-xs transition ${
+              typeFilter === 'all'
+                ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
+                : 'border-ananael-border/60 text-ananael-muted hover:border-ananael-violet/50 hover:text-zinc-200'
             }`}
           >
-            {ENTRY_TYPE_LABELS[t]}
+            All
           </button>
-        ))}
-      </div>
+          {ENTRY_TYPES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTypeFilter(t)}
+              className={`shrink-0 rounded-md border px-2.5 py-1 text-xs transition ${
+                typeFilter === t
+                  ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
+                  : 'border-ananael-border/60 text-ananael-muted hover:border-ananael-violet/50 hover:text-zinc-200'
+              }`}
+            >
+              {ENTRY_TYPE_LABELS[t]}
+            </button>
+          ))}
+        </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-sm text-ananael-muted">
-          Search text
-          <input
-            value={searchQ}
-            onChange={(e) => setSearchQ(e.target.value)}
-            placeholder="symbol, notes, tags…"
-            className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
-          />
-        </label>
-        <label className="block text-sm text-ananael-muted">
-          Entity / spirit / planet
-          <input
-            value={entityQ}
-            onChange={(e) => setEntityQ(e.target.value)}
-            placeholder="Venus, Yesod, Paimon…"
-            className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
-          />
-        </label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="sr-only">Search journal text</span>
+            <input
+              type="search"
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
+              placeholder="Search text — title, notes, tags…"
+              className="w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-ananael-muted focus:border-ananael-violet"
+            />
+          </label>
+          <label className="block">
+            <span className="sr-only">Search entity</span>
+            <input
+              type="search"
+              value={entityQ}
+              onChange={(e) => setEntityQ(e.target.value)}
+              placeholder="Entity — Venus, Yesod, Paimon…"
+              className="w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-ananael-muted focus:border-ananael-violet"
+            />
+          </label>
+        </div>
       </div>
 
       {/* Editor */}

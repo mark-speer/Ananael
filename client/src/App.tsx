@@ -15,7 +15,10 @@ import JournalModule from './components/JournalModule';
 import LiturgyModule from './components/LiturgyModule';
 import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
-import Sidebar, { MODULES, type ModuleId } from './components/Sidebar';
+import Sidebar, {
+  MODULE_SELECT_GROUPS,
+  type ModuleId,
+} from './components/Sidebar';
 import SolomonicCircleModule from './components/SolomonicCircleModule';
 import SplashPage from './components/SplashPage';
 import TalismanModule from './components/TalismanModule';
@@ -29,6 +32,7 @@ import { useAuth } from './context/AuthContext';
 
 export type AppNavigateOptions = TreeNavigateOptions & {
   filter?: JournalEntryType | 'all';
+  entryId?: string;
   divinationTab?: DivinationTab;
   planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
   ritualTemplate?: TemplateId;
@@ -64,6 +68,7 @@ export default function App() {
   const [journalFilter, setJournalFilter] = useState<
     JournalEntryType | 'all'
   >('all');
+  const [journalEntryId, setJournalEntryId] = useState<string | undefined>();
   const [divinationTab, setDivinationTab] = useState<DivinationTab>('tarot');
   const [planetaryPanel, setPlanetaryPanel] = useState<
     'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac'
@@ -102,6 +107,9 @@ export default function App() {
     }
     if (target === 'journal') {
       setJournalFilter(opts?.filter ?? 'all');
+      setJournalEntryId(opts?.entryId);
+    } else {
+      setJournalEntryId(undefined);
     }
     if (target === 'divination') {
       setDivinationTab(
@@ -158,7 +166,12 @@ export default function App() {
           />
         );
       case 'journal':
-        return <JournalModule initialFilter={journalFilter} />;
+        return (
+          <JournalModule
+            initialFilter={journalFilter}
+            initialEntryId={journalEntryId}
+          />
+        );
       case 'gematria':
         return <GematriaModule initialText={gematriaPrefill} />;
       case 'planetary':
@@ -234,11 +247,14 @@ export default function App() {
                 }
                 className="w-full rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
               >
-                {MODULES.map((mod) => (
-                  <option key={mod.id} value={mod.id}>
-                    {mod.label}
-                    {mod.comingSoon ? ' (Soon)' : ''}
-                  </option>
+                {MODULE_SELECT_GROUPS.map((group) => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.modules.map((mod) => (
+                      <option key={mod.id} value={mod.id}>
+                        {mod.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </label>

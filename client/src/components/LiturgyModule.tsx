@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   groupRitesByTradition,
+  LITURGY_TRADITION_ORDER,
   searchRites,
   type LiturgyRite,
 } from '../data/liturgy';
@@ -26,11 +27,16 @@ interface LiturgyModuleProps {
 export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
   const { isAuthenticated } = useAuth();
   const [query, setQuery] = useState('');
+  const [traditionFilter, setTraditionFilter] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>('lbrp');
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const rites = useMemo(() => searchRites(query), [query]);
+  const rites = useMemo(() => {
+    const found = searchRites(query);
+    if (!traditionFilter) return found;
+    return found.filter((r) => r.tradition === traditionFilter);
+  }, [query, traditionFilter]);
   const grouped = useMemo(() => groupRitesByTradition(rites), [rites]);
   const rite: LiturgyRite | undefined =
     rites.find((item) => item.id === selectedId) ?? rites[0] ?? undefined;
@@ -81,15 +87,56 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
         </p>
       </header>
 
-      <label className="block text-sm text-ananael-muted">
-        Search
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="mt-1 w-full max-w-md rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
-          placeholder="banishing, hexagram, goetia…"
-        />
-      </label>
+      <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
+        <label className="block">
+          <span className="sr-only">Search rites</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-ananael-muted focus:border-ananael-violet"
+            placeholder="Search — banishing, hexagram, goetia…"
+          />
+        </label>
+        <div
+          className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto px-1 pb-1"
+          role="group"
+          aria-label="Tradition filter"
+        >
+          <button
+            type="button"
+            onClick={() => setTraditionFilter(null)}
+            className={[
+              'shrink-0 rounded-md border px-2.5 py-1 text-xs transition',
+              traditionFilter === null
+                ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
+                : 'border-ananael-border/60 text-ananael-muted hover:border-ananael-violet/50 hover:text-zinc-200',
+            ].join(' ')}
+          >
+            All
+          </button>
+          {LITURGY_TRADITION_ORDER.map((tradition) => {
+            const active = traditionFilter === tradition;
+            return (
+              <button
+                key={tradition}
+                type="button"
+                onClick={() =>
+                  setTraditionFilter(active ? null : tradition)
+                }
+                className={[
+                  'shrink-0 rounded-md border px-2.5 py-1 text-xs transition',
+                  active
+                    ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
+                    : 'border-ananael-border/60 text-ananael-muted hover:border-ananael-violet/50 hover:text-zinc-200',
+                ].join(' ')}
+              >
+                {tradition}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
         <div className="space-y-4">

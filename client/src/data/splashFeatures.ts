@@ -20,7 +20,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'dashboard',
     title: 'Magical OS',
     description:
-      'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues, a Magical Almanac tile for today’s counsel and alchemical operation, an Athanor tile for the day’s opus stage, quick tarot, active journal workings, Liber 777 correspondences search, and deep links into ritual builders—so the day’s conditions and tools stay in one view.',
+      'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues (each deep-linked into Celestial Timing), a Magical Almanac tile for today’s counsel and alchemical operation, an Athanor tile for the day’s opus stage, quick tarot plus paths into all Divination systems, active journal workings that open the matching entry, Liber 777 correspondences search, study tools, and ritual builders—so every module stays one tap away.',
   },
   {
     id: 'divination',

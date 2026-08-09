@@ -12,6 +12,8 @@ import {
   type PlanetaryHoursChart,
 } from '../lib/planetaryHours';
 import { summarizeReading } from '../lib/tarotSummary';
+import type { OpusStageId } from '../data/alchemy';
+import type { TemplateId } from '../data/ritualTools';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
 
@@ -20,10 +22,15 @@ const SKY_REFRESH_MS = 60_000;
 
 export interface DashboardNavigateOptions {
   filter?: JournalEntryType | 'all';
+  entryId?: string;
   gematriaPrefill?: string;
+  correspondencesQuery?: string;
   divinationTab?: 'tarot' | 'iching' | 'geomancy' | 'runes';
   planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
+  ritualTemplate?: TemplateId;
   opusPane?: 'stages' | 'vessel' | 'emblem';
+  stageId?: OpusStageId;
+  metal?: string;
 }
 
 interface DashboardModuleProps {
@@ -89,6 +96,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const [workingsLoading, setWorkingsLoading] = useState(false);
   const [vesselCount, setVesselCount] = useState(0);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
+  const [corrQuery, setCorrQuery] = useState('');
 
   const refreshSky = useCallback(() => {
     setNow(new Date());
@@ -217,9 +225,26 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     return summarizeReading([dealt], 'single');
   }, [dealt]);
 
-  const openJournal = (filter: JournalEntryType | 'all' = 'all') => {
-    onNavigate('journal', { filter });
+  const openJournal = (
+    filter: JournalEntryType | 'all' = 'all',
+    entryId?: string
+  ) => {
+    onNavigate('journal', { filter, entryId });
   };
+
+  const correspondencesPrefill =
+    sky.hourRuler?.trim() || sky.dayRuler?.trim() || '';
+
+  const openAthanorStages = () => {
+    onNavigate('opus', {
+      opusPane: 'stages',
+      stageId: dayCounsel.stageId,
+      metal: dayCounsel.operation.metal,
+    });
+  };
+
+  const skyMetricBtn =
+    'mt-1 block w-full rounded-md text-left text-zinc-100 transition hover:text-ananael-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ananael-violet';
 
   return (
     <div className="space-y-8">
@@ -273,52 +298,106 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
                 Moon
               </dt>
-              <dd className="mt-1 text-zinc-100">
-                {sky.moonPhase ?? '—'}
-                {sky.moonIllum != null && (
-                  <span className="ml-1 text-sm text-ananael-muted">
-                    ({Math.round(sky.moonIllum * 100)}%)
-                  </span>
-                )}
+              <dd>
+                <button
+                  type="button"
+                  className={skyMetricBtn}
+                  onClick={() =>
+                    onNavigate('planetary', { planetaryPanel: 'zodiac' })
+                  }
+                >
+                  {sky.moonPhase ?? '—'}
+                  {sky.moonIllum != null && (
+                    <span className="ml-1 text-sm text-ananael-muted">
+                      ({Math.round(sky.moonIllum * 100)}%)
+                    </span>
+                  )}
+                </button>
               </dd>
             </div>
             <div>
               <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
                 Day ruler
               </dt>
-              <dd className="mt-1 text-zinc-100">{sky.dayRuler ?? '—'}</dd>
+              <dd>
+                <button
+                  type="button"
+                  className={skyMetricBtn}
+                  onClick={() =>
+                    onNavigate('planetary', { planetaryPanel: 'planets' })
+                  }
+                >
+                  {sky.dayRuler ?? '—'}
+                </button>
+              </dd>
             </div>
             <div>
               <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
                 Hour ruler
               </dt>
-              <dd className="mt-1 text-zinc-100">
-                {chart?.currentHour
-                  ? `${chart.currentHour.planet} (${chart.currentHour.segment} ${chart.currentHour.hourOfSegment})`
-                  : sky.hourRuler ?? 'Set location'}
+              <dd>
+                <button
+                  type="button"
+                  className={skyMetricBtn}
+                  onClick={() =>
+                    onNavigate('planetary', { planetaryPanel: 'hours' })
+                  }
+                >
+                  {chart?.currentHour
+                    ? `${chart.currentHour.planet} (${chart.currentHour.segment} ${chart.currentHour.hourOfSegment})`
+                    : sky.hourRuler ?? 'Set location'}
+                </button>
               </dd>
             </div>
             <div>
               <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
                 Until next hour
               </dt>
-              <dd className="mt-1 text-zinc-100">
-                {hourRemainingMs != null && chart?.currentHour
-                  ? `${formatRemaining(hourRemainingMs)} · ends ${formatTime(chart.currentHour.end)}`
-                  : '—'}
+              <dd>
+                <button
+                  type="button"
+                  className={skyMetricBtn}
+                  onClick={() =>
+                    onNavigate('planetary', { planetaryPanel: 'hours' })
+                  }
+                >
+                  {hourRemainingMs != null && chart?.currentHour
+                    ? `${formatRemaining(hourRemainingMs)} · ends ${formatTime(chart.currentHour.end)}`
+                    : '—'}
+                </button>
               </dd>
             </div>
             <div>
               <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
                 Sun
               </dt>
-              <dd className="mt-1 text-zinc-100">{sky.sunSign ?? '—'}</dd>
+              <dd>
+                <button
+                  type="button"
+                  className={skyMetricBtn}
+                  onClick={() =>
+                    onNavigate('planetary', { planetaryPanel: 'zodiac' })
+                  }
+                >
+                  {sky.sunSign ?? '—'}
+                </button>
+              </dd>
             </div>
             <div>
               <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
                 Day pillar
               </dt>
-              <dd className="mt-1 text-zinc-100">{sky.chineseDay ?? '—'}</dd>
+              <dd>
+                <button
+                  type="button"
+                  className={skyMetricBtn}
+                  onClick={() =>
+                    onNavigate('planetary', { planetaryPanel: 'zodiac' })
+                  }
+                >
+                  {sky.chineseDay ?? '—'}
+                </button>
+              </dd>
             </div>
           </dl>
 
@@ -370,12 +449,16 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">
             {dayCounsel.moonTheme}
           </p>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+          <button
+            type="button"
+            onClick={openAthanorStages}
+            className="mt-3 block w-full rounded-md text-left text-sm leading-relaxed text-zinc-300 transition hover:text-ananael-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ananael-violet"
+          >
             <span className="text-[11px] uppercase tracking-wider text-ananael-violet">
               Operation
             </span>
             <span className="mt-1 block">{dayCounsel.alchemyTheme}</span>
-          </p>
+          </button>
           <p className="mt-2 text-xs italic text-ananael-muted">
             {dayCounsel.operation.axiom}
           </p>
@@ -403,13 +486,36 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 Single-card guidance
               </p>
             </div>
-            <TileLink
-              label="Full Tarot"
-              onClick={() =>
-                onNavigate('divination', { divinationTab: 'tarot' })
-              }
-              tone="gold"
-            />
+            <div className="flex flex-wrap gap-2">
+              <TileLink
+                label="Tarot"
+                onClick={() =>
+                  onNavigate('divination', { divinationTab: 'tarot' })
+                }
+                tone="gold"
+              />
+              <TileLink
+                label="I Ching"
+                onClick={() =>
+                  onNavigate('divination', { divinationTab: 'iching' })
+                }
+                tone="violet"
+              />
+              <TileLink
+                label="Geomancy"
+                onClick={() =>
+                  onNavigate('divination', { divinationTab: 'geomancy' })
+                }
+                tone="bronze"
+              />
+              <TileLink
+                label="Runes"
+                onClick={() =>
+                  onNavigate('divination', { divinationTab: 'runes' })
+                }
+                tone="bronze"
+              />
+            </div>
           </div>
 
           <div className="mt-4 flex flex-col items-center gap-3">
@@ -515,7 +621,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 <li key={entry._id}>
                   <button
                     type="button"
-                    onClick={() => openJournal('working')}
+                    onClick={() => openJournal('working', entry._id)}
                     className="flex w-full items-center justify-between gap-2 rounded-md border border-ananael-border/50 bg-ananael-bg px-3 py-2 text-left text-sm transition hover:border-ananael-violet/50"
                   >
                     <span className="truncate text-zinc-200">
@@ -543,15 +649,55 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             Correspondences
           </h2>
           <p className="mt-1 text-sm text-ananael-muted">
-            Liber 777 key scale — search planets, letters, angels, deities, hexagrams, and more.
+            Liber 777 key scale — search planets, letters, angels, deities,
+            hexagrams, and more.
           </p>
-          <div className="mt-4">
-            <TileLink
-              label="Open correspondences"
-              onClick={() => onNavigate('correspondences')}
-              tone="violet"
-            />
-          </div>
+          <form
+            className="mt-4 space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = corrQuery.trim() || correspondencesPrefill;
+              onNavigate('correspondences', {
+                correspondencesQuery: q || undefined,
+              });
+            }}
+          >
+            <label className="block">
+              <span className="sr-only">Search correspondences</span>
+              <input
+                type="search"
+                value={corrQuery}
+                onChange={(e) => setCorrQuery(e.target.value)}
+                placeholder={
+                  correspondencesPrefill
+                    ? `Search — e.g. ${correspondencesPrefill}`
+                    : 'Search — e.g. Venus, Netzach…'
+                }
+                className="w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-ananael-muted focus:border-ananael-violet"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <TileLink
+                label="Search"
+                onClick={() => {
+                  const q = corrQuery.trim() || correspondencesPrefill;
+                  onNavigate('correspondences', {
+                    correspondencesQuery: q || undefined,
+                  });
+                }}
+                tone="violet"
+              />
+              <TileLink
+                label="Open correspondences"
+                onClick={() =>
+                  onNavigate('correspondences', {
+                    correspondencesQuery: correspondencesPrefill || undefined,
+                  })
+                }
+                tone="bronze"
+              />
+            </div>
+          </form>
         </section>
 
         {/* Athanor */}
@@ -565,11 +711,15 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             </div>
             <TileLink
               label="Open Athanor"
-              onClick={() => onNavigate('opus', { opusPane: 'stages' })}
+              onClick={openAthanorStages}
               tone="gold"
             />
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+          <button
+            type="button"
+            onClick={openAthanorStages}
+            className="mt-4 block w-full rounded-md text-left text-sm leading-relaxed text-zinc-300 transition hover:text-ananael-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ananael-violet"
+          >
             <span className="text-ananael-gold">
               {dayCounsel.operation.stage.name}
             </span>
@@ -577,7 +727,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             {dayCounsel.operation.metal}
             {' · '}
             {dayCounsel.operation.principle.name}
-          </p>
+          </button>
           <p className="mt-2 text-xs text-zinc-400">
             {dayCounsel.alchemyTheme}
           </p>
@@ -594,13 +744,46 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           <div className="mt-4 flex flex-wrap gap-2">
             <TileLink
               label="Vessel"
-              onClick={() => onNavigate('opus', { opusPane: 'vessel' })}
+              onClick={() =>
+                onNavigate('opus', {
+                  opusPane: 'vessel',
+                  stageId: dayCounsel.stageId,
+                  metal: dayCounsel.operation.metal,
+                })
+              }
               tone="violet"
             />
             <TileLink
               label="Emblem"
               onClick={() => onNavigate('opus', { opusPane: 'emblem' })}
               tone="bronze"
+            />
+          </div>
+        </section>
+
+        {/* Study tools */}
+        <section className={tileClassName()}>
+          <h2 className="font-display text-lg text-ananael-gold">
+            Study tools
+          </h2>
+          <p className="mt-1 text-sm text-ananael-muted">
+            Calculation, scripts, and the Tree of Life.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <TileLink
+              label="Gematria"
+              onClick={() => onNavigate('gematria')}
+              tone="violet"
+            />
+            <TileLink
+              label="Script Translator"
+              onClick={() => onNavigate('translator')}
+              tone="bronze"
+            />
+            <TileLink
+              label="Tree of Life"
+              onClick={() => onNavigate('tree')}
+              tone="gold"
             />
           </div>
         </section>
@@ -617,7 +800,9 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           <div className="mt-4 flex flex-wrap gap-2">
             <TileLink
               label="Ritual Space"
-              onClick={() => onNavigate('ritual')}
+              onClick={() =>
+                onNavigate('ritual', { ritualTemplate: 'lbrp' })
+              }
               tone="bronze"
             />
             <TileLink
@@ -632,7 +817,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             />
             <TileLink
               label="Athanor"
-              onClick={() => onNavigate('opus')}
+              onClick={openAthanorStages}
               tone="gold"
             />
             <TileLink

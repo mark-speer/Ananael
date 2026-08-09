@@ -21,11 +21,11 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Celestial Timing     | Active  | 2b+ / 13 / 17 / 22 |
 | Script Translator    | Active  | 2c           |
 | I Ching              | Active  | 3 (in Divination) |
-| Tree of Life         | Active  | 4a           |
+| Tree of Life         | Active  | 4a / 24      |
 | Ritual Space Planner | Active  | 4b           |
 | Solomonic Circles    | Active  | 5–6 / 21     |
 | Magical Journal      | Active  | 7            |
-| Magical OS Dashboard | Active  | 8            |
+| Magical OS Dashboard | Active  | 8 / 24       |
 | Divination portal    | Active  | 9–11         |
 | Geomancy             | Active  | 10 (tab)     |
 | Runes                | Active  | 11 (tab)     |
@@ -40,6 +40,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Goetia seal artwork  | Active  | 21           |
 | Timing chart bookmarks | Active  | 22         |
 | Athanor deepen       | Active  | 23           |
+| Cross-module polish  | Active  | 24           |
 
 ---
 
@@ -345,6 +346,20 @@ Vessel persistence, opus progress from journal, richer Emblem corpus.
 - Magical OS Athanor tile reflects saved vessels or active opus workings
 
 **Done when:** signed-in vessel save/reload; Stages shows active opus workings; Emblem content expanded; Magical OS reflects progress.
+
+---
+
+## Phase 24 — Cross-module polish — Shipped
+
+Finish Magical OS deep-links, unify search/export patterns, and fix mobile UX gaps.
+
+- Magical OS: study tools (Gematria / Translator / Tree); sky metrics → Hours / Planets / Zodiac; full Divination tabs; Athanor with day’s `stageId` / `metal`; Correspondences mini-search + prefill; active working → `entryId`; Ritual Space opens with LBRP template
+- Shared `client/src/lib/svgExport.ts`; Ritual / Solomonic / Talisman / Tree export PNG + JSON with consistent labels
+- Journal + Ritual Library search chrome aligned with Correspondences (incl. tradition chips)
+- Mobile module `<select>` grouped with shorter labels; Enochian tablet scrolls/scales on narrow phones
+- Removed unused `ModuleShell`
+
+**Done when:** Magical OS opens every sidebar module with meaningful opts; shared export helper + Tree PNG/JSON; search chrome aligned; mobile select grouped; Enochian usable at ~360px width.
 
 ---
 

@@ -132,28 +132,30 @@ export default function EnochianModule({ onNavigate }: EnochianModuleProps) {
               </button>
             ))}
           </div>
-          <div className="inline-grid grid-cols-5 gap-1 rounded-lg border border-ananael-border/60 bg-ananael-surface p-3">
-            {tablet.grid.flatMap((row, ri) =>
-              row.map((letter, ci) => {
-                const key = `${ri}-${ci}-${letter}`;
-                const active = selected === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setSelected(key)}
-                    className={[
-                      'flex h-10 w-10 items-center justify-center rounded font-display text-lg',
-                      active
-                        ? 'bg-ananael-violet/40 text-ananael-gold'
-                        : 'bg-ananael-panel text-zinc-200 hover:text-ananael-gold',
-                    ].join(' ')}
-                  >
-                    {letter}
-                  </button>
-                );
-              })
-            )}
+          <div className="overflow-x-auto rounded-lg border border-ananael-border/60 bg-ananael-surface p-3">
+            <div className="mx-auto grid w-max max-w-full grid-cols-5 gap-1 sm:gap-1.5">
+              {tablet.grid.flatMap((row, ri) =>
+                row.map((letter, ci) => {
+                  const key = `${ri}-${ci}-${letter}`;
+                  const active = selected === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setSelected(key)}
+                      className={[
+                        'flex h-8 w-8 items-center justify-center rounded font-display text-base sm:h-10 sm:w-10 sm:text-lg',
+                        active
+                          ? 'bg-ananael-violet/40 text-ananael-gold'
+                          : 'bg-ananael-panel text-zinc-200 hover:text-ananael-gold',
+                      ].join(' ')}
+                    >
+                      {letter}
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
           {selected && (
             <div className="flex flex-wrap gap-2">

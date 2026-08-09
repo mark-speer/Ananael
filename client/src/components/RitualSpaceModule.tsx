@@ -28,6 +28,7 @@ import {
   type TemplateId,
 } from '../data/ritualTools';
 import { apiFetch } from '../lib/api';
+import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 
 interface SavedLayout {
   _id: string;
@@ -227,60 +228,30 @@ export default function RitualSpaceModule({
   };
 
   const exportJson = () => {
-    const doc = {
-      name: layoutName.trim() || 'Untitled layout',
-      items,
-      showCompass,
-      notes: notes.trim() || undefined,
-      exportedAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(doc, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${slugify(doc.name)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(
+      {
+        name: layoutName.trim() || 'Untitled layout',
+        items,
+        showCompass,
+        notes: notes.trim() || undefined,
+        exportedAt: new Date().toISOString(),
+      },
+      layoutName.trim() || 'Untitled layout',
+      'ritual-layout'
+    );
   };
 
   const exportPng = async () => {
     const svg = svgRef.current;
     if (!svg) return;
-    const clone = svg.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    clone.setAttribute('width', String(GRID_WIDTH));
-    clone.setAttribute('height', String(GRID_HEIGHT));
-    // Opaque background for export
-    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    bg.setAttribute('width', String(GRID_WIDTH));
-    bg.setAttribute('height', String(GRID_HEIGHT));
-    bg.setAttribute('fill', '#0c0a12');
-    clone.insertBefore(bg, clone.firstChild);
-
-    const xml = new XMLSerializer().serializeToString(clone);
-    const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-
-    try {
-      const img = await loadImage(url);
-      const canvas = document.createElement('canvas');
-      canvas.width = GRID_WIDTH;
-      canvas.height = GRID_HEIGHT;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.fillStyle = '#0c0a12';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-      const pngUrl = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = pngUrl;
-      a.download = `${slugify(layoutName || 'ritual-layout')}.png`;
-      a.click();
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+    await exportSvgAsPng({
+      svg,
+      filenameBase: layoutName || 'ritual-layout',
+      fallbackName: 'ritual-layout',
+      width: GRID_WIDTH,
+      height: GRID_HEIGHT,
+      background: '#0c0a12',
+    });
   };
 
   const saveLayout = async () => {
@@ -600,17 +571,17 @@ export default function RitualSpaceModule({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={exportJson}
-                className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
-              >
-                Download JSON
-              </button>
-              <button
-                type="button"
                 onClick={() => void exportPng()}
                 className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
               >
-                Download PNG
+                Export PNG
+              </button>
+              <button
+                type="button"
+                onClick={exportJson}
+                className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
+              >
+                Export JSON
               </button>
             </div>
             <p className="text-xs text-ananael-muted">
@@ -924,20 +895,3 @@ function CompassRose() {
   );
 }
 
-function slugify(name: string): string {
-  const s = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 48);
-  return s || 'ritual-layout';
-}
-
-function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Failed to rasterize SVG'));
-    img.src = url;
-  });
-}

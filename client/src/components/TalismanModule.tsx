@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
 import { metalForPlanet } from '../lib/alchemy';
+import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import {
   getKamea,
   PLANET_ORDER,
@@ -112,50 +113,32 @@ export default function TalismanModule({
       : { planet, mode: sigilMode, name };
 
   const exportJson = () => {
-    const doc = {
-      name: designName.trim() || 'Untitled talisman',
-      kind,
-      config: config(),
-      notes: notes.trim() || undefined,
-      exportedAt: new Date().toISOString(),
-    };
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' })
+    downloadJson(
+      {
+        name: designName.trim() || 'Untitled talisman',
+        kind,
+        config: config(),
+        notes: notes.trim() || undefined,
+        exportedAt: new Date().toISOString(),
+      },
+      designName.trim() || 'Untitled talisman',
+      'talisman'
     );
-    triggerDownload(url, `${slugify(doc.name)}.json`);
-    URL.revokeObjectURL(url);
   };
 
   const exportPng = () => {
     const svg = svgRef.current;
     if (!svg) return;
-    const clone = svg.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    clone.setAttribute('width', '1200');
-    clone.setAttribute('height', '1200');
-    const source = new XMLSerializer().serializeToString(clone);
-    const url = URL.createObjectURL(
-      new Blob([source], { type: 'image/svg+xml;charset=utf-8' })
-    );
-    const image = new Image();
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1200;
-      canvas.height = 1200;
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.fillStyle = '#0c0a12';
-        context.fillRect(0, 0, 1200, 1200);
-        context.drawImage(image, 0, 0, 1200, 1200);
-        triggerDownload(canvas.toDataURL('image/png'), `${slugify(designName)}.png`);
-      }
-      URL.revokeObjectURL(url);
-    };
-    image.onerror = () => {
+    void exportSvgAsPng({
+      svg,
+      filenameBase: designName || 'talisman',
+      fallbackName: 'talisman',
+      width: 1200,
+      height: 1200,
+      background: '#0c0a12',
+    }).catch(() => {
       setStatus('PNG export failed.');
-      URL.revokeObjectURL(url);
-    };
-    image.src = url;
+    });
   };
 
   const save = async () => {
@@ -526,19 +509,3 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function triggerDownload(url: string, filename: string) {
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-}
-
-function slugify(value: string) {
-  return (
-    value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 48) || 'talisman'
-  );
-}

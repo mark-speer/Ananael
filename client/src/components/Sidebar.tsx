@@ -42,6 +42,45 @@ export const MODULES: ModuleDef[] = [
   { id: 'liturgy', label: 'Ritual Library' },
 ];
 
+/** Grouped modules for the mobile switcher (shorter labels). */
+export const MODULE_SELECT_GROUPS: {
+  label: string;
+  modules: { id: ModuleId; label: string }[];
+}[] = [
+  {
+    label: 'Home',
+    modules: [{ id: 'dashboard', label: 'Magical OS' }],
+  },
+  {
+    label: 'Practice',
+    modules: [
+      { id: 'divination', label: 'Divination' },
+      { id: 'journal', label: 'Journal' },
+      { id: 'planetary', label: 'Timing' },
+      { id: 'liturgy', label: 'Library' },
+    ],
+  },
+  {
+    label: 'Study',
+    modules: [
+      { id: 'gematria', label: 'Gematria' },
+      { id: 'translator', label: 'Translator' },
+      { id: 'tree', label: 'Tree of Life' },
+      { id: 'correspondences', label: 'Correspondences' },
+      { id: 'enochian', label: 'Enochian' },
+      { id: 'opus', label: 'Athanor' },
+    ],
+  },
+  {
+    label: 'Builders',
+    modules: [
+      { id: 'ritual', label: 'Ritual Space' },
+      { id: 'solomonic', label: 'Solomonic' },
+      { id: 'talisman', label: 'Talisman' },
+    ],
+  },
+];
+
 interface SidebarProps {
   activeModule: ModuleId;
   onSelect: (id: ModuleId) => void;
