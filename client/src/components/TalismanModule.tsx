@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
+import { metalForPlanet } from '../lib/alchemy';
 import {
   getKamea,
   PLANET_ORDER,
@@ -262,7 +263,8 @@ export default function TalismanModule({
                 >
                   {PLANET_ORDER.map((item) => (
                     <option key={item} value={item}>
-                      {item} ({getKamea(item).length}×{getKamea(item).length})
+                      {item} — {metalForPlanet(item)} (
+                      {getKamea(item).length}×{getKamea(item).length})
                     </option>
                   ))}
                 </select>
@@ -313,9 +315,9 @@ export default function TalismanModule({
           </div>
           <p className="text-xs leading-relaxed text-ananael-muted">
             {tab === 'squares'
-              ? `${planet}'s ${grid.length}×${grid.length} square uses 1–${grid.length ** 2}; every row, column, and diagonal has the same sum.`
+              ? `${planet}'s ${grid.length}×${grid.length} square uses 1–${grid.length ** 2}; every row, column, and diagonal has the same sum. Classical metal: ${metalForPlanet(planet)}.`
               : sigilMode === 'planetary'
-                ? 'Letters repeat on the Agrippan 1–9 key and join their kamea cell centers.'
+                ? `Letters repeat on the Agrippan 1–9 key and join their kamea cell centers. Classical metal: ${metalForPlanet(planet)}.`
                 : 'Vowels and repeated consonants are removed before the remaining letters trace the consonant wheel.'}
           </p>
         </section>

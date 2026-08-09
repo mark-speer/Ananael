@@ -173,6 +173,8 @@ function facetFieldValues(
       return key.stone ?? [];
     case 'plant':
       return key.plant ?? [];
+    case 'metal':
+      return key.metal ? [key.metal] : [];
     default:
       return [];
   }

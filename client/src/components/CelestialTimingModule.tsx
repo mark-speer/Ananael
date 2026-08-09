@@ -1051,6 +1051,17 @@ export default function CelestialTimingModule({
                   <p className="text-sm leading-relaxed text-zinc-400">
                     {dayCounsel.moonTheme}
                   </p>
+                  <div className="rounded-lg border border-ananael-border/40 bg-ananael-bg/40 px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-wider text-ananael-violet">
+                      Operation
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-zinc-200">
+                      {dayCounsel.alchemyTheme}
+                    </p>
+                    <p className="mt-1 text-xs italic text-ananael-muted">
+                      {dayCounsel.operation.axiom}
+                    </p>
+                  </div>
                   {(markersByDay.get(selectedAlmanacDay.day) ?? []).length >
                     0 && (
                     <ul className="space-y-1 text-xs text-ananael-violet">

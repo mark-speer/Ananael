@@ -510,6 +510,151 @@ export const LITURGY_RITES: LiturgyRite[] = [
       },
     ],
   },
+  {
+    id: 'alchemy-vessel',
+    title: 'Consecration of the Vessel',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'consecration', 'vessel', 'athanor', 'oratory'],
+    tools: ['clean vessel or working bowl', 'salt', 'water', 'incense', 'cloth'],
+    purpose:
+      'Set apart a vessel (cup, bowl, or symbolic athanor) as the container of the Great Work in the oratory.',
+    notes:
+      'Study outline for hermetic oratory practice. Not laboratory chemistry. Prefer a Saturn or Moon hour for binding the vessel, or the planet of your current stage.',
+    sources: [
+      'Hermetic oratory tradition (study outline; not a laboratory manual)',
+    ],
+    suggestedPlanet: 'Saturn',
+    ritualTemplate: 'altarCross',
+    steps: [
+      {
+        title: 'Purify the place',
+        body: 'Banish lightly. Place the empty vessel on a clean cloth. Have salt, water, and incense ready.',
+      },
+      {
+        title: 'Wash with Salt and Water',
+        body: 'Asperse the vessel: “Be thou washed of common use. Salt of the earth, fix the form; Water, receive the work.” Trace a circle around the rim.',
+      },
+      {
+        title: 'Perfume with Sulfur’s fire',
+        body: 'Pass the vessel through incense smoke: “Be thou aired by the volatile spirit. Fire try what this vessel shall hold.”',
+      },
+      {
+        title: 'Name the office',
+        body: 'Touch the vessel and name its office aloud — athanor of intention, cup of solution, or womb of the stone — under the Names you use. Seal with a cross or hexagram over the mouth.',
+      },
+      {
+        title: 'Close and record',
+        body: 'Cover or store the vessel. Log stage, metal of the day, and intent in the Magical Journal.',
+      },
+    ],
+  },
+  {
+    id: 'alchemy-tria-prima',
+    title: 'Oratory of the Tria Prima',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'salt', 'sulfur', 'mercury', 'oratory', 'principles'],
+    tools: [
+      'salt (or stone)',
+      'incense or candle (sulfur)',
+      'cup of water or quicksilver symbol (mercury)',
+      'altar space',
+    ],
+    purpose:
+      'Invoke Salt, Sulfur, and Mercury as body, soul, and spirit of the work before a stage of the opus.',
+    notes:
+      'Symbolic oratory only. Arrange the three tokens in a triangle; speak each principle’s office, then their reunion.',
+    sources: ['Paracelsian Tria Prima framing (study outline)'],
+    suggestedPlanet: 'Mercury',
+    steps: [
+      {
+        title: 'Open the triangle',
+        body: 'Place Salt at the base (body), Sulfur at the right (soul), Mercury at the left (spirit). Stand at the apex facing your altar.',
+      },
+      {
+        title: 'Salt — body',
+        body: 'Touch the salt: “Salt, fixity and form, hold the ash of what endures. Be the body of this work.”',
+      },
+      {
+        title: 'Sulfur — soul',
+        body: 'Touch the flame or incense: “Sulfur, desire and character, burn cleanly. Be the soul of this work.”',
+      },
+      {
+        title: 'Mercury — spirit',
+        body: 'Touch the cup: “Mercury, living binder, mediate fixed and volatile. Be the spirit of this work.”',
+      },
+      {
+        title: 'Reunion',
+        body: 'Bring the three tokens together at center: “One Thing by adaptation — body, soul, and spirit united for the stage I now enter.” Close with silence, then record.',
+      },
+    ],
+  },
+  {
+    id: 'alchemy-solve-coagula',
+    title: 'Solve et Coagula Working',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'solve', 'coagula', 'spagyria', 'working'],
+    tools: ['journal', 'vessel', 'two candles or markers (solve / coagula)'],
+    purpose:
+      'Frame a personal or magical working as separation, purification, and recombination — the spagyric rhythm without laboratory procedure.',
+    notes:
+      'Use for dream work, shadow integration, or materia metaphor (herb, metal, habit). Pair with elections matching the stage (dissolve under Moon; coagulate under Sun).',
+    sources: ['Hermetic axiom solve et coagula (study outline)'],
+    suggestedPlanet: 'Moon',
+    steps: [
+      {
+        title: 'Name the crude matter',
+        body: 'Write in one sentence what must be separated: a habit, grief, intention, or symbolic materia. Place the note in or before the vessel.',
+      },
+      {
+        title: 'Solve — separate',
+        body: 'Speak what you release from what you keep. Visualize or list the parts. Light the Solve marker. Sit until the separation feels clear, not frantic.',
+      },
+      {
+        title: 'Purify',
+        body: 'Wash the useful from the dross in word or water: discard what does not serve the One Thing of this working. Brief banishing if needed.',
+      },
+      {
+        title: 'Coagula — reunite',
+        body: 'Light the Coagula marker. Name the reunited form — new vow, clarified intent, or symbolic stone. Seal with a single breath into the vessel.',
+      },
+      {
+        title: 'Fix and log',
+        body: 'Extinguish Solve first, then Coagula. Journal stage (often Albedo→Rubedo), entities, and sky tags.',
+      },
+    ],
+  },
+  {
+    id: 'alchemy-metal-day',
+    title: 'Dedication of the Metal of the Day',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'metal', 'planetary', 'dedication', 'daily'],
+    tools: ['metal token or color cloth of the day', 'incense', 'journal'],
+    purpose:
+      'Dedicate the classical metal of the planetary day as a focus for talismanic or opus work.',
+    notes:
+      'Sun–Gold, Moon–Silver, Mars–Iron, Mercury–Quicksilver, Jupiter–Tin, Venus–Copper, Saturn–Lead. Token may be literal metal, foil, or colored cloth.',
+    sources: ['Agrippa planetary metals (study outline)'],
+    suggestedPlanet: 'Sun',
+    ritualTemplate: 'altarCross',
+    steps: [
+      {
+        title: 'Name day and metal',
+        body: 'At the day’s first convenient hour (or the planetary hour of the day ruler), place the metal token on the altar. Speak: “Day of N., metal of N. — I set thee as the body of today’s work.”',
+      },
+      {
+        title: 'Perfume and charge',
+        body: 'Incense the token. State a single virtue or operation (e.g. calcine, wash, coagulate) matching your opus stage.',
+      },
+      {
+        title: 'Bind to the hour',
+        body: 'If working a planetary hour, hold the token through that hour’s opening breath. Otherwise, keep it on the altar until sunset.',
+      },
+      {
+        title: 'Close',
+        body: 'Thank the day ruler. Store or wear the token. Log metal, stage, and counsel in the Magical Journal; optionally open Talisman Atelier for the matching kamea.',
+      },
+    ],
+  },
 ];
 
 export function searchRites(query: string): LiturgyRite[] {
@@ -542,6 +687,7 @@ export const LITURGY_TRADITION_ORDER = [
   'Heptameron',
   'Goetia',
   'Thelemic',
+  'Alchemy',
   'General',
 ] as const;
 

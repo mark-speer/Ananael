@@ -23,6 +23,7 @@ export interface DashboardNavigateOptions {
   gematriaPrefill?: string;
   divinationTab?: 'tarot' | 'iching' | 'geomancy' | 'runes';
   planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
+  opusPane?: 'stages' | 'vessel' | 'emblem';
 }
 
 interface DashboardModuleProps {
@@ -348,6 +349,15 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">
             {dayCounsel.moonTheme}
           </p>
+          <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+            <span className="text-[11px] uppercase tracking-wider text-ananael-violet">
+              Operation
+            </span>
+            <span className="mt-1 block">{dayCounsel.alchemyTheme}</span>
+          </p>
+          <p className="mt-2 text-xs italic text-ananael-muted">
+            {dayCounsel.operation.axiom}
+          </p>
           {nextHighlight && (
             <p className="mt-3 text-xs text-ananael-violet">
               Next: {nextHighlight.label} ·{' '}
@@ -523,13 +533,55 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           </div>
         </section>
 
+        {/* Athanor */}
+        <section className={tileClassName()}>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="font-display text-lg text-ananael-gold">Athanor</h2>
+              <p className="mt-0.5 text-xs text-ananael-muted">
+                Opus stage · metal · principle
+              </p>
+            </div>
+            <TileLink
+              label="Open Athanor"
+              onClick={() => onNavigate('opus', { opusPane: 'stages' })}
+              tone="gold"
+            />
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+            <span className="text-ananael-gold">
+              {dayCounsel.operation.stage.name}
+            </span>
+            {' · '}
+            {dayCounsel.operation.metal}
+            {' · '}
+            {dayCounsel.operation.principle.name}
+          </p>
+          <p className="mt-2 text-xs text-zinc-400">
+            {dayCounsel.alchemyTheme}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <TileLink
+              label="Vessel"
+              onClick={() => onNavigate('opus', { opusPane: 'vessel' })}
+              tone="violet"
+            />
+            <TileLink
+              label="Emblem"
+              onClick={() => onNavigate('opus', { opusPane: 'emblem' })}
+              tone="bronze"
+            />
+          </div>
+        </section>
+
         {/* Ritual builders */}
         <section className={tileClassName('sm:col-span-2 lg:col-span-1')}>
           <h2 className="font-display text-lg text-ananael-gold">
             Ritual builders
           </h2>
           <p className="mt-1 text-sm text-ananael-muted">
-            Altar layouts, Solomonic circles, talismans, Enochian, and liturgy.
+            Altar layouts, Solomonic circles, talismans, Enochian, liturgy, and
+            the athanor.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <TileLink
@@ -546,6 +598,11 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               label="Talisman"
               onClick={() => onNavigate('talisman')}
               tone="bronze"
+            />
+            <TileLink
+              label="Athanor"
+              onClick={() => onNavigate('opus')}
+              tone="gold"
             />
             <TileLink
               label="Enochian"

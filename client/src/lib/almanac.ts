@@ -11,6 +11,7 @@ import {
   type SeasonMarker,
 } from './celestialEphemeris';
 import { dayPillar, formatPillarShort } from './chineseAstrology';
+import { operationForDay, type DayOperation, type OpusStageId } from './alchemy';
 import { buildJournalSky, type JournalSky } from './journalSky';
 import { getMoonPhase, type MoonPhaseName } from './moonPhase';
 import { DAY_RULERS, type PlanetId } from './planetaryHours';
@@ -46,6 +47,10 @@ export interface DayCounsel {
   sky: JournalSky;
   dayTheme: string;
   moonTheme: string;
+  /** Alchemical operation counsel (stage, metal, principle). */
+  alchemyTheme: string;
+  stageId: OpusStageId;
+  operation: DayOperation;
   /** One- or two-line practice counsel. */
   summary: string;
 }
@@ -215,8 +220,18 @@ export function buildDayCounsel(
   const moonName = (sky.moonPhase as MoonPhaseName | undefined) ?? getMoonPhase(when).name;
   const dayTheme = DAY_THEMES[dayRuler];
   const moonTheme = MOON_THEMES[moonName];
-  const summary = `Day of ${dayRuler}: ${dayTheme} ${moonName}: ${moonTheme}`;
-  return { sky, dayTheme, moonTheme, summary };
+  const operation = operationForDay(dayRuler, moonName, when);
+  const alchemyTheme = operation.counsel;
+  const summary = `Day of ${dayRuler}: ${dayTheme} ${moonName}: ${moonTheme} Operation: ${alchemyTheme} ${operation.axiom}`;
+  return {
+    sky,
+    dayTheme,
+    moonTheme,
+    alchemyTheme,
+    stageId: operation.stageId,
+    operation,
+    summary,
+  };
 }
 
 /** Next season or lunation at or after `from` within the given month (or shortly after). */

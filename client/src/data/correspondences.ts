@@ -77,6 +77,7 @@ export const CORRESPONDENCE_FACETS = [
   'incense',
   'stone',
   'plant',
+  'metal',
 ] as const;
 
 export type CorrespondenceFacet = (typeof CORRESPONDENCE_FACETS)[number];
@@ -96,6 +97,7 @@ export const FACET_LABELS: Record<CorrespondenceFacet, string> = {
   incense: 'Incense',
   stone: 'Stone',
   plant: 'Plant',
+  metal: 'Metal',
 };
 
 /** Flatten all pantheon deity names on a key. */

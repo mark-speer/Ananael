@@ -15,7 +15,8 @@ export type ModuleId =
   | 'journal'
   | 'talisman'
   | 'enochian'
-  | 'liturgy';
+  | 'liturgy'
+  | 'opus';
 
 export interface ModuleDef {
   id: ModuleId;
@@ -33,6 +34,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'translator', label: 'Script Translator' },
   { id: 'tree', label: 'Tree of Life' },
   { id: 'correspondences', label: 'Correspondences' },
+  { id: 'opus', label: 'Athanor' },
   { id: 'ritual', label: 'Ritual Space Planner' },
   { id: 'solomonic', label: 'Solomonic Circles' },
   { id: 'talisman', label: 'Talisman Atelier' },

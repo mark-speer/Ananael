@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import AccountMenu from './components/AccountMenu';
+import AlchemyModule, {
+  type OpusPaneId,
+} from './components/AlchemyModule';
 import CelestialTimingModule from './components/CelestialTimingModule';
 import CorrespondencesModule from './components/CorrespondencesModule';
 import DashboardModule from './components/DashboardModule';
@@ -19,6 +22,7 @@ import TalismanModule from './components/TalismanModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
 } from './components/TreeOfLifeModule';
+import type { OpusStageId } from './data/alchemy';
 import type { TemplateId } from './data/ritualTools';
 import type { JournalEntryType } from './lib/journal';
 import { useAuth } from './context/AuthContext';
@@ -28,6 +32,9 @@ export type AppNavigateOptions = TreeNavigateOptions & {
   divinationTab?: DivinationTab;
   planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
   ritualTemplate?: TemplateId;
+  opusPane?: OpusPaneId;
+  stageId?: OpusStageId;
+  metal?: string;
 };
 
 function resolveModule(module: ModuleId): {
@@ -65,6 +72,9 @@ export default function App() {
     TemplateId | undefined
   >();
   const [talismanPrefill, setTalismanPrefill] = useState<string | undefined>();
+  const [opusPane, setOpusPane] = useState<OpusPaneId>('stages');
+  const [opusStageId, setOpusStageId] = useState<OpusStageId | undefined>();
+  const [opusMetal, setOpusMetal] = useState<string | undefined>();
 
   useEffect(() => {
     if (wasAuthenticated.current && !isAuthenticated) {
@@ -110,6 +120,14 @@ export default function App() {
       setTalismanPrefill(opts.gematriaPrefill);
     } else if (target !== 'talisman') {
       setTalismanPrefill(undefined);
+    }
+    if (target === 'opus') {
+      setOpusPane(opts?.opusPane ?? 'stages');
+      setOpusStageId(opts?.stageId);
+      setOpusMetal(opts?.metal);
+    } else {
+      setOpusStageId(undefined);
+      setOpusMetal(undefined);
     }
     setActiveModule(target);
   };
@@ -176,6 +194,15 @@ export default function App() {
         return <EnochianModule onNavigate={navigateToModule} />;
       case 'liturgy':
         return <LiturgyModule onNavigate={navigateToModule} />;
+      case 'opus':
+        return (
+          <AlchemyModule
+            onNavigate={navigateToModule}
+            initialPane={opusPane}
+            initialStageId={opusStageId}
+            initialMetal={opusMetal}
+          />
+        );
       default:
         return null;
     }

@@ -34,6 +34,8 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Enochian             | Active  | 14           |
 | Ritual Library       | Active  | 15–16        |
 | Magical Almanac      | Active  | 17 (timing + OS) |
+| Hermetic Alchemy hooks | Active | 18 (cross-module) |
+| Athanor              | Active  | 19               |
 
 ---
 
@@ -258,6 +260,35 @@ Month calendar and day counsel through a magical lens, shared between Magical OS
 - Magical OS Almanac tile + Sky clock Almanac / Elections deep-links (`planetaryPanel: 'almanac'`)
 
 **Done when:** Almanac panel + Magical OS tile; month grid; day counsel; season + lunation markers; deep-link opens Almanac tab.
+
+---
+
+## Phase 18 — Hermetic Alchemy Hooks — Shipped
+
+Shared alchemy layer woven into Almanac, Correspondences, Journal, Ritual Library, and Talisman.
+
+- Client data/lib `client/src/data/alchemy.ts` + `client/src/lib/alchemy.ts`: planet↔metal, Tria Prima, opus stages, `operationForDay`, Scale of Nature helpers
+- Mercury principle available under Solomonic center glyph Principles group
+- Almanac `DayCounsel` adds operation / stage / axiom; Magical OS + Celestial Timing show **Operation**
+- Correspondences: `metal` facet + principle/stage detail hints
+- Journal entity kinds: `metal`, `principle`, `opusStage` with suggestions
+- Ritual Library: Alchemy tradition (vessel, Tria Prima, solve et coagula, metal of the day) + server catalog sync
+- Talisman Atelier: classical metal labels beside planetary kamea selector
+
+**Done when:** shared alchemy lib; almanac operation line on OS + Almanac panel; metal facet; journal metal/principle/stage suggestions; Alchemy liturgy tradition; Talisman metal labels.
+
+---
+
+## Phase 19 — Athanor / Opus — Shipped
+
+Dedicated hermetic alchemy chamber consuming the Phase 18 alchemy layer.
+
+- Sidebar module `opus` labeled **Athanor**; App deep-links (`opusPane`, `stageId`, `metal`)
+- Client UI `client/src/components/AlchemyModule.tsx`: **Stages** (opus map + Scale of Nature), **Vessel** (intent/materia/stage planner → Journal / Talisman / Correspondences / Almanac), **Emblem** (Emerald Tablet, Hermetica outlines, stage emblems)
+- Magical OS Athanor tile with today’s stage / metal / principle + Vessel / Emblem shortcuts
+- Splash feature card for Athanor
+
+**Done when:** sidebar Active; three panes; Magical OS tile; Vessel → Journal/Talisman/Correspondences deep-links; Emblem study content.
 
 ---
 

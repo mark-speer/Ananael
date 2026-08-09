@@ -18,11 +18,15 @@ export type JournalEntityKind =
   | 'angel'
   | 'archangel'
   | 'spirit'
+  | 'deity'
   | 'element'
   | 'color'
   | 'incense'
   | 'stone'
   | 'plant'
+  | 'metal'
+  | 'principle'
+  | 'opusStage'
   | 'goetia'
   | 'tarot'
   | 'hexagram'
@@ -76,11 +80,15 @@ const ENTITY_KINDS: JournalEntityKind[] = [
   'angel',
   'archangel',
   'spirit',
+  'deity',
   'element',
   'color',
   'incense',
   'stone',
   'plant',
+  'metal',
+  'principle',
+  'opusStage',
   'goetia',
   'tarot',
   'hexagram',

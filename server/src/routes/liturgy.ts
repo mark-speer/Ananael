@@ -87,6 +87,30 @@ const rites = [
     tradition: 'General',
     tags: ['consecration', 'tools', 'altar', 'preparation'],
   },
+  {
+    id: 'alchemy-vessel',
+    title: 'Consecration of the Vessel',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'consecration', 'vessel', 'athanor', 'oratory'],
+  },
+  {
+    id: 'alchemy-tria-prima',
+    title: 'Oratory of the Tria Prima',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'salt', 'sulfur', 'mercury', 'oratory', 'principles'],
+  },
+  {
+    id: 'alchemy-solve-coagula',
+    title: 'Solve et Coagula Working',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'solve', 'coagula', 'spagyria', 'working'],
+  },
+  {
+    id: 'alchemy-metal-day',
+    title: 'Dedication of the Metal of the Day',
+    tradition: 'Alchemy',
+    tags: ['alchemy', 'metal', 'planetary', 'dedication', 'daily'],
+  },
 ];
 
 router.get('/rites', (_req, res) => {

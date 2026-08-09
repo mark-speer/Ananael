@@ -13,11 +13,27 @@ import {
 } from '../data/ichingCorrespondences';
 import { getCardById } from '../data/tarotDeck';
 import {
+  metalForPlanet,
+  planetForMetal,
+  scaleOfNature,
+} from '../lib/alchemy';
+import {
   primaryCorrespondenceLabel,
   searchCorrespondences,
 } from '../lib/correspondences';
+import type { PlanetId } from '../lib/planetaryHours';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
+
+const PLANET_IDS = new Set<string>([
+  'Sun',
+  'Moon',
+  'Mars',
+  'Mercury',
+  'Jupiter',
+  'Venus',
+  'Saturn',
+]);
 
 interface CorrespondencesModuleProps {
   onNavigate: (module: ModuleId, opts?: TreeNavigateOptions) => void;
@@ -230,6 +246,31 @@ function KeyDetailPanel({
     rows.push({ label: 'Color', value: keyData.color.join(', ') });
   }
   if (keyData.metal) rows.push({ label: 'Metal', value: keyData.metal });
+
+  const planetId =
+    keyData.planet && PLANET_IDS.has(keyData.planet)
+      ? (keyData.planet as PlanetId)
+      : keyData.metal
+        ? planetForMetal(keyData.metal)
+        : undefined;
+  const alchemyScale = planetId ? scaleOfNature(planetId) : null;
+  if (alchemyScale) {
+    if (!keyData.metal) {
+      rows.push({
+        label: 'Metal (classical)',
+        value: metalForPlanet(alchemyScale.planet),
+      });
+    }
+    rows.push({
+      label: 'Principle',
+      value: `${alchemyScale.principle.name} — ${alchemyScale.principle.aspect}`,
+    });
+    rows.push({
+      label: 'Opus stage',
+      value: `${alchemyScale.stage.name} (${alchemyScale.stage.colorOfWork})`,
+    });
+  }
+
   if (keyData.incense?.length) {
     rows.push({ label: 'Incense', value: keyData.incense.join(', ') });
   }
@@ -287,6 +328,13 @@ function KeyDetailPanel({
           </div>
         ))}
       </dl>
+
+      {alchemyScale && (
+        <p className="text-xs text-ananael-muted">
+          Hermetic hints: classical metal, Tria Prima, and opus stage from the
+          planetary key — study overlays, not Liber 777 columns.
+        </p>
+      )}
 
       {deityRows.length > 0 && (
         <div className="border-t border-ananael-border/40 pt-4">

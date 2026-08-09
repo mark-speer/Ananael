@@ -2,6 +2,11 @@
  * Shared journal types and entity suggestion helpers.
  */
 
+import {
+  CLASSICAL_METALS,
+  OPUS_STAGES,
+  TRIA_PRIMA,
+} from '../data/alchemy';
 import { CORRESPONDENCE_KEYS, flattenDeities } from '../data/correspondences';
 import { getHexagramsForKey } from '../data/ichingCorrespondences';
 import { GOETIA_SPIRITS } from '../data/arsGoetia';
@@ -31,6 +36,9 @@ export type JournalEntityKind =
   | 'incense'
   | 'stone'
   | 'plant'
+  | 'metal'
+  | 'principle'
+  | 'opusStage'
   | 'goetia'
   | 'tarot'
   | 'hexagram'
@@ -174,6 +182,13 @@ export function suggestJournalEntities(query: string, limit = 12): JournalEntity
         label: match.element,
       });
     }
+    if (match.metal) {
+      add({
+        kind: 'metal',
+        id: match.metal.toLowerCase(),
+        label: match.metal,
+      });
+    }
     for (const deity of flattenDeities(match.deities)) {
       add({
         kind: 'deity',
@@ -191,6 +206,41 @@ export function suggestJournalEntities(query: string, limit = 12): JournalEntity
   }
 
   const ql = q.toLowerCase();
+  for (const metal of CLASSICAL_METALS) {
+    if (results.length >= limit) break;
+    if (metal.toLowerCase().includes(ql)) {
+      add({ kind: 'metal', id: metal.toLowerCase(), label: metal });
+    }
+  }
+  for (const principle of TRIA_PRIMA) {
+    if (results.length >= limit) break;
+    if (
+      principle.name.toLowerCase().includes(ql) ||
+      principle.latin.toLowerCase().includes(ql) ||
+      principle.id.includes(ql)
+    ) {
+      add({
+        kind: 'principle',
+        id: principle.id,
+        label: principle.name,
+      });
+    }
+  }
+  for (const stage of OPUS_STAGES) {
+    if (results.length >= limit) break;
+    if (
+      stage.name.toLowerCase().includes(ql) ||
+      stage.id.includes(ql) ||
+      stage.colorOfWork.toLowerCase().includes(ql) ||
+      stage.keywords.some((k) => k.includes(ql))
+    ) {
+      add({
+        kind: 'opusStage',
+        id: stage.id,
+        label: stage.name,
+      });
+    }
+  }
   for (const spirit of GOETIA_SPIRITS) {
     if (results.length >= limit) break;
     if (

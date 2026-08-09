@@ -502,7 +502,7 @@ export default function JournalModule({
           <input
             value={entitySuggestQ}
             onChange={(e) => setEntitySuggestQ(e.target.value)}
-            placeholder="Add planet, sephirah, spirit…"
+            placeholder="Add planet, metal, stage, spirit…"
             className="mt-2 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
           />
           {entitySuggestQ.trim() && suggestions.length > 0 && (

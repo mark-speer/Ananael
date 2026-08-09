@@ -190,7 +190,10 @@ export const CENTER_GLYPH_GROUPS: {
       'alchemy_saturn',
     ],
   },
-  { label: 'Principles', kinds: ['alchemy_salt', 'alchemy_sulfur'] },
+  {
+    label: 'Principles',
+    kinds: ['alchemy_salt', 'alchemy_sulfur', 'alchemy_mercury'],
+  },
 ];
 
 const GLYPH_KIND_SET = new Set<string>(
