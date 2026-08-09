@@ -44,7 +44,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'planetary',
     title: 'Celestial Timing',
     description:
-      'Chaldean planetary hours, live ephemeris with retrogrades, Western / Hindu / Chinese zodiac, an Elections panel for explainable upcoming windows, and a Magical Almanac month view with day counsel, alchemical operation of the day, equinoxes/solstices, and lunation markers.',
+      'Chaldean planetary hours, live ephemeris with retrogrades, Western / Hindu / Chinese zodiac, an Elections panel for explainable upcoming windows, a Magical Almanac month view with day counsel and alchemical operation of the day, and signed-in chart bookmarks for place and moment.',
   },
   {
     id: 'translator',
@@ -68,7 +68,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'opus',
     title: 'Athanor',
     description:
-      'Hermetic alchemy chamber: opus stages (nigredo to rubedo), a vessel planner with metal and principle counsel, Emerald Tablet and Hermetica study cards, and deep-links into Almanac, Correspondences, Talisman, and the Magical Journal.',
+      'Hermetic alchemy chamber: opus stages (nigredo to rubedo), a vessel planner with saved designs and metal/principle counsel, Emerald Tablet and Hermetica study cards, active opus workings from the Journal, and deep-links into Almanac, Correspondences, and Talisman.',
   },
   {
     id: 'ritual',
@@ -80,7 +80,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'solomonic',
     title: 'Solomonic Circles',
     description:
-      'Build Goetia, Heptameron, and generic magician’s circles with Triangle of Art, Ars Goetia spirit selection, and labeled seal slots for classical Solomonic work.',
+      'Build Goetia, Heptameron, and generic magician’s circles with Triangle of Art, Ars Goetia spirit selection, and seal artwork in the Triangle slot for classical Solomonic work.',
   },
   {
     id: 'talisman',

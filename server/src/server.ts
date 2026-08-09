@@ -22,6 +22,8 @@ import ritualRoutes from './routes/ritual';
 import solomonicRoutes from './routes/solomonic';
 import journalRoutes from './routes/journal';
 import talismanRoutes from './routes/talisman';
+import planetaryRoutes from './routes/planetary';
+import opusRoutes from './routes/opus';
 import enochianRoutes from './routes/enochian';
 import liturgyRoutes from './routes/liturgy';
 
@@ -102,6 +104,8 @@ app.use('/api/ritual', ritualRoutes);
 app.use('/api/solomonic', solomonicRoutes);
 app.use('/api/journal', journalRoutes);
 app.use('/api/talisman', talismanRoutes);
+app.use('/api/planetary', planetaryRoutes);
+app.use('/api/opus', opusRoutes);
 app.use('/api/enochian', enochianRoutes);
 app.use('/api/liturgy', liturgyRoutes);
 

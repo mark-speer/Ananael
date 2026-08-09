@@ -29,6 +29,7 @@ import {
   type Weekday,
 } from '../data/solomonicCircles';
 import { apiFetch } from '../lib/api';
+import { goetiaSealAssetPath } from '../lib/goetiaSealArt';
 import CircleGlyph from './CircleGlyph';
 import CircleLayoutModal from './CircleLayoutModal';
 import {
@@ -78,6 +79,7 @@ export default function SolomonicCircleModule() {
   const [saving, setSaving] = useState(false);
   const [spiritFilter, setSpiritFilter] = useState('');
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
+  const [sealArtFailed, setSealArtFailed] = useState(false);
   const [exportTransparentBg, setExportTransparentBg] = useState(false);
 
   const layout = buildCircleLayout(config);
@@ -115,6 +117,27 @@ export default function SolomonicCircleModule() {
       setHistory([]);
     }
   }, [isAuthenticated, loadHistory]);
+
+  useEffect(() => {
+    const spirit = config.spiritId ? getSpiritById(config.spiritId) : undefined;
+    if (!spirit) {
+      setSealArtFailed(false);
+      return;
+    }
+    setSealArtFailed(false);
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => {
+      if (!cancelled) setSealArtFailed(false);
+    };
+    img.onerror = () => {
+      if (!cancelled) setSealArtFailed(true);
+    };
+    img.src = goetiaSealAssetPath(spirit.sealRef);
+    return () => {
+      cancelled = true;
+    };
+  }, [config.spiritId]);
 
   const markDirty = () => {
     setDirty(true);
@@ -264,6 +287,26 @@ export default function SolomonicCircleModule() {
       bg.setAttribute('fill', '#0c0a12');
       clone.insertBefore(bg, clone.firstChild);
     }
+
+    // Inline external seal <image> hrefs so PNG rasterization stays same-origin.
+    const images = Array.from(clone.querySelectorAll('image'));
+    await Promise.all(
+      images.map(async (el) => {
+        const href =
+          el.getAttribute('href') || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+        if (!href || href.startsWith('data:')) return;
+        try {
+          const res = await fetch(href);
+          if (!res.ok) return;
+          const text = await res.text();
+          const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
+          el.setAttribute('href', dataUrl);
+          el.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
+        } catch {
+          /* leave href; seal may omit from export */
+        }
+      })
+    );
 
     const xml = new XMLSerializer().serializeToString(clone);
     const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
@@ -814,36 +857,62 @@ export default function SolomonicCircleModule() {
                       stroke="#7c5cbf"
                       strokeWidth={1.5}
                     />
-                    <text
-                      x={triangle.center.x}
-                      y={triangle.center.y - sealSize * 0.22}
-                      textAnchor="middle"
-                      fill="#a78bfa"
-                      fontSize={9}
-                      fontFamily="Cinzel, Georgia, serif"
-                    >
-                      #{selectedSpirit.number}
-                    </text>
-                    <text
-                      x={triangle.center.x}
-                      y={triangle.center.y + 2}
-                      textAnchor="middle"
-                      fill="#c9a227"
-                      fontSize={10}
-                      fontFamily="Cinzel, Georgia, serif"
-                    >
-                      {selectedSpirit.name}
-                    </text>
-                    <text
-                      x={triangle.center.x}
-                      y={triangle.center.y + sealSize * 0.28}
-                      textAnchor="middle"
-                      fill="#71717a"
-                      fontSize={7}
-                      fontFamily="ui-monospace, monospace"
-                    >
-                      {selectedSpirit.sealRef}
-                    </text>
+                    {!sealArtFailed ? (
+                      <>
+                        <image
+                          href={goetiaSealAssetPath(selectedSpirit.sealRef)}
+                          x={triangle.center.x - sealSize * 0.42}
+                          y={triangle.center.y - sealSize * 0.42}
+                          width={sealSize * 0.84}
+                          height={sealSize * 0.84}
+                          preserveAspectRatio="xMidYMid meet"
+                          onError={() => setSealArtFailed(true)}
+                        />
+                        <text
+                          x={triangle.center.x}
+                          y={triangle.center.y + sealSize * 0.46}
+                          textAnchor="middle"
+                          fill="#a78bfa"
+                          fontSize={8}
+                          fontFamily="Cinzel, Georgia, serif"
+                        >
+                          {selectedSpirit.name}
+                        </text>
+                      </>
+                    ) : (
+                      <>
+                        <text
+                          x={triangle.center.x}
+                          y={triangle.center.y - sealSize * 0.22}
+                          textAnchor="middle"
+                          fill="#a78bfa"
+                          fontSize={9}
+                          fontFamily="Cinzel, Georgia, serif"
+                        >
+                          #{selectedSpirit.number}
+                        </text>
+                        <text
+                          x={triangle.center.x}
+                          y={triangle.center.y + 2}
+                          textAnchor="middle"
+                          fill="#c9a227"
+                          fontSize={10}
+                          fontFamily="Cinzel, Georgia, serif"
+                        >
+                          {selectedSpirit.name}
+                        </text>
+                        <text
+                          x={triangle.center.x}
+                          y={triangle.center.y + sealSize * 0.28}
+                          textAnchor="middle"
+                          fill="#71717a"
+                          fontSize={7}
+                          fontFamily="ui-monospace, monospace"
+                        >
+                          {selectedSpirit.sealRef}
+                        </text>
+                      </>
+                    )}
                   </g>
                 )}
               </g>

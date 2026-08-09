@@ -87,6 +87,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const [workings, setWorkings] = useState<JournalEntry[]>([]);
   const [workingsError, setWorkingsError] = useState<string | null>(null);
   const [workingsLoading, setWorkingsLoading] = useState(false);
+  const [vesselCount, setVesselCount] = useState(0);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
 
   const refreshSky = useCallback(() => {
@@ -124,6 +125,16 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     [now]
   );
 
+  const opusWorkingCount = useMemo(
+    () =>
+      workings.filter(
+        (w) =>
+          w.tags?.includes('opus') ||
+          w.entities?.some((e) => e.kind === 'opusStage')
+      ).length,
+    [workings]
+  );
+
   const requestGeo = () => {
     setGeoStatus(null);
     if (!navigator.geolocation) {
@@ -155,6 +166,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const loadWorkings = useCallback(async () => {
     if (!isAuthenticated) {
       setWorkings([]);
+      setVesselCount(0);
       return;
     }
     setWorkingsLoading(true);
@@ -174,6 +186,15 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
       setWorkings([]);
     } finally {
       setWorkingsLoading(false);
+    }
+    try {
+      const vRes = await apiFetch('/api/opus/vessels');
+      if (vRes.ok) {
+        const vData = (await vRes.json()) as { vessels?: unknown[] };
+        setVesselCount((vData.vessels ?? []).length);
+      }
+    } catch {
+      setVesselCount(0);
     }
   }, [isAuthenticated]);
 
@@ -560,6 +581,16 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           <p className="mt-2 text-xs text-zinc-400">
             {dayCounsel.alchemyTheme}
           </p>
+          {isAuthenticated && (
+            <p className="mt-2 text-xs text-ananael-muted">
+              {vesselCount > 0
+                ? `${vesselCount} saved vessel${vesselCount === 1 ? '' : 's'}`
+                : 'No saved vessels yet'}
+              {' · '}
+              {opusWorkingCount} active opus working
+              {opusWorkingCount === 1 ? '' : 's'}
+            </p>
+          )}
           <div className="mt-4 flex flex-wrap gap-2">
             <TileLink
               label="Vessel"

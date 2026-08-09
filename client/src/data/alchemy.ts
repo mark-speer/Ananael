@@ -209,6 +209,27 @@ export const EMERALD_TABLET_LINES: EmblemLine[] = [
     gloss: 'Circulation of the work — exalt, then fix what was volatile.',
     stageId: 'citrinitas',
   },
+  {
+    id: 'emerald-7',
+    title: 'Force of all force',
+    body: 'By this means you shall have the glory of the whole world, and thereby all obscurity shall fly from you. Its force is above all force, for it vanquishes every subtle thing and penetrates every solid thing.',
+    gloss: 'The perfected work clarifies judgment and softens what was rigid.',
+    stageId: 'rubedo',
+  },
+  {
+    id: 'emerald-8',
+    title: 'So was the world created',
+    body: 'So was the world created. From this are and do come admirable adaptations, whereof the means is here in this.',
+    gloss: 'Cosmogony as template: the vessel reenacts the making of the world.',
+    stageId: 'nigredo',
+  },
+  {
+    id: 'emerald-9',
+    title: 'Hermes Trismegistus',
+    body: 'Therefore am I called Hermes Trismegistus, having the three parts of the philosophy of the whole world. That which I have said of the operation of the Sun is accomplished and ended.',
+    gloss: 'Three parts — Salt, Sulfur, Mercury — crown the solar operation.',
+    stageId: 'rubedo',
+  },
 ];
 
 /** Poimandres / Corpus Hermeticum outline cards (study, not full text). */
@@ -241,6 +262,27 @@ export const HERMETICA_OUTLINES: EmblemLine[] = [
     gloss: 'Planetary hours and metals as stations on a ladder of return.',
     stageId: 'rubedo',
   },
+  {
+    id: 'hermetica-nous',
+    title: 'Corpus Hermeticum — Nous',
+    body: 'Mind is not taught by argument alone; it is kindled when the student becomes still enough to receive the Word.',
+    gloss: 'Meditation before operation — cool the vessel of attention.',
+    stageId: 'albedo',
+  },
+  {
+    id: 'hermetica-silence',
+    title: 'Asclepius — holy silence',
+    body: 'After discourse, the wise keep silence; the mysteries are guarded by reverence more than by speech.',
+    gloss: 'Seal the working; do not dissipate the coagulate in idle talk.',
+    stageId: 'rubedo',
+  },
+  {
+    id: 'hermetica-sympathy',
+    title: 'Hermetica — sympathy of natures',
+    body: 'Like draws like across the chain of being; herbs, stones, and stars answer one another.',
+    gloss: 'Correspondences are the grammar of election and materia.',
+    stageId: 'citrinitas',
+  },
 ];
 
 /** Emblem themes keyed to stages for the Emblem pane. */
@@ -272,5 +314,33 @@ export const STAGE_EMBLEMS: EmblemLine[] = [
     body: 'The bird reborn in flame and the red king crowned — union of sun and moon.',
     gloss: 'Rubedo image: the stone that tinctures.',
     stageId: 'rubedo',
+  },
+  {
+    id: 'emblem-ouroboros',
+    title: 'The Ouroboros',
+    body: 'The serpent that eats its tail — circulation without waste, end joined to beginning.',
+    gloss: 'Nigredo / rubedo hinge: putrefaction as the seed of return.',
+    stageId: 'nigredo',
+  },
+  {
+    id: 'emblem-hermaphrodite',
+    title: 'The Rebis',
+    body: 'Two-headed figure, sun and moon crowned — the union of opposites in one body.',
+    gloss: 'Rubedo image: fixed and volatile wedded.',
+    stageId: 'rubedo',
+  },
+  {
+    id: 'emblem-bath',
+    title: 'The Philosophical Bath',
+    body: 'King and queen washed in a sealed fountain — dissolution under gentle heat.',
+    gloss: 'Albedo image: washing without scattering the spirit.',
+    stageId: 'albedo',
+  },
+  {
+    id: 'emblem-green-lion',
+    title: 'The Green Lion',
+    body: 'The lion devouring the sun — crude vitriol and the eating of imperfect gold.',
+    gloss: 'Citrinitas / nigredo edge: fierce solvent before the dawn.',
+    stageId: 'citrinitas',
   },
 ];

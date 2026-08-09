@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <circle cx="100" cy="100" r="78" stroke="#e8c547" stroke-width="2"/>
+  <circle cx="100" cy="100" r="72" stroke="#c4a035" stroke-width="1"/>
+  <line x1="114.74" y1="89.68" x2="144.23" y2="69.03" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="115.10" y1="109.80" x2="145.29" y2="129.41" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="102.19" y1="117.87" x2="106.58" y2="153.60" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="85.62" y1="110.83" x2="56.87" y2="132.50" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="84.11" y1="91.55" x2="52.32" y2="74.65" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="97.81" y1="82.13" x2="93.42" y2="46.40" stroke="#c4a035" stroke-width="1.2"/>
+  <path d="M 140.10 79.57 A 45 45 0 0 1 134.97 128.32" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 97.23 152.93 A 53 53 0 0 1 60.00 134.77" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 48.84 66.78 A 61 61 0 0 1 89.41 39.93" stroke="#c4a035" stroke-width="1.1"/>
+  <polygon points="146.32,65.09 133.99,99.41 147.51,133.27 111.07,132.15 83.04,155.47 72.85,120.46 42.01,101.01 72.15,80.50 81.12,45.16 109.94,67.49" stroke="#e8c547" stroke-width="1.6"/>
+  <circle cx="100" cy="100" r="10" stroke="#e8c547" stroke-width="1.4"/>
+  <circle cx="122.36" cy="83.15" r="2.2" fill="#e8c547"/>
+  <circle cx="111.83" cy="125.38" r="2.2" fill="#e8c547"/>
+  <circle cx="72.72" cy="106.30" r="2.2" fill="#e8c547"/>
+  <circle cx="99.51" cy="72.00" r="2.2" fill="#e8c547"/>
+  <circle cx="127.49" cy="105.34" r="2.2" fill="#e8c547"/>
+  <circle cx="89.06" cy="125.77" r="2.2" fill="#e8c547"/>
+  <text x="100" y="104" text-anchor="middle" fill="#e8c547" font-family="Cinzel, Georgia, serif" font-size="11">7</text>
+</svg>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <circle cx="100" cy="100" r="78" stroke="#e8c547" stroke-width="2"/>
+  <circle cx="100" cy="100" r="72" stroke="#c4a035" stroke-width="1"/>
+  <line x1="106.74" y1="83.31" x2="120.23" y2="49.93" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="116.44" y1="92.68" x2="149.33" y2="78.04" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="115.59" y1="109.00" x2="146.77" y2="127.00" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="106.45" y1="116.80" x2="119.35" y2="150.41" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="92.97" y1="116.57" x2="78.90" y2="149.71" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="82.88" y1="105.56" x2="48.64" y2="116.69" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="84.26" y1="91.27" x2="52.77" y2="73.82" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="95.34" y1="82.61" x2="86.02" y2="47.84" stroke="#c4a035" stroke-width="1.2"/>
+  <path d="M 122.50 61.03 A 45 45 0 0 1 144.94 102.36" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 145.90 126.50 A 53 53 0 0 1 116.38 150.41" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 69.50 152.83 A 61 61 0 0 1 41.36 116.81" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 40.24 65.50 A 69 69 0 0 1 88.02 32.05" stroke="#c4a035" stroke-width="1.1"/>
+  <polygon points="119.84,45.50 125.06,75.56 154.98,81.53 134.73,104.35 148.72,131.47 118.25,129.87 105.77,157.71 88.03,132.89 58.48,140.50 66.82,111.15 42.45,92.79 70.60,81.01 69.76,50.51 96.52,65.17" stroke="#e8c547" stroke-width="1.6"/>
+  <circle cx="100" cy="100" r="10" stroke="#e8c547" stroke-width="1.4"/>
+  <circle cx="109.92" cy="72.75" r="2.2" fill="#e8c547"/>
+  <circle cx="124.59" cy="115.37" r="2.2" fill="#e8c547"/>
+  <circle cx="79.85" cy="120.86" r="2.2" fill="#e8c547"/>
+  <circle cx="83.78" cy="75.96" r="2.2" fill="#e8c547"/>
+  <circle cx="126.89" cy="89.14" r="2.2" fill="#e8c547"/>
+  <circle cx="105.04" cy="128.56" r="2.2" fill="#e8c547"/>
+  <text x="100" y="104" text-anchor="middle" fill="#e8c547" font-family="Cinzel, Georgia, serif" font-size="11">59</text>
+</svg>

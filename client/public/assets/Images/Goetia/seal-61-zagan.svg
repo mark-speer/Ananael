@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <circle cx="100" cy="100" r="78" stroke="#e8c547" stroke-width="2"/>
+  <circle cx="100" cy="100" r="72" stroke="#c4a035" stroke-width="1"/>
+  <line x1="102.82" y1="82.22" x2="109.23" y2="41.73" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="117.90" y1="98.12" x2="158.68" y2="93.83" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="107.61" y1="116.31" x2="124.93" y2="153.47" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="86.01" y1="111.33" x2="54.15" y2="137.13" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="84.57" y1="90.73" x2="49.43" y2="69.61" stroke="#c4a035" stroke-width="1.2"/>
+  <path d="M 112.40 56.74 A 45 45 0 0 1 141.11 81.70" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 136.82 138.13 A 53 53 0 0 1 81.87 149.80" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 40.81 114.76 A 61 61 0 0 1 49.43 65.89" stroke="#c4a035" stroke-width="1.1"/>
+  <polygon points="106.59,37.35 128.75,76.72 162.65,106.59 123.28,128.75 93.41,162.65 71.25,123.28 37.35,93.41 76.72,71.25" stroke="#e8c547" stroke-width="1.6"/>
+  <circle cx="100" cy="100" r="10" stroke="#e8c547" stroke-width="1.4"/>
+  <circle cx="103.24" cy="69.17" r="2.2" fill="#e8c547"/>
+  <circle cx="111.11" cy="128.94" r="2.2" fill="#e8c547"/>
+  <circle cx="76.96" cy="79.26" r="2.2" fill="#e8c547"/>
+  <circle cx="129.94" cy="108.02" r="2.2" fill="#e8c547"/>
+  <text x="100" y="104" text-anchor="middle" fill="#e8c547" font-family="Cinzel, Georgia, serif" font-size="11">61</text>
+</svg>

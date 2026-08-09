@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <circle cx="100" cy="100" r="78" stroke="#e8c547" stroke-width="2"/>
+  <circle cx="100" cy="100" r="72" stroke="#c4a035" stroke-width="1"/>
+  <line x1="116.44" y1="92.68" x2="150.25" y2="77.63" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="117.47" y1="104.35" x2="153.37" y2="113.31" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="108.73" y1="115.74" x2="126.66" y2="148.10" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="95.04" y1="117.30" x2="84.84" y2="152.87" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="85.08" y1="110.07" x2="54.40" y2="130.76" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="82.53" y1="95.65" x2="46.63" y2="86.69" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="91.27" y1="84.26" x2="73.34" y2="51.90" stroke="#c4a035" stroke-width="1.2"/>
+  <line x1="104.05" y1="82.46" x2="112.37" y2="46.41" stroke="#c4a035" stroke-width="1.2"/>
+  <path d="M 141.11 81.70 A 45 45 0 0 1 139.73 121.13" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 94.46 152.71 A 53 53 0 0 1 50.20 118.13" stroke="#c4a035" stroke-width="1.1"/>
+  <path d="M 50.65 64.15 A 61 61 0 0 1 101.06 39.01" stroke="#c4a035" stroke-width="1.1"/>
+  <polygon points="148.91,67.01 128.70,95.82 156.29,117.67 121.16,119.83 121.28,155.03 97.69,128.91 70.25,150.95 75.96,116.22 41.62,108.50 72.33,91.31 56.95,59.65 89.54,72.95 104.70,41.19 114.63,74.96" stroke="#e8c547" stroke-width="1.6"/>
+  <circle cx="100" cy="100" r="10" stroke="#e8c547" stroke-width="1.4"/>
+  <circle cx="119.07" cy="87.14" r="2.2" fill="#e8c547"/>
+  <circle cx="108.62" cy="121.33" r="2.2" fill="#e8c547"/>
+  <circle cx="77.35" cy="103.99" r="2.2" fill="#e8c547"/>
+  <circle cx="100.80" cy="77.01" r="2.2" fill="#e8c547"/>
+  <circle cx="122.32" cy="105.56" r="2.2" fill="#e8c547"/>
+  <circle cx="89.92" cy="120.67" r="2.2" fill="#e8c547"/>
+  <text x="100" y="104" text-anchor="middle" fill="#e8c547" font-family="Cinzel, Georgia, serif" font-size="11">19</text>
+</svg>

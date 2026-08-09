@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CLASSICAL_METALS,
   EMERALD_TABLET_LINES,
@@ -26,11 +26,27 @@ import {
 } from '../lib/alchemicalGlyphPaths';
 import { apiFetch } from '../lib/api';
 import { buildDayCounsel } from '../lib/almanac';
+import type { JournalEntry } from '../lib/journal';
 import { buildJournalSky } from '../lib/journalSky';
 import { getMoonPhase } from '../lib/moonPhase';
 import { DAY_RULERS, type PlanetId } from '../lib/planetaryHours';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
+
+interface SavedVessel {
+  _id: string;
+  name: string;
+  date: string;
+  config: Record<string, unknown>;
+  notes?: string;
+}
+
+const STAGE_IDS: OpusStageId[] = [
+  'nigredo',
+  'albedo',
+  'citrinitas',
+  'rubedo',
+];
 
 export type OpusPaneId = 'stages' | 'vessel' | 'emblem';
 
@@ -111,12 +127,67 @@ export default function AlchemyModule({
   );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [vesselSaving, setVesselSaving] = useState(false);
+  const [vesselName, setVesselName] = useState('Untitled vessel');
+  const [savedVesselId, setSavedVesselId] = useState<string | null>(null);
+  const [vessels, setVessels] = useState<SavedVessel[]>([]);
+  const [opusWorkings, setOpusWorkings] = useState<JournalEntry[]>([]);
   const [emblemTab, setEmblemTab] = useState<'emerald' | 'hermetica' | 'emblems'>(
     'emerald'
   );
   const [scalePlanet, setScalePlanet] = useState<PlanetId>(
     DAY_RULERS[new Date().getDay()]
   );
+
+  const loadVessels = useCallback(async () => {
+    if (!isAuthenticated) {
+      setVessels([]);
+      return;
+    }
+    try {
+      const res = await apiFetch('/api/opus/vessels');
+      const data = (await res.json()) as {
+        vessels?: SavedVessel[];
+        message?: string;
+      };
+      if (!res.ok) throw new Error(data.message || 'Failed to load vessels');
+      setVessels(data.vessels ?? []);
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : 'Vessel history failed');
+    }
+  }, [isAuthenticated]);
+
+  const loadOpusWorkings = useCallback(async () => {
+    if (!isAuthenticated) {
+      setOpusWorkings([]);
+      return;
+    }
+    try {
+      const res = await apiFetch(
+        '/api/journal/entries?type=working&status=active&tag=opus'
+      );
+      const data = (await res.json()) as {
+        entries?: JournalEntry[];
+        message?: string;
+      };
+      if (!res.ok) throw new Error(data.message || 'Failed to load workings');
+      const entries = data.entries ?? [];
+      setOpusWorkings(
+        entries.filter(
+          (e) =>
+            e.tags?.includes('opus') ||
+            e.entities?.some((ent) => ent.kind === 'opusStage')
+        )
+      );
+    } catch {
+      setOpusWorkings([]);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    void loadVessels();
+    void loadOpusWorkings();
+  }, [loadVessels, loadOpusWorkings]);
 
   useEffect(() => {
     if (initialPane) setPane(initialPane);
@@ -151,6 +222,64 @@ export default function AlchemyModule({
     { id: 'vessel', label: 'Vessel' },
     { id: 'emblem', label: 'Emblem' },
   ];
+
+  const saveVessel = async () => {
+    if (!isAuthenticated || !vesselName.trim()) return;
+    setVesselSaving(true);
+    setStatus(null);
+    try {
+      const res = await apiFetch(
+        savedVesselId
+          ? `/api/opus/vessels/${savedVesselId}`
+          : '/api/opus/vessels',
+        {
+          method: savedVesselId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: vesselName.trim(),
+            config: {
+              intent,
+              materiaMetal,
+              targetStageId,
+            },
+          }),
+        }
+      );
+      const data = (await res.json()) as {
+        vessel?: SavedVessel;
+        message?: string;
+      };
+      if (!res.ok) throw new Error(data.message || 'Failed to save vessel');
+      setSavedVesselId(data.vessel?._id ?? savedVesselId);
+      setStatus(savedVesselId ? 'Vessel updated.' : 'Vessel saved.');
+      await loadVessels();
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : 'Vessel save failed');
+    } finally {
+      setVesselSaving(false);
+    }
+  };
+
+  const loadVessel = (v: SavedVessel) => {
+    const cfg = v.config ?? {};
+    if (typeof cfg.intent === 'string') setIntent(cfg.intent);
+    if (
+      typeof cfg.materiaMetal === 'string' &&
+      CLASSICAL_METALS.includes(cfg.materiaMetal as ClassicalMetal)
+    ) {
+      setMateriaMetal(cfg.materiaMetal as ClassicalMetal);
+    }
+    if (
+      typeof cfg.targetStageId === 'string' &&
+      STAGE_IDS.includes(cfg.targetStageId as OpusStageId)
+    ) {
+      setTargetStageId(cfg.targetStageId as OpusStageId);
+    }
+    setSavedVesselId(v._id);
+    setVesselName(v.name);
+    setStatus(null);
+    setPane('vessel');
+  };
 
   const logWorking = async () => {
     if (!isAuthenticated) return;
@@ -216,6 +345,7 @@ export default function AlchemyModule({
       const data = (await res.json()) as { message?: string };
       if (!res.ok) throw new Error(data.message || 'Failed to log working');
       setStatus('Working logged to Magical Journal.');
+      await loadOpusWorkings();
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Save failed');
     } finally {
@@ -268,6 +398,8 @@ export default function AlchemyModule({
           onScalePlanet={setScalePlanet}
           scale={scale}
           onNavigate={onNavigate}
+          opusWorkings={opusWorkings}
+          isAuthenticated={isAuthenticated}
         />
       )}
 
@@ -323,6 +455,63 @@ export default function AlchemyModule({
                 ))}
               </select>
             </label>
+            {isAuthenticated && (
+              <div className="space-y-2 border-t border-ananael-border/40 pt-4">
+                <label className="block text-sm text-ananael-muted">
+                  Vessel name
+                  <input
+                    value={vesselName}
+                    onChange={(e) => setVesselName(e.target.value)}
+                    maxLength={100}
+                    className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+                  />
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={vesselSaving || !vesselName.trim()}
+                    onClick={() => void saveVessel()}
+                    className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold hover:bg-ananael-gold/20 disabled:opacity-40"
+                  >
+                    {vesselSaving
+                      ? 'Saving…'
+                      : savedVesselId
+                        ? 'Update vessel'
+                        : 'Save vessel'}
+                  </button>
+                  {savedVesselId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSavedVesselId(null);
+                        setVesselName('Untitled vessel');
+                      }}
+                      className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300"
+                    >
+                      New
+                    </button>
+                  )}
+                </div>
+                {vessels.length > 0 && (
+                  <ul className="space-y-1 pt-1">
+                    {vessels.map((v) => (
+                      <li key={v._id}>
+                        <button
+                          type="button"
+                          onClick={() => loadVessel(v)}
+                          className="w-full rounded-md px-2 py-1.5 text-left text-xs text-zinc-300 hover:bg-ananael-bg hover:text-ananael-gold"
+                        >
+                          {v.name}
+                          <span className="ml-2 text-ananael-muted">
+                            {new Date(v.date).toLocaleDateString()}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </section>
 
           <section className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
@@ -458,6 +647,8 @@ function StagesPane({
   onScalePlanet,
   scale,
   onNavigate,
+  opusWorkings,
+  isAuthenticated,
 }: {
   stages: OpusStageDef[];
   selected: OpusStageDef;
@@ -467,8 +658,17 @@ function StagesPane({
   onScalePlanet: (p: PlanetId) => void;
   scale: ReturnType<typeof scaleOfNature>;
   onNavigate: (module: ModuleId, opts?: AlchemyNavigateOptions) => void;
+  opusWorkings: JournalEntry[];
+  isAuthenticated: boolean;
 }) {
   const principle = getPrinciple(selected.relatedPrinciple);
+  const stageWorkings = opusWorkings.filter(
+    (e) =>
+      e.tags?.includes(selectedId) ||
+      e.entities?.some(
+        (ent) => ent.kind === 'opusStage' && ent.id === selectedId
+      )
+  );
   return (
     <div className="grid gap-6 lg:grid-cols-[14rem_1fr]">
       <ul className="space-y-1">
@@ -517,6 +717,35 @@ function StagesPane({
           <p className="mt-2 text-xs text-ananael-muted">
             Operations: {selected.operations.join(', ')}
           </p>
+          {isAuthenticated && (
+            <div className="mt-4 border-t border-ananael-border/40 pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-[11px] uppercase tracking-wider text-ananael-violet">
+                  Active opus workings
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('journal', { filter: 'working' })}
+                  className="text-xs text-ananael-gold underline"
+                >
+                  Journal
+                </button>
+              </div>
+              {stageWorkings.length === 0 ? (
+                <p className="mt-2 text-xs text-ananael-muted">
+                  No active workings tagged for this stage. Log one from Vessel.
+                </p>
+              ) : (
+                <ul className="mt-2 space-y-1">
+                  {stageWorkings.slice(0, 5).map((w) => (
+                    <li key={w._id} className="text-sm text-zinc-300">
+                      {w.title}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <p className="mt-2 text-xs text-zinc-400">
             Planets: {selected.planets.join(', ')} · Metals:{' '}
             {selected.planets.map((p) => metalForPlanet(p)).join(', ')}

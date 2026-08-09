@@ -18,12 +18,12 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 |----------------------|---------|--------------|
 | Tarot                | Active  | 1 (in Divination) |
 | Gematria             | Active  | 2a           |
-| Celestial Timing     | Active  | 2b+ / 13 / 17 |
+| Celestial Timing     | Active  | 2b+ / 13 / 17 / 22 |
 | Script Translator    | Active  | 2c           |
 | I Ching              | Active  | 3 (in Divination) |
 | Tree of Life         | Active  | 4a           |
 | Ritual Space Planner | Active  | 4b           |
-| Solomonic Circles    | Active  | 5–6          |
+| Solomonic Circles    | Active  | 5–6 / 21     |
 | Magical Journal      | Active  | 7            |
 | Magical OS Dashboard | Active  | 8            |
 | Divination portal    | Active  | 9–11         |
@@ -35,7 +35,11 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Ritual Library       | Active  | 15–16        |
 | Magical Almanac      | Active  | 17 (timing + OS) |
 | Hermetic Alchemy hooks | Active | 18 (cross-module) |
-| Athanor              | Active  | 19               |
+| Athanor              | Active  | 19 / 23          |
+| Docs sync            | Active  | 20           |
+| Goetia seal artwork  | Active  | 21           |
+| Timing chart bookmarks | Active  | 22         |
+| Athanor deepen       | Active  | 23           |
 
 ---
 
@@ -71,7 +75,7 @@ Ship in this order within the phase.
 - Ephemeris via `astronomy-engine`: Sun–Pluto longitudes, retrogrades, altitude; moon phase from the library
 - Western tropical, Hindu sidereal (Lahiri + Moon nakshatra), Chinese sexagenary pillars (year/month/day/hour)
 - Module UI: Hours / Planets / Zodiac panels (`CelestialTimingModule`); Magical OS + journal sky tags enriched
-- Optional later: `POST /api/planetary/save` for bookmarked charts
+- Chart bookmarks: see Phase 22 (`POST/GET/PUT /api/planetary/charts`)
 
 **Done when:** accurate hour table for a known lat/lon/date; clear current-hour state; ephemeris + three zodiac systems visible.
 
@@ -289,6 +293,58 @@ Dedicated hermetic alchemy chamber consuming the Phase 18 alchemy layer.
 - Splash feature card for Athanor
 
 **Done when:** sidebar Active; three panes; Magical OS tile; Vessel → Journal/Talisman/Correspondences deep-links; Emblem study content.
+
+---
+
+## Phase 20 — Docs & roadmap sync — Shipped
+
+Bring README / ROADMAP in line with shipped Phases 18–19 and document Phases 20–23.
+
+- README intro through Phase 19; Modules table includes Athanor and alchemy-aware Correspondences / Talisman / Ritual Library
+- ROADMAP module overview + Phase 20–23 sections
+- Splash copy verified for Athanor (Phase 19)
+
+**Done when:** README matches shipped modules through Athanor; ROADMAP documents Phases 20–23.
+
+---
+
+## Phase 21 — Goetia seal artwork — Shipped
+
+Replace the monospace `sealRef` label in Solomonic Circles with seal graphics.
+
+- Assets at `client/public/assets/Images/Goetia/{sealRef}.svg`, keyed by `arsGoetia.ts` `sealRef`
+- Simplified public-domain–style line-art SVGs for all 72 spirits (`lib/goetiaSealArt.ts` + generate script); missing file falls back to labeled frame
+- `SolomonicCircleModule` seal slot renders artwork; PNG export inlines seal images
+- No schema change — `spiritId` / `showSeal` already persist
+
+**Done when:** Seal On shows artwork (not `sealRef` text); PNG/JSON export and save/reload work; graceful fallback if an asset is absent.
+
+---
+
+## Phase 22 — Celestial Timing chart bookmarks — Shipped
+
+Auth-gated save/reload for timing charts.
+
+- Model `PlanetaryChart` + `POST/GET /api/planetary/charts`, `PUT /api/planetary/charts/:id`
+- `config`: `{ lat, lon, datetime, panel?, elections?, almanacCursor? }`
+- Celestial Timing UI: Save / recent list / load (signed-in); restore location + datetime + panel + election filters
+- Profile location (`PUT /api/auth/location`) unchanged for Magical OS / journal sky
+
+**Done when:** signed-in user can bookmark a chart and reload it; guest use unchanged.
+
+---
+
+## Phase 23 — Deepen Athanor — Shipped
+
+Vessel persistence, opus progress from journal, richer Emblem corpus.
+
+- `OpusVessel` model + `POST/GET/PUT /api/opus/vessels` with `config: { intent, materiaMetal, targetStageId }`
+- Vessel pane: Save / reload; keep Log working → journal
+- Stages pane: active journal `working` entries tagged `opus` / `opusStage`
+- Expanded Emerald Tablet / Hermetica / stage emblem static content
+- Magical OS Athanor tile reflects saved vessels or active opus workings
+
+**Done when:** signed-in vessel save/reload; Stages shows active opus workings; Emblem content expanded; Magical OS reflects progress.
 
 ---
 

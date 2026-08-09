@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 import {
   buildChinesePillars,
   formatPillar,
@@ -49,6 +50,22 @@ type TimingNavigateOptions = TreeNavigateOptions & {
   planetaryPanel?: PanelId;
   filter?: JournalEntryType | 'all';
 };
+
+interface SavedChart {
+  _id: string;
+  name: string;
+  date: string;
+  config: Record<string, unknown>;
+  notes?: string;
+}
+
+const PANEL_IDS: PanelId[] = [
+  'hours',
+  'planets',
+  'zodiac',
+  'elections',
+  'almanac',
+];
 
 function toDateInputValue(d: Date): string {
   const y = d.getFullYear();
@@ -112,10 +129,38 @@ export default function CelestialTimingModule({
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
   });
+  const [chartName, setChartName] = useState('Untitled chart');
+  const [chartNotes, setChartNotes] = useState('');
+  const [savedChartId, setSavedChartId] = useState<string | null>(null);
+  const [savedCharts, setSavedCharts] = useState<SavedChart[]>([]);
+  const [chartSaving, setChartSaving] = useState(false);
+  const [chartStatus, setChartStatus] = useState<string | null>(null);
 
   useEffect(() => {
     setPanel(initialPanel);
   }, [initialPanel]);
+
+  const loadChartHistory = useCallback(async () => {
+    if (!isAuthenticated) {
+      setSavedCharts([]);
+      return;
+    }
+    try {
+      const res = await apiFetch('/api/planetary/charts');
+      const data = (await res.json()) as {
+        charts?: SavedChart[];
+        message?: string;
+      };
+      if (!res.ok) throw new Error(data.message || 'Failed to load charts');
+      setSavedCharts(data.charts ?? []);
+    } catch (err) {
+      setChartStatus(err instanceof Error ? err.message : 'History failed');
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    void loadChartHistory();
+  }, [loadChartHistory]);
 
   const lat = Number(latitude);
   const lon = Number(longitude);
@@ -343,6 +388,113 @@ export default function CelestialTimingModule({
     setAlmanacCursor({ year: d.getFullYear(), month: d.getMonth() });
   };
 
+  const chartConfig = () => ({
+    lat,
+    lon,
+    datetime: referenceNow.toISOString(),
+    panel,
+    elections: {
+      day: electionDay,
+      hour: electionHour,
+      moon: electionMoon,
+      avoidRetro,
+    },
+    almanacCursor,
+  });
+
+  const saveChart = async () => {
+    if (!isAuthenticated || !chartName.trim() || !coordsValid) return;
+    setChartSaving(true);
+    setChartStatus(null);
+    try {
+      const res = await apiFetch(
+        savedChartId
+          ? `/api/planetary/charts/${savedChartId}`
+          : '/api/planetary/charts',
+        {
+          method: savedChartId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: chartName.trim(),
+            config: chartConfig(),
+            notes: chartNotes.trim(),
+          }),
+        }
+      );
+      const data = (await res.json()) as {
+        chart?: SavedChart;
+        message?: string;
+      };
+      if (!res.ok) throw new Error(data.message || 'Save failed');
+      setSavedChartId(data.chart?._id ?? savedChartId);
+      setChartStatus(savedChartId ? 'Chart updated.' : 'Chart saved.');
+      await loadChartHistory();
+    } catch (err) {
+      setChartStatus(err instanceof Error ? err.message : 'Save failed');
+    } finally {
+      setChartSaving(false);
+    }
+  };
+
+  const loadChart = (saved: SavedChart) => {
+    const cfg = saved.config ?? {};
+    if (typeof cfg.lat === 'number' && Number.isFinite(cfg.lat)) {
+      setCoordsTouched(true);
+      setLatitude(String(cfg.lat));
+    }
+    if (typeof cfg.lon === 'number' && Number.isFinite(cfg.lon)) {
+      setCoordsTouched(true);
+      setLongitude(String(cfg.lon));
+    }
+    if (typeof cfg.datetime === 'string') {
+      const d = new Date(cfg.datetime);
+      if (!Number.isNaN(d.getTime())) {
+        setDateStr(toDateInputValue(d));
+        setTimeStr(toTimeInputValue(d));
+        setAlmanacCursor({ year: d.getFullYear(), month: d.getMonth() });
+      }
+    }
+    if (
+      typeof cfg.panel === 'string' &&
+      PANEL_IDS.includes(cfg.panel as PanelId)
+    ) {
+      setPanel(cfg.panel as PanelId);
+    }
+    const el =
+      cfg.elections && typeof cfg.elections === 'object'
+        ? (cfg.elections as Record<string, unknown>)
+        : null;
+    if (el) {
+      if (el.day === 'any' || typeof el.day === 'string') {
+        setElectionDay(el.day as PlanetId | 'any');
+      }
+      if (typeof el.hour === 'string') {
+        setElectionHour(el.hour as PlanetId);
+      }
+      if (typeof el.moon === 'string') {
+        setElectionMoon(el.moon as ElectionFilters['moon']);
+      }
+      if (el.avoidRetro === 'none' || typeof el.avoidRetro === 'string') {
+        setAvoidRetro(el.avoidRetro as PlanetId | 'none');
+      }
+    }
+    const cursor =
+      cfg.almanacCursor && typeof cfg.almanacCursor === 'object'
+        ? (cfg.almanacCursor as { year?: number; month?: number })
+        : null;
+    if (
+      cursor &&
+      typeof cursor.year === 'number' &&
+      typeof cursor.month === 'number'
+    ) {
+      setAlmanacCursor({ year: cursor.year, month: cursor.month });
+    }
+    setSavedChartId(saved._id);
+    setChartName(saved.name);
+    setChartNotes(saved.notes ?? '');
+    setChartStatus(null);
+  };
+
   return (
     <div className="space-y-8">
       <header>
@@ -354,8 +506,8 @@ export default function CelestialTimingModule({
           elections, and a Magical Almanac for your place and moment.
           Calculations run in your browser
           {isAuthenticated
-            ? '; location is saved to your account for Magical OS and journal sky tags.'
-            : '; sign in to save location to your account.'}
+            ? '; location syncs to your account, and you can bookmark charts.'
+            : '; sign in to save location and bookmark charts.'}
         </p>
       </header>
 
@@ -423,6 +575,86 @@ export default function CelestialTimingModule({
         </button>
         {geoStatus && <p className="text-xs text-zinc-500">{geoStatus}</p>}
       </div>
+
+      {isAuthenticated && (
+        <section className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface/60 p-4">
+          <h2 className="font-display text-sm tracking-wide text-ananael-gold">
+            Bookmark chart
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <label className="block text-sm text-ananael-muted">
+              Name
+              <input
+                type="text"
+                value={chartName}
+                onChange={(e) => setChartName(e.target.value)}
+                maxLength={100}
+                className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={chartSaving || !chartName.trim() || !coordsValid}
+                onClick={() => void saveChart()}
+                className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-2 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20 disabled:opacity-40"
+              >
+                {chartSaving ? 'Saving…' : savedChartId ? 'Update' : 'Save'}
+              </button>
+              {savedChartId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSavedChartId(null);
+                    setChartName('Untitled chart');
+                    setChartNotes('');
+                    setChartStatus(null);
+                  }}
+                  className="rounded-md border border-ananael-border/70 px-3 py-2 text-xs text-zinc-300"
+                >
+                  New
+                </button>
+              )}
+            </div>
+          </div>
+          <label className="block text-sm text-ananael-muted">
+            Notes
+            <input
+              type="text"
+              value={chartNotes}
+              onChange={(e) => setChartNotes(e.target.value)}
+              maxLength={500}
+              className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+            />
+          </label>
+          {chartStatus && (
+            <p className="text-xs text-ananael-muted">{chartStatus}</p>
+          )}
+          {savedCharts.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs uppercase tracking-wider text-ananael-muted">
+                Recent charts
+              </p>
+              <ul className="space-y-1">
+                {savedCharts.map((c) => (
+                  <li key={c._id}>
+                    <button
+                      type="button"
+                      onClick={() => loadChart(c)}
+                      className="w-full rounded-md border border-transparent px-2 py-1.5 text-left text-sm text-zinc-300 transition hover:border-ananael-border hover:bg-ananael-bg hover:text-ananael-gold"
+                    >
+                      <span className="font-medium">{c.name}</span>
+                      <span className="ml-2 text-xs text-ananael-muted">
+                        {new Date(c.date).toLocaleString()}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Summary strip */}
       <div className="flex flex-wrap gap-4 rounded-xl border border-ananael-border/50 bg-ananael-surface px-3 py-4 text-sm sm:gap-6 sm:px-6">
