@@ -18,7 +18,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 |----------------------|---------|--------------|
 | Tarot                | Active  | 1 (in Divination) |
 | Gematria             | Active  | 2a           |
-| Celestial Timing     | Active  | 2b+ / 13     |
+| Celestial Timing     | Active  | 2b+ / 13 / 17 |
 | Script Translator    | Active  | 2c           |
 | I Ching              | Active  | 3 (in Divination) |
 | Tree of Life         | Active  | 4a           |
@@ -33,6 +33,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Elections            | Active  | 13 (timing)  |
 | Enochian             | Active  | 14           |
 | Ritual Library       | Active  | 15–16        |
+| Magical Almanac      | Active  | 17 (timing + OS) |
 
 ---
 
@@ -244,6 +245,19 @@ Deepen the Phase 15 corpus and broaden traditions:
 - `GET /api/liturgy/rites` catalog synced to the full id set
 
 **Done when:** ~14 searchable rites with expanded steps; notes/sources visible; template deep-link works; docs/catalog updated.
+
+---
+
+## Phase 17 — Magical Almanac — Shipped
+
+Month calendar and day counsel through a magical lens, shared between Magical OS and Celestial Timing.
+
+- Client lib `client/src/lib/almanac.ts`: month day summaries, day counsel (day ruler + moon themes), season/lunation markers
+- Ephemeris helpers: equinoxes/solstices + quarter lunations via `astronomy-engine`
+- Celestial Timing **Almanac** panel: navigable month grid, selected-day counsel, hour hints, deep-links to Hours / Elections / Ritual Library / Journal
+- Magical OS Almanac tile + Sky clock Almanac / Elections deep-links (`planetaryPanel: 'almanac'`)
+
+**Done when:** Almanac panel + Magical OS tile; month grid; day counsel; season + lunation markers; deep-link opens Almanac tab.
 
 ---
 

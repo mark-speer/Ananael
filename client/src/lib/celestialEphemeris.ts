@@ -10,9 +10,12 @@ import {
   Horizon,
   Illumination,
   MoonPhase,
+  NextMoonQuarter,
   Observer,
   RotateVector,
   Rotation_EQJ_ECT,
+  SearchMoonQuarter,
+  Seasons,
   SphereFromVector,
   SunPosition,
   EclipticGeoMoon,
@@ -239,4 +242,91 @@ export function getBody(
   id: CelestialBodyId
 ): BodyPosition | undefined {
   return snapshot.bodies.find((b) => b.id === id);
+}
+
+export type SeasonMarkerKind =
+  | 'march_equinox'
+  | 'june_solstice'
+  | 'september_equinox'
+  | 'december_solstice';
+
+export interface SeasonMarker {
+  kind: SeasonMarkerKind;
+  label: string;
+  when: Date;
+}
+
+export type LunationQuarter = 'new' | 'first_quarter' | 'full' | 'last_quarter';
+
+export interface LunationMarker {
+  quarter: LunationQuarter;
+  label: string;
+  when: Date;
+}
+
+const SEASON_META: {
+  key: 'mar_equinox' | 'jun_solstice' | 'sep_equinox' | 'dec_solstice';
+  kind: SeasonMarkerKind;
+  label: string;
+}[] = [
+  {
+    key: 'mar_equinox',
+    kind: 'march_equinox',
+    label: 'March equinox',
+  },
+  {
+    key: 'jun_solstice',
+    kind: 'june_solstice',
+    label: 'June solstice',
+  },
+  {
+    key: 'sep_equinox',
+    kind: 'september_equinox',
+    label: 'September equinox',
+  },
+  {
+    key: 'dec_solstice',
+    kind: 'december_solstice',
+    label: 'December solstice',
+  },
+];
+
+const LUNATION_LABELS: Record<number, { quarter: LunationQuarter; label: string }> =
+  {
+    0: { quarter: 'new', label: 'New Moon' },
+    1: { quarter: 'first_quarter', label: 'First Quarter' },
+    2: { quarter: 'full', label: 'Full Moon' },
+    3: { quarter: 'last_quarter', label: 'Last Quarter' },
+  };
+
+/** Equinoxes and solstices for a Gregorian calendar year (UTC instants). */
+export function getSeasonMarkers(year: number): SeasonMarker[] {
+  const info = Seasons(year);
+  return SEASON_META.map((m) => ({
+    kind: m.kind,
+    label: m.label,
+    when: info[m.key].date,
+  }));
+}
+
+/**
+ * Quarter lunations with `when` in [start, end).
+ * Uses astronomy-engine SearchMoonQuarter / NextMoonQuarter.
+ */
+export function getLunationMarkers(start: Date, end: Date): LunationMarker[] {
+  const out: LunationMarker[] = [];
+  if (!(start < end)) return out;
+
+  let mq = SearchMoonQuarter(new Date(start.getTime() - 1));
+  // Cap iterations so a bad loop cannot hang the UI.
+  for (let i = 0; i < 12; i++) {
+    const when = mq.time.date;
+    if (when >= end) break;
+    if (when >= start) {
+      const meta = LUNATION_LABELS[mq.quarter] ?? LUNATION_LABELS[0];
+      out.push({ quarter: meta.quarter, label: meta.label, when });
+    }
+    mq = NextMoonQuarter(mq);
+  }
+  return out;
 }

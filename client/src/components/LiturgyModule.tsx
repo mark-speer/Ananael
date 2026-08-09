@@ -11,7 +11,7 @@ import { buildJournalSky } from '../lib/journalSky';
 import type { ModuleId } from './Sidebar';
 
 export interface LiturgyNavigateOptions {
-  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections';
+  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
   filter?: 'working' | 'ritual' | 'all';
   ritualTemplate?: TemplateId;
 }

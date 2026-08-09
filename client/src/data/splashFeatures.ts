@@ -20,7 +20,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'dashboard',
     title: 'Magical OS',
     description:
-      'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues, quick tarot, active journal workings, Liber 777 correspondences search, and deep links into ritual builders—so the day’s conditions and tools stay in one view.',
+      'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues, a Magical Almanac tile for today’s counsel, quick tarot, active journal workings, Liber 777 correspondences search, and deep links into ritual builders—so the day’s conditions and tools stay in one view.',
   },
   {
     id: 'divination',
@@ -44,7 +44,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'planetary',
     title: 'Celestial Timing',
     description:
-      'Chaldean planetary hours, live ephemeris with retrogrades, Western / Hindu / Chinese zodiac, and an Elections panel for explainable upcoming windows from your place and moment.',
+      'Chaldean planetary hours, live ephemeris with retrogrades, Western / Hindu / Chinese zodiac, an Elections panel for explainable upcoming windows, and a Magical Almanac month view with day counsel, equinoxes/solstices, and lunation markers.',
   },
   {
     id: 'translator',

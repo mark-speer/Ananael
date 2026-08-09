@@ -24,16 +24,31 @@ import {
 } from '../lib/planetaryHours';
 import { loadPlanetaryLocation } from '../lib/planetaryLocation';
 import { WESTERN_SIGN_GLYPHS } from '../lib/westernZodiac';
+import type { JournalEntryType } from '../lib/journal';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
+import {
+  buildDayCounsel,
+  buildMonthDays,
+  dayRulerShort,
+  monthMarkers,
+  moonPhaseShort,
+  sameLocalDay,
+  type AlmanacMarker,
+} from '../lib/almanac';
 import {
   findElectionWindows,
   type ElectionFilters,
 } from '../lib/elections';
 
-type PanelId = 'hours' | 'planets' | 'zodiac' | 'elections';
+type PanelId = 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
 
 export type PlanetaryPanelId = PanelId;
+
+type TimingNavigateOptions = TreeNavigateOptions & {
+  planetaryPanel?: PanelId;
+  filter?: JournalEntryType | 'all';
+};
 
 function toDateInputValue(d: Date): string {
   const y = d.getFullYear();
@@ -67,10 +82,7 @@ function formatAlt(alt: number | undefined): string {
 
 interface CelestialTimingModuleProps {
   initialPanel?: PanelId;
-  onNavigate?: (
-    module: ModuleId,
-    opts?: TreeNavigateOptions & { planetaryPanel?: PanelId }
-  ) => void;
+  onNavigate?: (module: ModuleId, opts?: TimingNavigateOptions) => void;
 }
 
 /**
@@ -96,6 +108,10 @@ export default function CelestialTimingModule({
   const [electionMoon, setElectionMoon] =
     useState<ElectionFilters['moon']>('any');
   const [avoidRetro, setAvoidRetro] = useState<PlanetId | 'none'>('none');
+  const [almanacCursor, setAlmanacCursor] = useState(() => {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
 
   useEffect(() => {
     setPanel(initialPanel);
@@ -212,6 +228,7 @@ export default function CelestialTimingModule({
     { id: 'planets', label: 'Planets' },
     { id: 'zodiac', label: 'Zodiac' },
     { id: 'elections', label: 'Elections' },
+    { id: 'almanac', label: 'Almanac' },
   ];
 
   const electionWindows = useMemo(() => {
@@ -234,6 +251,98 @@ export default function CelestialTimingModule({
     avoidRetro,
   ]);
 
+  const almanacDays = useMemo(
+    () =>
+      buildMonthDays(
+        almanacCursor.year,
+        almanacCursor.month,
+        coordsValid ? lat : undefined,
+        coordsValid ? lon : undefined
+      ),
+    [almanacCursor.year, almanacCursor.month, coordsValid, lat, lon]
+  );
+
+  const almanacMarkers = useMemo(
+    () => monthMarkers(almanacCursor.year, almanacCursor.month),
+    [almanacCursor.year, almanacCursor.month]
+  );
+
+  const markersByDay = useMemo(() => {
+    const map = new Map<number, AlmanacMarker[]>();
+    for (const m of almanacMarkers) {
+      const list = map.get(m.day) ?? [];
+      list.push(m);
+      map.set(m.day, list);
+    }
+    return map;
+  }, [almanacMarkers]);
+
+  const selectedAlmanacDay = useMemo(() => {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return (
+      almanacDays.find(
+        (day) => day.year === y && day.month === m - 1 && day.day === d
+      ) ?? null
+    );
+  }, [almanacDays, dateStr]);
+
+  const dayCounsel = useMemo(() => {
+    if (!selectedAlmanacDay) return null;
+    return buildDayCounsel(
+      selectedAlmanacDay.date,
+      coordsValid ? lat : undefined,
+      coordsValid ? lon : undefined
+    );
+  }, [selectedAlmanacDay, coordsValid, lat, lon]);
+
+  const almanacDayElections = useMemo(() => {
+    if (!coordsValid || !selectedAlmanacDay || panel !== 'almanac') return [];
+    const dayStart = new Date(
+      selectedAlmanacDay.year,
+      selectedAlmanacDay.month,
+      selectedAlmanacDay.day,
+      0,
+      0,
+      0,
+      0
+    );
+    return findElectionWindows(
+      dayStart,
+      lat,
+      lon,
+      {
+        dayPlanet: selectedAlmanacDay.dayRuler,
+        hourPlanet: selectedAlmanacDay.dayRuler,
+        moon: 'any',
+      },
+      1
+    ).slice(0, 6);
+  }, [coordsValid, selectedAlmanacDay, panel, lat, lon]);
+
+  const almanacMonthLabel = useMemo(
+    () =>
+      new Date(almanacCursor.year, almanacCursor.month, 1).toLocaleString(
+        undefined,
+        { month: 'long', year: 'numeric' }
+      ),
+    [almanacCursor.year, almanacCursor.month]
+  );
+
+  const almanacPadStart = useMemo(() => {
+    return new Date(almanacCursor.year, almanacCursor.month, 1).getDay();
+  }, [almanacCursor.year, almanacCursor.month]);
+
+  const selectAlmanacDay = (year: number, month: number, day: number) => {
+    const next = new Date(year, month, day);
+    setAlmanacCursor({ year, month });
+    setDateStr(toDateInputValue(next));
+  };
+
+  const shiftAlmanacMonth = (delta: number) => {
+    const d = new Date(almanacCursor.year, almanacCursor.month + delta, 1);
+    setAlmanacCursor({ year: d.getFullYear(), month: d.getMonth() });
+  };
+
   return (
     <div className="space-y-8">
       <header>
@@ -241,8 +350,9 @@ export default function CelestialTimingModule({
           Celestial Timing
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          Planetary hours, live ephemeris, and Western / Hindu / Chinese zodiac
-          for your place and moment. Calculations run in your browser
+          Planetary hours, live ephemeris, Western / Hindu / Chinese zodiac,
+          elections, and a Magical Almanac for your place and moment.
+          Calculations run in your browser
           {isAuthenticated
             ? '; location is saved to your account for Magical OS and journal sky tags.'
             : '; sign in to save location to your account.'}
@@ -281,7 +391,14 @@ export default function CelestialTimingModule({
           <input
             type="date"
             value={dateStr}
-            onChange={(e) => setDateStr(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setDateStr(v);
+              const [y, m] = v.split('-').map(Number);
+              if (Number.isFinite(y) && Number.isFinite(m)) {
+                setAlmanacCursor({ year: y, month: m - 1 });
+              }
+            }}
             className="mt-1 w-full min-w-0 max-w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
           />
         </label>
@@ -756,6 +873,303 @@ export default function CelestialTimingModule({
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {panel === 'almanac' && (
+        <div className="space-y-6">
+          <p className="text-sm text-ananael-muted">
+            Magical Almanac — month sky at a glance with day counsel, solar
+            quarters, and lunation markers. Select a day to sync Hours and
+            Planets.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => shiftAlmanacMonth(-1)}
+                className="rounded-md border border-ananael-border/60 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-ananael-gold/50 hover:text-ananael-gold"
+              >
+                Prev
+              </button>
+              <h2 className="min-w-[10rem] text-center font-display text-xl text-ananael-gold">
+                {almanacMonthLabel}
+              </h2>
+              <button
+                type="button"
+                onClick={() => shiftAlmanacMonth(1)}
+                className="rounded-md border border-ananael-border/60 px-3 py-1.5 text-sm text-zinc-200 transition hover:border-ananael-gold/50 hover:text-ananael-gold"
+              >
+                Next
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const t = new Date();
+                setAlmanacCursor({
+                  year: t.getFullYear(),
+                  month: t.getMonth(),
+                });
+                setDateStr(toDateInputValue(t));
+              }}
+              className="rounded-md border border-ananael-violet/50 px-3 py-1.5 text-xs text-ananael-violet transition hover:bg-ananael-violet/15"
+            >
+              Today
+            </button>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+            <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-4">
+              <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase tracking-wider text-ananael-muted">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                  <div key={d} className="py-1">
+                    {d}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-1 grid grid-cols-7 gap-1">
+                {Array.from({ length: almanacPadStart }).map((_, i) => (
+                  <div
+                    key={`pad-${i}`}
+                    className="min-h-[4.5rem] rounded-md opacity-30"
+                  />
+                ))}
+                {almanacDays.map((day) => {
+                  const selected =
+                    selectedAlmanacDay?.day === day.day &&
+                    selectedAlmanacDay.month === day.month &&
+                    selectedAlmanacDay.year === day.year;
+                  const today = sameLocalDay(day.date, new Date());
+                  const dayMarkers = markersByDay.get(day.day) ?? [];
+                  return (
+                    <button
+                      key={day.day}
+                      type="button"
+                      onClick={() =>
+                        selectAlmanacDay(day.year, day.month, day.day)
+                      }
+                      className={[
+                        'min-h-[4.5rem] rounded-md border px-1.5 py-1.5 text-left transition',
+                        selected
+                          ? 'border-ananael-gold/70 bg-ananael-violet/25'
+                          : today
+                            ? 'border-ananael-violet/50 bg-ananael-panel/80 hover:border-ananael-gold/40'
+                            : 'border-ananael-border/40 bg-ananael-bg/40 hover:border-ananael-gold/30',
+                      ].join(' ')}
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <span
+                          className={[
+                            'text-sm font-medium',
+                            selected || today
+                              ? 'text-ananael-gold'
+                              : 'text-zinc-100',
+                          ].join(' ')}
+                        >
+                          {day.day}
+                        </span>
+                        <span className="text-[10px] text-ananael-muted">
+                          {dayRulerShort(day.dayRuler)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[10px] text-zinc-400">
+                        {moonPhaseShort(day.moonPhase)}
+                      </p>
+                      {dayMarkers.length > 0 && (
+                        <p className="mt-1 truncate text-[10px] text-ananael-violet">
+                          {dayMarkers[0].label}
+                          {dayMarkers.length > 1
+                            ? ` +${dayMarkers.length - 1}`
+                            : ''}
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
+              <h3 className="font-display text-lg text-ananael-gold">
+                Day counsel
+              </h3>
+              {!selectedAlmanacDay || !dayCounsel ? (
+                <p className="text-sm text-ananael-muted">
+                  Select a day in this month for counsel.
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm text-zinc-200">
+                    {selectedAlmanacDay.date.toLocaleDateString(undefined, {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                  <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                        Day ruler
+                      </dt>
+                      <dd className="mt-1 text-zinc-100">
+                        {selectedAlmanacDay.dayRuler}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                        Moon
+                      </dt>
+                      <dd className="mt-1 text-zinc-100">
+                        {selectedAlmanacDay.moonPhase}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                        Sun
+                      </dt>
+                      <dd className="mt-1 text-zinc-100">
+                        {selectedAlmanacDay.sunSign ?? '—'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                        Day pillar
+                      </dt>
+                      <dd className="mt-1 text-zinc-100">
+                        {selectedAlmanacDay.chineseDay}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p className="text-sm leading-relaxed text-zinc-300">
+                    {dayCounsel.dayTheme}
+                  </p>
+                  <p className="text-sm leading-relaxed text-zinc-400">
+                    {dayCounsel.moonTheme}
+                  </p>
+                  {(markersByDay.get(selectedAlmanacDay.day) ?? []).length >
+                    0 && (
+                    <ul className="space-y-1 text-xs text-ananael-violet">
+                      {(markersByDay.get(selectedAlmanacDay.day) ?? []).map(
+                        (m) => (
+                          <li key={`${m.kind}-${m.when.toISOString()}`}>
+                            {m.label}
+                            {' · '}
+                            {m.when.toLocaleString(undefined, {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  )}
+
+                  {coordsValid && (
+                    <div className="border-t border-ananael-border/40 pt-3">
+                      <p className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                        Hours of {selectedAlmanacDay.dayRuler} today
+                      </p>
+                      {almanacDayElections.length === 0 ? (
+                        <p className="mt-2 text-xs text-ananael-muted">
+                          No matching hour windows left for this day (or chart
+                          unavailable).
+                        </p>
+                      ) : (
+                        <ul className="mt-2 space-y-1 text-xs text-zinc-300">
+                          {almanacDayElections.map((w) => (
+                            <li key={w.start.toISOString()}>
+                              {formatTime(w.start)} – {formatTime(w.end)}
+                              <span className="text-ananael-muted">
+                                {' '}
+                                · {w.moonPhase}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2 border-t border-ananael-border/40 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setPanel('hours')}
+                      className="rounded-md border border-ananael-gold/50 px-3 py-1.5 text-xs text-ananael-gold transition hover:bg-ananael-gold/10"
+                    >
+                      View Hours
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setElectionDay(selectedAlmanacDay.dayRuler);
+                        setElectionHour(selectedAlmanacDay.dayRuler);
+                        setPanel('elections');
+                      }}
+                      className="rounded-md border border-ananael-violet/50 px-3 py-1.5 text-xs text-ananael-violet transition hover:bg-ananael-violet/15"
+                    >
+                      Elections
+                    </button>
+                    {onNavigate && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onNavigate('liturgy')}
+                          className="rounded-md border border-ananael-bronze/60 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-ananael-panel hover:text-ananael-gold"
+                        >
+                          Ritual Library
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onNavigate('journal', { filter: 'working' })
+                          }
+                          className="rounded-md border border-ananael-bronze/60 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-ananael-panel hover:text-ananael-gold"
+                        >
+                          Journal
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {almanacMarkers.length > 0 && (
+            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface px-4 py-3">
+              <p className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                Markers this month
+              </p>
+              <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-300">
+                {almanacMarkers.map((m) => (
+                  <li key={`${m.kind}-${m.when.toISOString()}`}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        selectAlmanacDay(m.year, m.month, m.day)
+                      }
+                      className="text-left hover:text-ananael-gold"
+                    >
+                      {m.label}
+                      <span className="text-ananael-muted">
+                        {' '}
+                        ·{' '}
+                        {m.when.toLocaleString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

@@ -26,7 +26,7 @@ import { useAuth } from './context/AuthContext';
 export type AppNavigateOptions = TreeNavigateOptions & {
   filter?: JournalEntryType | 'all';
   divinationTab?: DivinationTab;
-  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections';
+  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
   ritualTemplate?: TemplateId;
 };
 
@@ -59,7 +59,7 @@ export default function App() {
   >('all');
   const [divinationTab, setDivinationTab] = useState<DivinationTab>('tarot');
   const [planetaryPanel, setPlanetaryPanel] = useState<
-    'hours' | 'planets' | 'zodiac' | 'elections'
+    'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac'
   >('hours');
   const [ritualTemplate, setRitualTemplate] = useState<
     TemplateId | undefined

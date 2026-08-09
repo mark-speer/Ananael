@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
 import { loadDeckStyle } from '../data/tarotDeckArt';
 import { apiFetch } from '../lib/api';
+import { buildDayCounsel, nextMonthHighlight } from '../lib/almanac';
 import { buildJournalSky } from '../lib/journalSky';
 import type { JournalEntry, JournalEntryType } from '../lib/journal';
 import {
@@ -21,7 +22,7 @@ export interface DashboardNavigateOptions {
   filter?: JournalEntryType | 'all';
   gematriaPrefill?: string;
   divinationTab?: 'tarot' | 'iching' | 'geomancy' | 'runes';
-  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections';
+  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
 }
 
 interface DashboardModuleProps {
@@ -111,6 +112,16 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const hourRemainingMs = chart?.currentHour
     ? chart.currentHour.end.getTime() - now.getTime()
     : null;
+
+  const dayCounsel = useMemo(
+    () => buildDayCounsel(now, loc?.lat, loc?.lon),
+    [now, loc?.lat, loc?.lon]
+  );
+
+  const nextHighlight = useMemo(
+    () => nextMonthHighlight(now, now.getFullYear(), now.getMonth()),
+    [now]
+  );
 
   const requestGeo = () => {
     setGeoStatus(null);
@@ -219,11 +230,18 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 />
               )}
               <TileLink
-                label="Celestial Timing"
+                label="Almanac"
+                onClick={() =>
+                  onNavigate('planetary', { planetaryPanel: 'almanac' })
+                }
+                tone="gold"
+              />
+              <TileLink
+                label="Elections"
                 onClick={() =>
                   onNavigate('planetary', { planetaryPanel: 'elections' })
                 }
-                tone="gold"
+                tone="violet"
               />
             </div>
           </div>
@@ -298,6 +316,47 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             <p className="mt-3 text-[11px] text-ananael-muted">
               Using {loc.lat.toFixed(4)}, {loc.lon.toFixed(4)}
               {isAuthenticated ? ' (account)' : ' (this device)'}
+            </p>
+          )}
+        </section>
+
+        {/* Magical Almanac */}
+        <section className={tileClassName('sm:col-span-2 lg:col-span-1')}>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="font-display text-lg text-ananael-gold">
+                Magical Almanac
+              </h2>
+              <p className="mt-0.5 text-xs text-ananael-muted">
+                Today&apos;s counsel under the sky
+              </p>
+            </div>
+            <TileLink
+              label="Open Almanac"
+              onClick={() =>
+                onNavigate('planetary', { planetaryPanel: 'almanac' })
+              }
+              tone="gold"
+            />
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+            <span className="text-ananael-gold">
+              Day of {dayCounsel.sky.dayRuler ?? '—'}.
+            </span>{' '}
+            {dayCounsel.dayTheme}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+            {dayCounsel.moonTheme}
+          </p>
+          {nextHighlight && (
+            <p className="mt-3 text-xs text-ananael-violet">
+              Next: {nextHighlight.label} ·{' '}
+              {nextHighlight.when.toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </p>
           )}
         </section>
