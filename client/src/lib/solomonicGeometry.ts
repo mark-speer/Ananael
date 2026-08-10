@@ -54,6 +54,100 @@ export function circleArcPath(
   ].join(' ');
 }
 
+export interface SerpentRingOpts {
+  /** Number of sinusoidal coils around the ring (default 10). */
+  turns?: number;
+  /** Radial amplitude as a fraction of radius (default 0.045). */
+  amplitudeRatio?: number;
+  /** Sample points around the ring (default 180). */
+  segments?: number;
+  /** Phase offset in degrees (default 0). */
+  phaseDeg?: number;
+  /**
+   * Path direction for textPath: true = compass-clockwise (lettering outside).
+   * Default true to match circleArcPath.
+   */
+  clockwise?: boolean;
+}
+
+/**
+ * Closed serpentine ring: base circle with sinusoidal radial modulation.
+ * Same path is used for stroke and textPath when boundaryStyle is 'serpent'.
+ */
+export function serpentRingPath(
+  cx: number,
+  cy: number,
+  radius: number,
+  opts?: SerpentRingOpts
+): string {
+  const turns = opts?.turns ?? 10;
+  const ampRatio = opts?.amplitudeRatio ?? 0.045;
+  const segments = Math.max(48, opts?.segments ?? 180);
+  const phaseDeg = opts?.phaseDeg ?? 0;
+  const clockwise = opts?.clockwise !== false;
+  const amplitude = radius * ampRatio;
+
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const angle = clockwise ? t * 360 : (1 - t) * 360;
+    const wave = Math.sin(((angle + phaseDeg) * turns * Math.PI) / 180);
+    const r = radius + amplitude * wave;
+    points.push(polarToCartesian(cx, cy, r, angle % 360));
+  }
+
+  // Close cleanly on the first point.
+  const first = points[0];
+  let d = `M ${first.x.toFixed(2)} ${first.y.toFixed(2)}`;
+  for (let i = 1; i < points.length; i++) {
+    const p = points[i];
+    d += ` L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`;
+  }
+  d += ' Z';
+  return d;
+}
+
+/**
+ * Small decorative head mark at the serpent path join (North / 0°).
+ * Returns a short wedge path pointing along the coil tangent.
+ */
+export function serpentHeadMark(
+  cx: number,
+  cy: number,
+  radius: number,
+  opts?: Pick<SerpentRingOpts, 'turns' | 'amplitudeRatio' | 'phaseDeg'>
+): string {
+  const turns = opts?.turns ?? 10;
+  const ampRatio = opts?.amplitudeRatio ?? 0.045;
+  const phaseDeg = opts?.phaseDeg ?? 0;
+  const amplitude = radius * ampRatio;
+  const wave = Math.sin((phaseDeg * turns * Math.PI) / 180);
+  const r = radius + amplitude * wave;
+  const tip = polarToCartesian(cx, cy, r + Math.max(4, radius * 0.035), 0);
+  const left = polarToCartesian(cx, cy, r - 2, 8);
+  const right = polarToCartesian(cx, cy, r - 2, 352);
+  return [
+    `M ${tip.x.toFixed(2)} ${tip.y.toFixed(2)}`,
+    `L ${left.x.toFixed(2)} ${left.y.toFixed(2)}`,
+    `L ${right.x.toFixed(2)} ${right.y.toFixed(2)}`,
+    'Z',
+  ].join(' ');
+}
+
+/** Pick ring path for the active boundary style. */
+export function ringBoundaryPath(
+  style: 'circle' | 'serpent',
+  cx: number,
+  cy: number,
+  radius: number,
+  clockwise = true
+): string {
+  if (style === 'serpent') {
+    return serpentRingPath(cx, cy, radius, { clockwise });
+  }
+  return circleArcPath(cx, cy, radius, clockwise);
+}
+
 /** Regular polygon vertices. startAngleDeg: first vertex in compass degrees. */
 export function regularPolygonVertices(
   cx: number,

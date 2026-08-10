@@ -12,17 +12,23 @@ import {
 } from '../data/arsGoetia';
 import {
   absoluteRadius,
+  applyCircleTemplate,
   applyConjurationTemplate,
   applyTraditionPreset,
+  BOUNDARY_STYLE_LABELS,
   CENTER_GLYPH_LABELS,
+  CIRCLE_TEMPLATE_IDS,
+  CIRCLE_TEMPLATE_LABELS,
   DEFAULT_TRIANGLE_BEARING,
   DEFAULT_TRIANGLE_ROTATION,
   buildCircleLayout,
   sanitizeCircleConfig,
   TRADITION_LABELS,
   WEEKDAY_LABELS,
+  type BoundaryStyle,
   type CardinalDir,
   type CircleConfig,
+  type CircleTemplateId,
   type GlyphSpec,
   type RingConfig,
   type TraditionId,
@@ -40,9 +46,10 @@ import {
   TRIANGLE_SIDE_NAMES,
   cardinalGlyphLayout,
   cardinalPositions,
-  circleArcPath,
   conjurationViewBox,
   inscribedSquarePoints,
+  ringBoundaryPath,
+  serpentHeadMark,
   triangleOfArt,
 } from '../lib/solomonicGeometry';
 
@@ -180,6 +187,7 @@ export default function SolomonicCircleModule() {
         centerGlyph: config.centerGlyph,
         cardinalGlyphs: config.cardinalGlyphs,
         showInnerSquare: config.showInnerSquare,
+        boundaryStyle: config.boundaryStyle,
       })
     );
     setSavedId(null);
@@ -192,15 +200,49 @@ export default function SolomonicCircleModule() {
     applyPreset(tradition);
   };
 
+  const onTemplateApply = (id: CircleTemplateId) => {
+    if (
+      dirty &&
+      !window.confirm('Replace current circle with this template?')
+    ) {
+      return;
+    }
+    setConfig(
+      applyCircleTemplate(id, {
+        weekday: config.weekday,
+        spiritId:
+          id === 'goetiaClassic' || id === 'goetiaHebrew'
+            ? config.spiritId
+            : null,
+        showCompass: config.showCompass,
+        boundaryStyle: config.boundaryStyle,
+        showTriangle:
+          id === 'goetiaClassic' || id === 'goetiaHebrew'
+            ? config.showTriangle
+            : false,
+        triangleBearing: config.triangleBearing,
+        triangleRotationDeg: config.triangleRotationDeg,
+        showSeal:
+          id === 'goetiaClassic' || id === 'goetiaHebrew'
+            ? config.showSeal
+            : false,
+      })
+    );
+    setSavedId(null);
+    setDirty(false);
+    setSaveStatus(null);
+    if (id !== 'goetiaClassic' && id !== 'goetiaHebrew') {
+      setSpiritFilter('');
+    }
+  };
+
   const onWeekdayChange = (weekday: Weekday) => {
     if (config.tradition === 'heptameron') {
       setConfig(
-        applyTraditionPreset('heptameron', {
+        applyCircleTemplate('heptameronDay', {
           weekday,
           showCompass: config.showCompass,
-          centerGlyph: config.centerGlyph,
-          cardinalGlyphs: config.cardinalGlyphs,
-          showInnerSquare: config.showInnerSquare,
+          boundaryStyle: config.boundaryStyle,
         })
       );
       markDirty();
@@ -227,12 +269,14 @@ export default function SolomonicCircleModule() {
       showInnerSquare: config.showInnerSquare,
       triangleBearing: config.triangleBearing,
       triangleRotationDeg: config.triangleRotationDeg,
+      boundaryStyle: config.boundaryStyle,
     });
     if (!next) return;
     // Preserve current ring text when switching spirits on an existing Goetia layout.
     setConfig({
       ...next,
       rings: config.tradition === 'goetia' ? config.rings : next.rings,
+      boundaryStyle: config.boundaryStyle,
     });
     markDirty();
   };
@@ -384,7 +428,10 @@ export default function SolomonicCircleModule() {
       return;
     }
     setConfig(
-      applyTraditionPreset(config.tradition, { weekday: config.weekday })
+      applyTraditionPreset(config.tradition, {
+        weekday: config.weekday,
+        boundaryStyle: config.boundaryStyle,
+      })
     );
     setLayoutName('Untitled circle');
     setNotes('');
@@ -458,12 +505,30 @@ export default function SolomonicCircleModule() {
           Solomonic Circles
         </h1>
         <p className="max-w-2xl text-sm text-ananael-muted">
-          Build a magician&apos;s protective circle from Goetia, Heptameron, or
-          generic presets. For Goetia conjuration, pick a spirit to place the
-          Triangle of Art and a labeled seal slot. Export PNG or JSON; sign in
-          to save.
+          Build a magician&apos;s protective circle from templates or tradition
+          presets. Apply full divine-name rings and sacred names on the cardinal
+          hexagrams, optionally coil the boundaries as serpents, and for Goetia
+          conjuration pick a spirit for the Triangle of Art and seal. Export PNG
+          or JSON; sign in to save.
         </p>
       </header>
+
+      {/* Templates */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs uppercase tracking-wider text-ananael-muted">
+          Templates
+        </span>
+        {CIRCLE_TEMPLATE_IDS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onTemplateApply(id)}
+            className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-ananael-gold/40 hover:text-ananael-gold"
+          >
+            {CIRCLE_TEMPLATE_LABELS[id]}
+          </button>
+        ))}
+      </div>
 
       {/* Tradition + options */}
       <div className="flex flex-wrap items-center gap-2">
@@ -516,6 +581,18 @@ export default function SolomonicCircleModule() {
         >
           Inner square {config.showInnerSquare ? 'On' : 'Off'}
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            const next: BoundaryStyle =
+              config.boundaryStyle === 'serpent' ? 'circle' : 'serpent';
+            updateConfig({ boundaryStyle: next });
+          }}
+          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+        >
+          Boundary:{' '}
+          {BOUNDARY_STYLE_LABELS[layout.boundaryStyle ?? 'circle']}
+        </button>
         {config.tradition === 'goetia' && (
           <>
             <button
@@ -528,13 +605,13 @@ export default function SolomonicCircleModule() {
                     useHebrew,
                     showCompass: config.showCompass,
                     centerGlyph: config.centerGlyph,
-                    cardinalGlyphs: config.cardinalGlyphs,
                     showInnerSquare: config.showInnerSquare,
                     spiritId: config.spiritId,
                     showTriangle: config.showTriangle,
                     triangleBearing: config.triangleBearing,
                     triangleRotationDeg: config.triangleRotationDeg,
                     showSeal: config.showSeal,
+                    boundaryStyle: config.boundaryStyle,
                   })
                 );
                 markDirty();
@@ -676,7 +753,13 @@ export default function SolomonicCircleModule() {
                 <path
                   key={`path-${r.id}`}
                   id={`solomonic-ring-${r.id}`}
-                  d={circleArcPath(cx, cy, ringPx(r.radius), true)}
+                  d={ringBoundaryPath(
+                    layout.boundaryStyle ?? 'circle',
+                    cx,
+                    cy,
+                    ringPx(r.radius),
+                    true
+                  )}
                   fill="none"
                 />
               ))}
@@ -692,13 +775,17 @@ export default function SolomonicCircleModule() {
               strokeWidth={1}
             />
 
-            {/* Ring strokes */}
+            {/* Ring strokes — circles or serpentine coils */}
             {layout.rings.map((r) => (
-              <circle
+              <path
                 key={`stroke-${r.id}`}
-                cx={cx}
-                cy={cy}
-                r={ringPx(r.radius)}
+                d={ringBoundaryPath(
+                  layout.boundaryStyle ?? 'circle',
+                  cx,
+                  cy,
+                  ringPx(r.radius),
+                  true
+                )}
                 fill="none"
                 stroke="#c9a227"
                 strokeWidth={1.5}
@@ -706,11 +793,24 @@ export default function SolomonicCircleModule() {
               />
             ))}
 
+            {layout.boundaryStyle === 'serpent' && (
+              <path
+                d={serpentHeadMark(cx, cy, outerR)}
+                fill="#c9a227"
+                stroke="none"
+                opacity={0.85}
+              />
+            )}
+
             {/* Double outer accent */}
-            <circle
-              cx={cx}
-              cy={cy}
-              r={outerR + 6}
+            <path
+              d={ringBoundaryPath(
+                layout.boundaryStyle ?? 'circle',
+                cx,
+                cy,
+                outerR + 6,
+                true
+              )}
               fill="none"
               stroke="#7c5cbf"
               strokeWidth={1}

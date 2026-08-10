@@ -52,6 +52,7 @@ interface SanitizedConfig {
   triangleBearing: number;
   triangleRotationDeg: number;
   showSeal: boolean;
+  boundaryStyle: 'circle' | 'serpent';
 }
 
 const DEFAULT_TRIANGLE_BEARING = 90;
@@ -245,6 +246,7 @@ function sanitizeConfig(raw: unknown): SanitizedConfig | null {
     triangleBearing,
     triangleRotationDeg,
     showSeal: tradition === 'goetia' ? Boolean(c.showSeal) : false,
+    boundaryStyle: c.boundaryStyle === 'serpent' ? 'serpent' : 'circle',
   };
 }
 

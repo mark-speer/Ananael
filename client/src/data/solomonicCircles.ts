@@ -58,6 +58,9 @@ export type CardinalGlyphs = Record<CardinalDir, GlyphSpec>;
 
 export type RingScript = 'latin' | 'hebrew';
 
+/** Ring stroke / textPath geometry: perfect circles or serpentine coils. */
+export type BoundaryStyle = 'circle' | 'serpent';
+
 export interface RingConfig {
   id: string;
   /** UI label */
@@ -94,7 +97,35 @@ export interface CircleConfig {
   triangleRotationDeg: number;
   /** Labeled seal frame inside the triangle. */
   showSeal: boolean;
+  /** Concentric ring strokes: circles (default) or coiling serpent paths. */
+  boundaryStyle: BoundaryStyle;
 }
+
+/** Named layout templates (Ritual Space–style picker). */
+export type CircleTemplateId =
+  | 'goetiaClassic'
+  | 'goetiaHebrew'
+  | 'heptameronDay'
+  | 'blank';
+
+export const CIRCLE_TEMPLATE_LABELS: Record<CircleTemplateId, string> = {
+  goetiaClassic: 'Goetia Classic',
+  goetiaHebrew: 'Goetia Hebrew',
+  heptameronDay: 'Heptameron Day',
+  blank: 'Blank',
+};
+
+export const CIRCLE_TEMPLATE_IDS: CircleTemplateId[] = [
+  'goetiaClassic',
+  'goetiaHebrew',
+  'heptameronDay',
+  'blank',
+];
+
+export const BOUNDARY_STYLE_LABELS: Record<BoundaryStyle, string> = {
+  circle: 'Circles',
+  serpent: 'Serpent',
+};
 
 export interface CircleLayoutDocument {
   name: string;
@@ -242,7 +273,27 @@ export const DEFAULT_TRIANGLE_ROTATION = 180;
 /** Default ring stroke opacity. */
 export const DEFAULT_RING_OPACITY = 0.85;
 
+/** Default ring boundary geometry. */
+export const DEFAULT_BOUNDARY_STYLE: BoundaryStyle = 'circle';
+
 const MAX_GLYPH_LETTERS = 16;
+const MAX_RING_TEXT = 500;
+
+/** Repeat a name cycle until the ring text fills the circumference budget. */
+export function fillRingText(cycle: string, maxLen = MAX_RING_TEXT): string {
+  const trimmed = cycle.trim();
+  if (!trimmed) return '';
+  const sep = ' · ';
+  let result = trimmed;
+  while (result.length + sep.length + trimmed.length <= maxLen) {
+    result += sep + trimmed;
+  }
+  return result.slice(0, maxLen);
+}
+
+export function sanitizeBoundaryStyle(raw: unknown): BoundaryStyle {
+  return raw === 'serpent' ? 'serpent' : DEFAULT_BOUNDARY_STYLE;
+}
 
 export function glyphSpec(
   kind: CenterGlyph = 'none',
@@ -338,26 +389,56 @@ function ring(
   };
 }
 
-/** Classic Goetia-style divine names (Latin transliteration). */
-const GOETIA_LATIN = {
-  outer:
-    'YHVH · ADONAI · EHEIEH · AGLA · YHVH · ADONAI · EHEIEH · AGLA',
+/** Classic Goetia-style divine names (Latin transliteration) — single cycle. */
+const GOETIA_LATIN_CYCLE = {
+  outer: 'YHVH · ADONAI · EHEIEH · AGLA',
   middle: 'EL · ELOHIM · ELOAH · TZABAOTH · ELYON · SHADDAI',
   inner: 'ALPHA · OMEGA · TETRAGRAMMATON',
 };
 
-/** Hebrew divine names for Goetia-leaning defaults (Unicode). */
-const GOETIA_HEBREW = {
-  outer: 'יהוה · אדני · אהיה · אגלא · יהוה · אדני · אהיה · אגלא',
+/** Hebrew divine names for Goetia-leaning defaults (Unicode) — single cycle. */
+const GOETIA_HEBREW_CYCLE = {
+  outer: 'יהוה · אדני · אהיה · אגלא',
   middle: 'אל · אלהים · אלוה · צבאות · עליון · שדי',
   inner: 'אלפא · אומגה · יהוה',
 };
+
+/** Dense repeated banks for templates / tradition presets. */
+const GOETIA_LATIN = {
+  outer: fillRingText(GOETIA_LATIN_CYCLE.outer),
+  middle: fillRingText(GOETIA_LATIN_CYCLE.middle),
+  inner: fillRingText(GOETIA_LATIN_CYCLE.inner),
+};
+
+const GOETIA_HEBREW = {
+  outer: fillRingText(GOETIA_HEBREW_CYCLE.outer),
+  middle: fillRingText(GOETIA_HEBREW_CYCLE.middle),
+  inner: fillRingText(GOETIA_HEBREW_CYCLE.inner),
+};
+
+/** Sacred names on the four cardinal hexagrams (Goetia plate style). */
+function goetiaCardinalGlyphs(hebrew: boolean): CardinalGlyphs {
+  if (hebrew) {
+    return {
+      n: glyphSpec('hexagram', 'אגלא'),
+      e: glyphSpec('hexagram', 'אדני'),
+      s: glyphSpec('hexagram', 'אהיה'),
+      w: glyphSpec('hexagram', 'יהוה'),
+    };
+  }
+  return {
+    n: glyphSpec('hexagram', 'AGLA'),
+    e: glyphSpec('hexagram', 'ADNI'),
+    s: glyphSpec('hexagram', 'AHIH'),
+    w: glyphSpec('hexagram', 'YHVH'),
+  };
+}
 
 /**
  * Heptameron day angels / names (simplified public-domain leaning banks).
  * Outer: ruling angel + divine name cluster; middle: assistants; inner: hour spirit cue.
  */
-const HEPTAMERON: Record<
+const HEPTAMERON_CYCLE: Record<
   Weekday,
   { outer: string; middle: string; inner: string }
 > = {
@@ -398,6 +479,47 @@ const HEPTAMERON: Record<
   },
 };
 
+const HEPTAMERON: Record<
+  Weekday,
+  { outer: string; middle: string; inner: string }
+> = Object.fromEntries(
+  (Object.keys(HEPTAMERON_CYCLE) as Weekday[]).map((day) => {
+    const c = HEPTAMERON_CYCLE[day];
+    return [
+      day,
+      {
+        outer: fillRingText(c.outer),
+        middle: fillRingText(c.middle),
+        inner: fillRingText(c.inner),
+      },
+    ];
+  })
+) as Record<Weekday, { outer: string; middle: string; inner: string }>;
+
+/** Cardinal hexagram letters from each day's angel / divine-name cluster. */
+const HEPTAMERON_CARDINAL_LETTERS: Record<
+  Weekday,
+  Record<CardinalDir, string>
+> = {
+  sunday: { n: 'MICHAEL', e: 'ADONAI', s: 'DAGIEL', w: 'YHVH' },
+  monday: { n: 'GABRIEL', e: 'ELOHIM', s: 'ABAS', w: 'SHDAI' },
+  tuesday: { n: 'SAMAEL', e: 'GIBOR', s: 'SAMAX', w: 'MARS' },
+  wednesday: { n: 'RAPHAEL', e: 'TZBAOT', s: 'MEDIAT', w: 'HERME' },
+  thursday: { n: 'SACHIEL', e: 'EL', s: 'SUTH', w: 'IOVIS' },
+  friday: { n: 'ANAEL', e: 'TZBAOT', s: 'ABDIEL', w: 'VENUS' },
+  saturday: { n: 'CASSIEL', e: 'ELOHIM', s: 'URIEL', w: 'MAYMN' },
+};
+
+function heptameronCardinalGlyphs(weekday: Weekday): CardinalGlyphs {
+  const letters = HEPTAMERON_CARDINAL_LETTERS[weekday];
+  return {
+    n: glyphSpec('hexagram', letters.n),
+    e: glyphSpec('hexagram', letters.e),
+    s: glyphSpec('hexagram', letters.s),
+    w: glyphSpec('hexagram', letters.w),
+  };
+}
+
 export function defaultWeekday(): Weekday {
   const d = new Date().getDay();
   return WEEKDAYS[d] ?? 'sunday';
@@ -434,6 +556,7 @@ export function applyTraditionPreset(
     triangleBearing?: number;
     triangleRotationDeg?: number;
     showSeal?: boolean;
+    boundaryStyle?: BoundaryStyle;
   }
 ): CircleConfig {
   const weekday = opts?.weekday ?? defaultWeekday();
@@ -443,6 +566,9 @@ export function applyTraditionPreset(
     opts?.centerGlyph ??
     glyphSpec(tradition === 'goetia' ? 'hexagram' : 'none');
   const showInnerSquare = opts?.showInnerSquare ?? tradition !== 'generic';
+  const boundaryStyle = sanitizeBoundaryStyle(
+    opts?.boundaryStyle ?? DEFAULT_BOUNDARY_STYLE
+  );
   const conj = conjurationDefaults();
   const spiritId =
     tradition === 'goetia'
@@ -469,7 +595,7 @@ export function applyTraditionPreset(
     const bank = useHebrew ? GOETIA_HEBREW : GOETIA_LATIN;
     const script: RingScript = useHebrew ? 'hebrew' : 'latin';
     const cardinalGlyphs =
-      opts?.cardinalGlyphs ?? defaultCardinalGlyphs('hexagram');
+      opts?.cardinalGlyphs ?? goetiaCardinalGlyphs(useHebrew);
     return {
       tradition,
       weekday,
@@ -483,6 +609,7 @@ export function applyTraditionPreset(
       triangleBearing,
       triangleRotationDeg,
       showSeal,
+      boundaryStyle,
       rings: [
         ring('Outer ring', 1, bank.outer, script, true),
         ring('Middle ring', 0.9, bank.middle, script, true),
@@ -499,13 +626,14 @@ export function applyTraditionPreset(
       useHebrew: false,
       showCompass,
       centerGlyph: opts?.centerGlyph ?? glyphSpec('pentagram'),
-      cardinalGlyphs: opts?.cardinalGlyphs ?? defaultCardinalGlyphs('none'),
+      cardinalGlyphs: opts?.cardinalGlyphs ?? heptameronCardinalGlyphs(weekday),
       showInnerSquare,
       spiritId: null,
       showTriangle: false,
       triangleBearing,
       triangleRotationDeg,
       showSeal: false,
+      boundaryStyle,
       rings: [
         ring('Outer ring', 1, bank.outer, 'latin', true),
         ring('Middle ring', 0.9, bank.middle, 'latin', true),
@@ -528,12 +656,73 @@ export function applyTraditionPreset(
     triangleBearing,
     triangleRotationDeg,
     showSeal: false,
+    boundaryStyle,
     rings: [
       ring('Outer ring', 1, '', 'latin', true),
       ring('Middle ring', 0.9, '', 'latin', true),
       ring('Inner ring', 0.8, '', 'latin', true),
     ],
   };
+}
+
+/**
+ * Apply a named circle template (full rings + sacred names on cardinals).
+ * Preserves boundary style and optional spirit conjuration fields from opts.
+ */
+export function applyCircleTemplate(
+  id: CircleTemplateId,
+  opts?: {
+    weekday?: Weekday;
+    spiritId?: string | null;
+    showCompass?: boolean;
+    boundaryStyle?: BoundaryStyle;
+    showTriangle?: boolean;
+    triangleBearing?: number;
+    triangleRotationDeg?: number;
+    showSeal?: boolean;
+  }
+): CircleConfig {
+  const weekday = opts?.weekday ?? defaultWeekday();
+  const boundaryStyle = sanitizeBoundaryStyle(opts?.boundaryStyle);
+  const showCompass = opts?.showCompass ?? true;
+
+  if (id === 'goetiaClassic' || id === 'goetiaHebrew') {
+    const useHebrew = id === 'goetiaHebrew';
+    return applyTraditionPreset('goetia', {
+      weekday,
+      useHebrew,
+      showCompass,
+      centerGlyph: glyphSpec('hexagram'),
+      cardinalGlyphs: goetiaCardinalGlyphs(useHebrew),
+      showInnerSquare: true,
+      spiritId: opts?.spiritId ?? null,
+      showTriangle: opts?.showTriangle ?? false,
+      triangleBearing: opts?.triangleBearing,
+      triangleRotationDeg: opts?.triangleRotationDeg,
+      showSeal: opts?.showSeal ?? false,
+      boundaryStyle,
+    });
+  }
+
+  if (id === 'heptameronDay') {
+    return applyTraditionPreset('heptameron', {
+      weekday,
+      showCompass,
+      centerGlyph: glyphSpec('pentagram'),
+      cardinalGlyphs: heptameronCardinalGlyphs(weekday),
+      showInnerSquare: true,
+      boundaryStyle,
+    });
+  }
+
+  return applyTraditionPreset('generic', {
+    weekday,
+    showCompass,
+    centerGlyph: glyphSpec('none'),
+    cardinalGlyphs: defaultCardinalGlyphs('none'),
+    showInnerSquare: false,
+    boundaryStyle,
+  });
 }
 
 /**
@@ -553,6 +742,7 @@ export function applyConjurationTemplate(
       | 'showInnerSquare'
       | 'triangleBearing'
       | 'triangleRotationDeg'
+      | 'boundaryStyle'
     >
   >
 ): CircleConfig | null {
@@ -571,6 +761,7 @@ export function applyConjurationTemplate(
     triangleRotationDeg:
       base?.triangleRotationDeg ?? DEFAULT_TRIANGLE_ROTATION,
     showSeal: true,
+    boundaryStyle: base?.boundaryStyle,
   });
 }
 
@@ -610,6 +801,7 @@ export function buildCircleLayout(config: CircleConfig): CircleConfig {
     triangleBearing: bearing,
     triangleRotationDeg,
     showSeal: Boolean(config.showSeal),
+    boundaryStyle: sanitizeBoundaryStyle(config.boundaryStyle),
     rings: config.rings.map((r) => ({
       ...r,
       radius: Math.max(0.08, Math.min(1, r.radius)),
@@ -704,5 +896,6 @@ export function sanitizeCircleConfig(raw: unknown): CircleConfig | null {
     triangleBearing,
     triangleRotationDeg,
     showSeal: Boolean(c.showSeal),
+    boundaryStyle: sanitizeBoundaryStyle(c.boundaryStyle),
   };
 }
