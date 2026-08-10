@@ -30,7 +30,7 @@ export default function SplashPage({ onEnterGuest }: SplashPageProps) {
       {/* Hero */}
       <header className="relative flex min-h-screen flex-col justify-center px-4 py-16 sm:px-8 lg:px-12">
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[1.15fr_minmax(0,22rem)] lg:gap-16">
-          <div className="splash-fade-up">
+          <div className="splash-fade-up flex flex-col items-center text-center">
             <svg
               className="mb-6 h-14 w-14 text-ananael-gold sm:h-16 sm:w-16"
               viewBox="0 0 32 32"
@@ -56,7 +56,7 @@ export default function SplashPage({ onEnterGuest }: SplashPageProps) {
             <h1 className="mt-3 font-display text-5xl leading-tight text-ananael-gold sm:text-6xl lg:text-7xl">
               Ananael
             </h1>
-            <p className="mt-6 max-w-xl font-display text-xl text-zinc-100 sm:text-2xl">
+            <p className="mt-6 max-w-md font-display text-xl text-zinc-100 sm:text-2xl">
               {SPLASH_MISSION.headline}
             </p>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-ananael-muted sm:text-lg">
