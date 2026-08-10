@@ -3,15 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0c0c0f" />
+    <meta name="robots" content="index, follow" />
     <title>Ananael — Inner Sanctum for Hermetics &amp; Ceremonial Magic</title>
     <meta
       name="description"
-      content="Ananael is an Inner Sanctum dashboard for hermetics and ceremonial magic: Magical OS, tarot, I Ching, gematria, celestial timing, Tree of Life, Liber 777 correspondences, ritual space planner, Solomonic circles, and Magical Journal."
+      content="Ananael is the Inner Sanctum: a free modular dashboard for hermetics and ceremonial magic—divination, correspondences, planetary timing, alchemy, ritual design, and a Magical Journal."
     />
     <link rel="canonical" href="https://ananael.tech/" />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:url" content="https://ananael.tech/" />
     <meta
       property="og:title"
@@ -19,33 +22,80 @@
     />
     <meta
       property="og:description"
-      content="Modular tools for esoteric practice: divination, correspondences, planetary timing, ritual design, and a Magical Journal—gathered in one sanctum."
+      content="Ananael is the Inner Sanctum: a free modular dashboard for hermetics and ceremonial magic—divination, correspondences, planetary timing, alchemy, ritual design, and a Magical Journal."
     />
     <meta property="og:site_name" content="Ananael" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://ananael.tech/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Ananael — Inner Sanctum for hermetics and ceremonial magic"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
       content="Ananael — Inner Sanctum for Hermetics &amp; Ceremonial Magic"
     />
     <meta
       name="twitter:description"
-      content="Modular tools for esoteric practice: divination, correspondences, planetary timing, ritual design, and a Magical Journal—gathered in one sanctum."
+      content="Ananael is the Inner Sanctum: a free modular dashboard for hermetics and ceremonial magic—divination, correspondences, planetary timing, alchemy, ritual design, and a Magical Journal."
     />
+    <meta name="twitter:image" content="https://ananael.tech/og-image.png" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Ananael",
-        "alternateName": "Ananael Inner Sanctum",
-        "url": "https://ananael.tech/",
-        "description": "A modular dashboard for hermetics, ceremonial magic, and esoteric study—tarot, I Ching, gematria, celestial timing, Tree of Life, Liber 777 correspondences, ritual space planner, Solomonic circles, and Magical Journal.",
-        "applicationCategory": "LifestyleApplication",
-        "operatingSystem": "Web",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        }
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://ananael.tech/#website",
+            "name": "Ananael",
+            "url": "https://ananael.tech/",
+            "description": "Ananael is the Inner Sanctum: a free modular dashboard for hermetics, ceremonial magic, and esoteric study.",
+            "publisher": { "@id": "https://ananael.tech/#organization" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://ananael.tech/#organization",
+            "name": "Ananael",
+            "alternateName": "Ananael Inner Sanctum",
+            "url": "https://ananael.tech/",
+            "logo": "https://ananael.tech/apple-touch-icon.png"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://ananael.tech/#app",
+            "name": "Ananael",
+            "alternateName": "Ananael Inner Sanctum",
+            "url": "https://ananael.tech/",
+            "description": "A modular dashboard for hermetics, ceremonial magic, and esoteric study—tarot, I Ching, gematria, celestial timing, Tree of Life, Liber 777 correspondences, ritual space planner, Solomonic circles, and Magical Journal.",
+            "applicationCategory": "LifestyleApplication",
+            "operatingSystem": "Web",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "Magical OS dashboard",
+              "Divination (Tarot, I Ching, Geomancy, Runes)",
+              "Magical Journal",
+              "Gematria",
+              "Celestial Timing and Magical Almanac",
+              "Script Translator",
+              "Tree of Life",
+              "Liber 777–style Correspondences",
+              "Athanor alchemy chamber",
+              "Ritual Space Planner",
+              "Solomonic Circles",
+              "Talisman Atelier",
+              "Enochian study",
+              "Ritual Library"
+            ],
+            "publisher": { "@id": "https://ananael.tech/#organization" }
+          }
+        ]
       }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -57,6 +107,46 @@
   </head>
   <body class="bg-ananael-bg text-zinc-100 antialiased">
     <div id="root"></div>
+    <noscript>
+      <main style="max-width: 40rem; margin: 2rem auto; padding: 0 1rem; font-family: Georgia, serif; color: #f4f4f5; background: #0c0c0f;">
+        <p style="letter-spacing: 0.2em; text-transform: uppercase; color: #c9a227; font-size: 0.85rem;">Inner Sanctum</p>
+        <h1 style="color: #c9a227; font-size: 2.5rem; margin: 0.5rem 0 1rem;">Ananael</h1>
+        <p style="font-size: 1.25rem;">Tools for the work, gathered in one sanctum.</p>
+        <p>
+          Ananael is a modular dashboard for hermetics, ceremonial magic, and
+          esoteric study—divination, correspondences, planetary timing, alchemy,
+          ritual design, and a journal for your workings.
+        </p>
+        <p>
+          Ananael — the Inner Sanctum — brings ceremonial magic and hermetic
+          practice into a single working environment. Explore Magical OS,
+          Divination, Magical Journal, Gematria, Celestial Timing, Script
+          Translator, Tree of Life, Correspondences, Athanor, Ritual Space
+          Planner, Solomonic Circles, Talisman Atelier, Enochian, and Ritual
+          Library.
+        </p>
+        <ul>
+          <li>Magical OS</li>
+          <li>Divination (Tarot, I Ching, Geomancy, Runes)</li>
+          <li>Magical Journal</li>
+          <li>Gematria</li>
+          <li>Celestial Timing</li>
+          <li>Script Translator</li>
+          <li>Tree of Life</li>
+          <li>Correspondences</li>
+          <li>Athanor</li>
+          <li>Ritual Space Planner</li>
+          <li>Solomonic Circles</li>
+          <li>Talisman Atelier</li>
+          <li>Enochian</li>
+          <li>Ritual Library</li>
+        </ul>
+        <p>
+          Enable JavaScript to use Ananael, or visit
+          <a href="https://ananael.tech/" style="color: #c9a227;">https://ananael.tech/</a>.
+        </p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

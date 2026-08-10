@@ -5,7 +5,7 @@
 export const SPLASH_MISSION = {
   headline: 'Tools for the work, gathered in one sanctum.',
   support:
-    'Ananael is a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, alchemy, ritual design, and a journal for your workings.',
+    'Ananael is the Inner Sanctum: a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, alchemy, ritual design, and a journal for your workings.',
   body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; craft kamea and sigils; plan altar layouts and Solomonic circles; browse a Ritual Library; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
 } as const;
 

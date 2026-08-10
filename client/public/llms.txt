@@ -1,0 +1,34 @@
+# Ananael
+
+> Ananael is the Inner Sanctum: a free web dashboard for hermetics, ceremonial magic, and esoteric study.
+
+Ananael gathers divination, correspondences, planetary timing, alchemy, ritual design, and a Magical Journal into one modular working environment (Magical OS).
+
+## Canonical URL
+
+https://ananael.tech/
+
+## What Ananael includes
+
+- Magical OS — home dashboard with sky clock, almanac, and quick paths into every module
+- Divination — Tarot, I Ching, Geomancy, and Elder Futhark runes
+- Magical Journal — rituals, dreams, readings, and workings tagged to celestial cues
+- Gematria — Hebrew, Greek, and English letter-value calculators
+- Celestial Timing — planetary hours, ephemeris, zodiac, elections, Magical Almanac
+- Script Translator — Latin to Hebrew, Greek, and Elder Futhark
+- Tree of Life — interactive Golden Dawn Tree with notes
+- Correspondences — Liber 777–style key scale search
+- Athanor — hermetic alchemy opus stages and vessel planner
+- Ritual Space Planner — altar and temple layout design
+- Solomonic Circles — Goetia / Heptameron circle builders with seals
+- Talisman Atelier — planetary kamea and sigil craft
+- Enochian — elemental tablets and Calls for study
+- Ritual Library — liturgy corpus with sources and journal deep-links
+
+## Access
+
+Guests can explore calculators and divination without an account. Sign-in enables saving journal entries, readings, layouts, and notes to a profile.
+
+## Contact / source
+
+Website: https://ananael.tech/
