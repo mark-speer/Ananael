@@ -95,6 +95,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const [workingsError, setWorkingsError] = useState<string | null>(null);
   const [workingsLoading, setWorkingsLoading] = useState(false);
   const [vesselCount, setVesselCount] = useState(0);
+  const [userCount, setUserCount] = useState<number | null>(null);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [corrQuery, setCorrQuery] = useState('');
 
@@ -210,6 +211,25 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     void loadWorkings();
   }, [loadWorkings]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await apiFetch('/api/auth/user-count');
+        if (!res.ok) return;
+        const data = (await res.json()) as { count?: number };
+        if (!cancelled && typeof data.count === 'number') {
+          setUserCount(data.count);
+        }
+      } catch {
+        /* leave userCount null on failure */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const drawCard = () => {
     const shuffled = shuffleDeck(TAROT_DECK);
     setDealt({
@@ -248,12 +268,19 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="font-display text-3xl text-ananael-gold">Magical OS</h1>
-        <p className="mt-1 text-sm text-ananael-muted">
-          Sanctum overview — sky conditions, quick tools, and paths into every
-          module.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl text-ananael-gold">Magical OS</h1>
+          <p className="mt-1 text-sm text-ananael-muted">
+            Sanctum overview — sky conditions, quick tools, and paths into every
+            module.
+          </p>
+        </div>
+        {userCount !== null && (
+          <p className="shrink-0 pt-1 text-xs text-ananael-muted">
+            {userCount} {userCount === 1 ? 'practitioner' : 'practitioners'}
+          </p>
+        )}
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

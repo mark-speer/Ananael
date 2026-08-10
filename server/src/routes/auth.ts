@@ -154,6 +154,20 @@ router.post('/logout', (_req: Request, res: Response): void => {
 });
 
 /**
+ * GET /api/auth/user-count
+ * Public total of registered users (for Magical OS header).
+ */
+router.get('/user-count', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const count = await User.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    console.error('User count error:', error);
+    res.status(500).json({ message: 'Server error while counting users' });
+  }
+});
+
+/**
  * GET /api/auth/me
  * Return the authenticated user (includes saved location).
  */
