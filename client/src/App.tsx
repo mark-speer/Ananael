@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AccountMenu from './components/AccountMenu';
+import AnanaelWordmark from './components/AnanaelWordmark';
 import AlchemyModule, {
   type OpusPaneId,
 } from './components/AlchemyModule';
@@ -231,7 +232,9 @@ export default function App() {
         <div className="border-b border-ananael-border/60 bg-ananael-surface px-4 py-3 md:hidden">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <p className="font-display text-lg text-ananael-gold">Ananael</p>
+              <p className="font-display text-lg text-ananael-gold">
+                <AnanaelWordmark />
+              </p>
               <AccountMenu className="max-w-[9rem] shrink-0" />
             </div>
             <label className="block text-xs text-ananael-muted">
