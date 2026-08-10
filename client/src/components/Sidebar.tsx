@@ -1,5 +1,4 @@
 import AccountMenu from './AccountMenu';
-import AnanaelWordmark from './AnanaelWordmark';
 
 export type ModuleId =
   | 'dashboard'
@@ -101,7 +100,7 @@ export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-ananael-border/60 bg-ananael-surface/90 backdrop-blur-sm">
       <div className="border-b border-ananael-border/60 px-5 py-6">
         <p className="font-display text-2xl font-semibold tracking-wide text-ananael-gold">
-          <AnanaelWordmark />
+          Ananael
         </p>
         <p className="mt-1 text-xs uppercase tracking-[0.2em] text-ananael-muted">
           Inner Sanctum
