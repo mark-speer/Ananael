@@ -20,6 +20,8 @@ export interface IUser extends Document {
   email: string;
   password: string;
   location?: IUserLocation | null;
+  /** Last authenticated activity (presence / online count). */
+  lastSeenAt?: Date | null;
   comparePassword(candidate: string): Promise<boolean>;
 }
 
@@ -50,9 +52,15 @@ const UserSchema = new Schema<IUser>(
       lat: { type: Number, min: -90, max: 90 },
       lon: { type: Number, min: -180, max: 180 },
     },
+    lastSeenAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
+
+UserSchema.index({ lastSeenAt: 1 });
 
 /** Hash password before saving when it has been modified. */
 UserSchema.pre('save', async function (next) {

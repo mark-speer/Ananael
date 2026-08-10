@@ -6,6 +6,7 @@ import {
   setAuthCookie,
   signToken,
 } from '../lib/authCookie';
+import { countOnlineUsers } from '../lib/presence';
 
 const router = Router();
 
@@ -85,6 +86,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       username: username.trim(),
       email: email.toLowerCase().trim(),
       password,
+      lastSeenAt: new Date(),
     });
 
     const token = signToken(user._id.toString());
@@ -132,6 +134,15 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    try {
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { lastSeenAt: new Date() } }
+      );
+    } catch (error) {
+      console.error('Login lastSeenAt update error:', error);
+    }
+
     const token = signToken(user._id.toString());
     setAuthCookie(res, token);
 
@@ -155,17 +166,33 @@ router.post('/logout', (_req: Request, res: Response): void => {
 
 /**
  * GET /api/auth/user-count
- * Public total of registered users (for Magical OS header).
+ * Public total registered users and currently online practitioners.
  */
 router.get('/user-count', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const count = await User.countDocuments();
-    res.json({ count });
+    const [count, online] = await Promise.all([
+      User.countDocuments(),
+      countOnlineUsers(),
+    ]);
+    res.json({ count, online });
   } catch (error) {
     console.error('User count error:', error);
     res.status(500).json({ message: 'Server error while counting users' });
   }
 });
+
+/**
+ * POST /api/auth/presence
+ * Heartbeat for idle authenticated clients (updates lastSeenAt).
+ */
+router.post(
+  '/presence',
+  protect,
+  (_req: AuthRequest, res: Response): void => {
+    // protect already touches lastSeenAt
+    res.status(204).send();
+  }
+);
 
 /**
  * GET /api/auth/me

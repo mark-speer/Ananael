@@ -126,6 +126,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshLocation]);
 
+  /** Keep lastSeenAt fresh while signed in (dashboard online count). */
+  useEffect(() => {
+    if (!user) return;
+
+    const PRESENCE_MS = 2.5 * 60 * 1000;
+
+    const ping = () => {
+      void apiFetch('/api/auth/presence', { method: 'POST' }).catch(() => {
+        /* ignore heartbeat failures */
+      });
+    };
+
+    ping();
+    const id = window.setInterval(ping, PRESENCE_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        ping();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [user]);
+
   const persist = useCallback(
     (next: AuthResponse) => {
       setUser(next.user);

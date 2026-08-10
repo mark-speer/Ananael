@@ -96,6 +96,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const [workingsLoading, setWorkingsLoading] = useState(false);
   const [vesselCount, setVesselCount] = useState(0);
   const [userCount, setUserCount] = useState<number | null>(null);
+  const [onlineCount, setOnlineCount] = useState<number | null>(null);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [corrQuery, setCorrQuery] = useState('');
 
@@ -213,20 +214,36 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
+
+    const loadUserCount = async () => {
       try {
         const res = await apiFetch('/api/auth/user-count');
         if (!res.ok) return;
-        const data = (await res.json()) as { count?: number };
-        if (!cancelled && typeof data.count === 'number') {
+        const data = (await res.json()) as {
+          count?: number;
+          online?: number;
+        };
+        if (
+          !cancelled &&
+          typeof data.count === 'number' &&
+          typeof data.online === 'number'
+        ) {
           setUserCount(data.count);
+          setOnlineCount(data.online);
         }
       } catch {
-        /* leave userCount null on failure */
+        /* leave counts null on failure */
       }
-    })();
+    };
+
+    void loadUserCount();
+    const id = window.setInterval(() => {
+      void loadUserCount();
+    }, SKY_REFRESH_MS);
+
     return () => {
       cancelled = true;
+      window.clearInterval(id);
     };
   }, []);
 
@@ -276,9 +293,9 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             module.
           </p>
         </div>
-        {userCount !== null && (
+        {userCount !== null && onlineCount !== null && (
           <p className="shrink-0 pt-1 text-xs text-ananael-muted">
-            {userCount} {userCount === 1 ? 'practitioner' : 'practitioners'}
+            {onlineCount} / {userCount} practitioners online
           </p>
         )}
       </header>

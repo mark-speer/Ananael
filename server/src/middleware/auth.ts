@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AUTH_COOKIE, getJwtSecret } from '../lib/authCookie';
+import { touchLastSeen } from '../lib/presence';
 
 /** Augmented request with the authenticated user's id. */
 export interface AuthRequest extends Request {
@@ -40,6 +41,7 @@ export const protect = (
       algorithms: ['HS256'],
     }) as JwtPayload;
     req.userId = decoded.id;
+    void touchLastSeen(decoded.id);
     next();
   } catch {
     res.status(401).json({ message: 'Not authorized — token invalid or expired' });
