@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { getRite } from '../data/liturgy';
 import { getCardById } from '../data/tarotDeck';
 import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
@@ -112,6 +113,23 @@ function payloadSummary(entry: JournalEntry): string | null {
         return r.isReversed ? `${label} (rev)` : label;
       })
       .join(', ');
+  }
+  if (p.system === 'ritual-runner' && typeof p.riteId === 'string') {
+    const stepIndex =
+      typeof p.stepIndex === 'number' && Number.isFinite(p.stepIndex)
+        ? Math.max(0, Math.floor(p.stepIndex))
+        : 0;
+    const title =
+      typeof entry.title === 'string' && entry.title.trim()
+        ? entry.title.trim()
+        : p.riteId;
+    // stepCount unknown here — show 1-based index only when we lack corpus size
+    const rite = getRite(p.riteId);
+    const total = rite?.steps.length ?? 0;
+    if (total > 0) {
+      return `${title} · step ${Math.min(stepIndex + 1, total)}/${total}`;
+    }
+    return `${title} · step ${stepIndex + 1}`;
   }
   return null;
 }

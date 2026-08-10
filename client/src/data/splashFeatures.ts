@@ -6,7 +6,7 @@ export const SPLASH_MISSION = {
   headline: 'Tools for the work, gathered in one sanctum.',
   support:
     'Ananael is the Inner Sanctum: a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, alchemy, ritual design, and a journal for your workings.',
-  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; craft kamea and sigils; plan altar layouts and Solomonic circles; browse a Ritual Library; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
+  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; craft kamea and sigils; plan altar layouts and Solomonic circles; browse a Ritual Library with guided Ritual Runner sessions; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
 } as const;
 
 export interface SplashFeature {
@@ -20,7 +20,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'dashboard',
     title: 'Magical OS',
     description:
-      'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues (each deep-linked into Celestial Timing), a Magical Almanac tile for today’s counsel and alchemical operation, an Athanor tile for the day’s opus stage, quick tarot plus paths into all Divination systems, active journal workings that open the matching entry, Liber 777 correspondences search, study tools, and ritual builders—so every module stays one tap away.',
+      'Your default home: a living sky clock with moon phase, planetary hours, and zodiac cues (each deep-linked into Celestial Timing), a Magical Almanac tile for today’s counsel and alchemical operation, an Athanor tile for the day’s opus stage, quick tarot plus paths into all Divination systems, active journal workings (Ritual Runner sessions Resume into the Library), Liber 777 correspondences search, study tools, and ritual builders—so every module stays one tap away.',
   },
   {
     id: 'divination',
@@ -98,6 +98,6 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'liturgy',
     title: 'Ritual Library',
     description:
-      'Expanded liturgy corpus (Golden Dawn, Heptameron, Goetia, Alchemy, solar adorations, consecrations) with purpose, notes, sources, suggested planetary hours, Ritual Space templates, and one-click Magical Journal workings.',
+      'Expanded liturgy corpus (Golden Dawn, Heptameron, Goetia, Alchemy, solar adorations, consecrations) with purpose, notes, sources, suggested planetary hours, Ritual Space templates, guided Ritual Runner sessions (step checklist + live hour strip, resume from Magical OS), and one-click Magical Journal workings.',
   },
 ];

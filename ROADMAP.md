@@ -32,7 +32,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Talisman Atelier     | Active  | 12           |
 | Elections            | Active  | 13 (timing)  |
 | Enochian             | Active  | 14           |
-| Ritual Library       | Active  | 15–16        |
+| Ritual Library       | Active  | 15–16 / 18 / 25 |
 | Magical Almanac      | Active  | 17 (timing + OS) |
 | Hermetic Alchemy hooks | Active | 18 (cross-module) |
 | Athanor              | Active  | 19 / 23          |
@@ -41,6 +41,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Timing chart bookmarks | Active  | 22         |
 | Athanor deepen       | Active  | 23           |
 | Cross-module polish  | Active  | 24           |
+| Ritual Runner        | Active  | 25           |
 
 ---
 
@@ -360,6 +361,21 @@ Finish Magical OS deep-links, unify search/export patterns, and fix mobile UX ga
 - Removed unused `ModuleShell`
 
 **Done when:** Magical OS opens every sidebar module with meaningful opts; shared export helper + Tree PNG/JSON; search chrome aligned; mobile select grouped; Enochian usable at ~360px width.
+
+---
+
+## Phase 25 — Ritual Runner — Shipped
+
+Guided practice mode inside Ritual Library (no new sidebar module).
+
+- **Start run** on any rite: focused step checklist, progress bar, live planetary day/hour strip (highlights when hour matches `suggestedPlanet`)
+- Signed-in: `POST` journal `working` with `payload.system: 'ritual-runner'`; step/pause/complete via `PATCH`; Complete writes step log + notes + `skyEnd`
+- Guests: in-memory run only (no localStorage resume)
+- Magical OS: runner workings show **Resume** → Ritual Library run mode (`riteId` + `runEntryId`)
+- Keep one-shot **Log working** for offline practice dumps
+- Client: `client/src/lib/ritualRunner.ts`, `RitualRunnerPanel.tsx`
+
+**Done when:** Start → step → Complete for guest and signed-in; Magical OS Resume restores mid-rite; sky strip + suggested-planet match; browse + Log working unchanged.
 
 ---
 

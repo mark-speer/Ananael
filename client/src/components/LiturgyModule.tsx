@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
+  getRite,
   groupRitesByTradition,
   LITURGY_TRADITION_ORDER,
   searchRites,
@@ -8,29 +9,58 @@ import {
 } from '../data/liturgy';
 import type { TemplateId } from '../data/ritualTools';
 import { apiFetch } from '../lib/api';
+import type { JournalEntry } from '../lib/journal';
 import { buildJournalSky } from '../lib/journalSky';
+import {
+  createRunnerPayload,
+  createRunnerSession,
+  isRitualRunnerPayload,
+  sessionFromPayload,
+  type LiturgyMode,
+  type RitualRunnerSession,
+} from '../lib/ritualRunner';
 import type { ModuleId } from './Sidebar';
+import RitualRunnerPanel from './RitualRunnerPanel';
 
 export interface LiturgyNavigateOptions {
   planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
   filter?: 'working' | 'ritual' | 'all';
   ritualTemplate?: TemplateId;
+  riteId?: string;
+  runEntryId?: string;
+  liturgyMode?: LiturgyMode;
 }
 
 interface LiturgyModuleProps {
   onNavigate?: (module: ModuleId, opts?: LiturgyNavigateOptions) => void;
+  initialRiteId?: string;
+  initialRunEntryId?: string;
+  initialMode?: LiturgyMode;
 }
 
 /**
- * Ritual Library — browse rites, suggested timing, log workings to the journal.
+ * Ritual Library — browse rites, guided Ritual Runner, log workings.
  */
-export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
+export default function LiturgyModule({
+  onNavigate,
+  initialRiteId,
+  initialRunEntryId,
+  initialMode = 'browse',
+}: LiturgyModuleProps) {
   const { isAuthenticated } = useAuth();
   const [query, setQuery] = useState('');
   const [traditionFilter, setTraditionFilter] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string>('lbrp');
+  const [selectedId, setSelectedId] = useState<string>(
+    initialRiteId ?? 'lbrp'
+  );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [mode, setMode] = useState<LiturgyMode>(
+    initialMode === 'run' ? 'run' : 'browse'
+  );
+  const [session, setSession] = useState<RitualRunnerSession | null>(null);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [resuming, setResuming] = useState(false);
 
   const rites = useMemo(() => {
     const found = searchRites(query);
@@ -39,7 +69,146 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
   }, [query, traditionFilter]);
   const grouped = useMemo(() => groupRitesByTradition(rites), [rites]);
   const rite: LiturgyRite | undefined =
-    rites.find((item) => item.id === selectedId) ?? rites[0] ?? undefined;
+    rites.find((item) => item.id === selectedId) ??
+    getRite(selectedId) ??
+    rites[0] ??
+    undefined;
+
+  const exitRunner = useCallback(() => {
+    setMode('browse');
+    setSession(null);
+    setResumeError(null);
+  }, []);
+
+  const startRun = async (target: LiturgyRite) => {
+    setSaving(true);
+    setStatus(null);
+    setResumeError(null);
+    try {
+      const now = new Date();
+      const sky = buildJournalSky(now);
+      if (!isAuthenticated) {
+        const guest = createRunnerSession(target, {
+          entryId: null,
+          startedAt: now.toISOString(),
+          skyStart: sky,
+        });
+        setSession(guest);
+        setSelectedId(target.id);
+        setMode('run');
+        return;
+      }
+
+      const payload = createRunnerPayload(target.id, {
+        startedAt: now.toISOString(),
+        skyStart: sky,
+      });
+      const toolsLine =
+        target.tools.length > 0
+          ? `Tools: ${target.tools.join(', ')}`
+          : '';
+      const res = await apiFetch('/api/journal/entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entryType: 'working',
+          title: target.title,
+          body: toolsLine,
+          status: 'active',
+          tags: ['liturgy', 'runner', target.id, ...target.tags],
+          occurredAt: now.toISOString(),
+          sky,
+          payload,
+        }),
+      });
+      const data = (await res.json()) as {
+        message?: string;
+        entry?: JournalEntry;
+      };
+      if (!res.ok || !data.entry) {
+        throw new Error(data.message || 'Failed to start run');
+      }
+      const next = createRunnerSession(target, {
+        entryId: data.entry._id,
+        startedAt: payload.startedAt,
+        skyStart: sky,
+        status: 'active',
+      });
+      setSession(next);
+      setSelectedId(target.id);
+      setMode('run');
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : 'Could not start run');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resumeFromEntry = useCallback(
+    async (entryId: string, preferredRiteId?: string) => {
+      setResuming(true);
+      setResumeError(null);
+      try {
+        const res = await apiFetch(`/api/journal/entries/${entryId}`);
+        const data = (await res.json()) as {
+          message?: string;
+          entry?: JournalEntry;
+        };
+        if (!res.ok || !data.entry) {
+          throw new Error(data.message || 'Working not found');
+        }
+        const entry = data.entry;
+        if (!isRitualRunnerPayload(entry.payload)) {
+          throw new Error('This working is not a ritual run');
+        }
+        const riteId = preferredRiteId || entry.payload.riteId;
+        const target = getRite(riteId);
+        if (!target) {
+          throw new Error('Rite for this run is no longer available');
+        }
+        const restored = sessionFromPayload(
+          entry.payload,
+          entry._id,
+          entry.status === 'paused' || entry.status === 'complete'
+            ? entry.status
+            : 'active'
+        );
+        if (restored.status === 'complete') {
+          throw new Error('This run is already complete');
+        }
+        setSelectedId(target.id);
+        setSession(restored);
+        setMode('run');
+      } catch (err) {
+        setResumeError(
+          err instanceof Error ? err.message : 'Could not resume run'
+        );
+        setMode('browse');
+        setSession(null);
+      } finally {
+        setResuming(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (initialRiteId) {
+      setSelectedId(initialRiteId);
+    }
+  }, [initialRiteId]);
+
+  useEffect(() => {
+    if (initialMode === 'run' && initialRunEntryId && isAuthenticated) {
+      void resumeFromEntry(initialRunEntryId, initialRiteId);
+    }
+  }, [
+    initialMode,
+    initialRunEntryId,
+    initialRiteId,
+    isAuthenticated,
+    resumeFromEntry,
+  ]);
 
   const logWorking = async () => {
     if (!isAuthenticated || !rite) return;
@@ -74,6 +243,35 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
     }
   };
 
+  const runRite =
+    mode === 'run' && session
+      ? getRite(session.riteId) ?? rite
+      : undefined;
+
+  if (mode === 'run' && session && runRite) {
+    return (
+      <div className="space-y-8">
+        <header>
+          <h1 className="font-display text-3xl text-ananael-gold">
+            Ritual Library
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
+            Guided run in progress. Pause to resume later from Magical OS when
+            signed in.
+          </p>
+        </header>
+        <RitualRunnerPanel
+          rite={runRite}
+          session={session}
+          onSessionChange={setSession}
+          onExit={exitRunner}
+          onFinished={exitRunner}
+          onNavigate={onNavigate}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <header>
@@ -82,10 +280,20 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Study liturgy and practice outlines across Golden Dawn, Solomonic, and
-          daily forms. Open suggested planetary windows, log a working to the
-          journal, or jump to ritual builders.
+          daily forms. Start a guided run, open suggested planetary windows, log
+          a working to the journal, or jump to ritual builders.
         </p>
       </header>
+
+      {(resuming || resumeError) && (
+        <p
+          className={`text-sm ${
+            resumeError ? 'text-red-400/90' : 'text-ananael-muted'
+          }`}
+        >
+          {resuming ? 'Resuming run…' : resumeError}
+        </p>
+      )}
 
       <div className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
         <label className="block">
@@ -252,6 +460,14 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
+                disabled={saving || resuming}
+                onClick={() => void startRun(rite)}
+                className="rounded-md bg-ananael-violet px-3 py-1.5 text-xs font-medium text-white hover:bg-ananael-violet-deep disabled:opacity-50"
+              >
+                {saving ? 'Starting…' : 'Start run'}
+              </button>
+              <button
+                type="button"
                 onClick={() =>
                   onNavigate?.('planetary', { planetaryPanel: 'elections' })
                 }
@@ -287,13 +503,13 @@ export default function LiturgyModule({ onNavigate }: LiturgyModuleProps) {
                   type="button"
                   disabled={saving}
                   onClick={() => void logWorking()}
-                  className="rounded-md bg-ananael-violet px-3 py-1.5 text-xs font-medium text-white hover:bg-ananael-violet-deep disabled:opacity-50"
+                  className="rounded-md border border-ananael-border/60 px-3 py-1.5 text-xs text-zinc-300 hover:bg-ananael-panel disabled:opacity-50"
                 >
                   {saving ? 'Logging…' : 'Log working'}
                 </button>
               ) : (
                 <span className="text-xs text-ananael-muted">
-                  Sign in to log a working
+                  Sign in to save runs and log workings
                 </span>
               )}
             </div>

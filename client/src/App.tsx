@@ -28,6 +28,7 @@ import TreeOfLifeModule, {
 import type { OpusStageId } from './data/alchemy';
 import type { TemplateId } from './data/ritualTools';
 import type { JournalEntryType } from './lib/journal';
+import type { LiturgyMode } from './lib/ritualRunner';
 import { useAuth } from './context/AuthContext';
 
 export type AppNavigateOptions = TreeNavigateOptions & {
@@ -39,6 +40,9 @@ export type AppNavigateOptions = TreeNavigateOptions & {
   opusPane?: OpusPaneId;
   stageId?: OpusStageId;
   metal?: string;
+  riteId?: string;
+  runEntryId?: string;
+  liturgyMode?: LiturgyMode;
 };
 
 function resolveModule(module: ModuleId): {
@@ -80,6 +84,11 @@ export default function App() {
   const [opusPane, setOpusPane] = useState<OpusPaneId>('stages');
   const [opusStageId, setOpusStageId] = useState<OpusStageId | undefined>();
   const [opusMetal, setOpusMetal] = useState<string | undefined>();
+  const [liturgyMode, setLiturgyMode] = useState<LiturgyMode>('browse');
+  const [liturgyRiteId, setLiturgyRiteId] = useState<string | undefined>();
+  const [liturgyRunEntryId, setLiturgyRunEntryId] = useState<
+    string | undefined
+  >();
 
   useEffect(() => {
     if (wasAuthenticated.current && !isAuthenticated) {
@@ -136,6 +145,15 @@ export default function App() {
     } else {
       setOpusStageId(undefined);
       setOpusMetal(undefined);
+    }
+    if (target === 'liturgy') {
+      setLiturgyMode(opts?.liturgyMode ?? 'browse');
+      setLiturgyRiteId(opts?.riteId);
+      setLiturgyRunEntryId(opts?.runEntryId);
+    } else {
+      setLiturgyMode('browse');
+      setLiturgyRiteId(undefined);
+      setLiturgyRunEntryId(undefined);
     }
     setActiveModule(target);
   };
@@ -206,7 +224,14 @@ export default function App() {
       case 'enochian':
         return <EnochianModule onNavigate={navigateToModule} />;
       case 'liturgy':
-        return <LiturgyModule onNavigate={navigateToModule} />;
+        return (
+          <LiturgyModule
+            onNavigate={navigateToModule}
+            initialRiteId={liturgyRiteId}
+            initialRunEntryId={liturgyRunEntryId}
+            initialMode={liturgyMode}
+          />
+        );
       case 'opus':
         return (
           <AlchemyModule

@@ -14,6 +14,8 @@ import {
 import { summarizeReading } from '../lib/tarotSummary';
 import type { OpusStageId } from '../data/alchemy';
 import type { TemplateId } from '../data/ritualTools';
+import type { LiturgyMode } from '../lib/ritualRunner';
+import { isRitualRunnerPayload } from '../lib/ritualRunner';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
 
@@ -31,7 +33,10 @@ export interface DashboardNavigateOptions {
   opusPane?: 'stages' | 'vessel' | 'emblem';
   stageId?: OpusStageId;
   metal?: string;
-}
+  riteId?: string;
+  runEntryId?: string;
+  liturgyMode?: LiturgyMode;
+};
 
 interface DashboardModuleProps {
   onNavigate: (module: ModuleId, opts?: DashboardNavigateOptions) => void;
@@ -661,28 +666,52 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             </p>
           ) : (
             <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto">
-              {workings.map((entry) => (
-                <li key={entry._id}>
-                  <button
-                    type="button"
-                    onClick={() => openJournal('working', entry._id)}
-                    className="flex w-full items-center justify-between gap-2 rounded-md border border-ananael-border/50 bg-ananael-bg px-3 py-2 text-left text-sm transition hover:border-ananael-violet/50"
-                  >
-                    <span className="truncate text-zinc-200">
-                      {entry.title?.trim() || 'Untitled working'}
-                    </span>
-                    <span
-                      className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${
-                        entry.status === 'active'
-                          ? 'border-ananael-gold/40 text-ananael-gold'
-                          : 'border-zinc-600 text-zinc-400'
-                      }`}
-                    >
-                      {entry.status}
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {workings.map((entry) => {
+                const runner = isRitualRunnerPayload(entry.payload);
+                return (
+                  <li key={entry._id}>
+                    <div className="flex items-center gap-2 rounded-md border border-ananael-border/50 bg-ananael-bg px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (runner) {
+                            onNavigate('liturgy', {
+                              liturgyMode: 'run',
+                              riteId: entry.payload!.riteId as string,
+                              runEntryId: entry._id,
+                            });
+                            return;
+                          }
+                          openJournal('working', entry._id);
+                        }}
+                        className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left text-sm transition hover:opacity-90"
+                      >
+                        <span className="truncate text-zinc-200">
+                          {entry.title?.trim() || 'Untitled working'}
+                        </span>
+                        <span
+                          className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wider ${
+                            entry.status === 'active'
+                              ? 'border-ananael-gold/40 text-ananael-gold'
+                              : 'border-zinc-600 text-zinc-400'
+                          }`}
+                        >
+                          {runner ? 'Resume' : entry.status}
+                        </span>
+                      </button>
+                      {runner && (
+                        <button
+                          type="button"
+                          onClick={() => openJournal('working', entry._id)}
+                          className="shrink-0 text-[10px] uppercase tracking-wider text-ananael-muted underline hover:text-zinc-300"
+                        >
+                          Journal
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
