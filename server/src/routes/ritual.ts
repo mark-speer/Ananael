@@ -30,7 +30,7 @@ function sanitizeItems(raw: unknown): IRitualItem[] | null {
     }
     if (typeof e.x !== 'number' || typeof e.y !== 'number') return null;
     if (!Number.isInteger(e.x) || !Number.isInteger(e.y)) return null;
-    if (e.x < 0 || e.x > 23 || e.y < 0 || e.y > 23) return null;
+    if (e.x < 0 || e.x > 24 || e.y < 0 || e.y > 24) return null;
 
     const item: IRitualItem = {
       id: e.id.trim(),
@@ -100,7 +100,7 @@ router.post('/layouts', protect, async (req: AuthRequest, res: Response): Promis
     if (items === null) {
       res.status(400).json({
         message:
-          'items must be an array of up to 200 valid tools (type, id, x 0–23, y 0–23)',
+          'items must be an array of up to 200 valid tools (type, id, x 0–24, y 0–24)',
       });
       return;
     }
@@ -191,7 +191,7 @@ router.put(
       if (items === null) {
         res.status(400).json({
           message:
-            'items must be an array of up to 200 valid tools (type, id, x 0–23, y 0–23)',
+            'items must be an array of up to 200 valid tools (type, id, x 0–24, y 0–24)',
         });
         return;
       }

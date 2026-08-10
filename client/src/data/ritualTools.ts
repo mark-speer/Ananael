@@ -32,8 +32,8 @@ export interface RitualLayoutDocument {
 }
 
 /** Grid size in cells. */
-export const GRID_COLS = 24;
-export const GRID_ROWS = 24;
+export const GRID_COLS = 25;
+export const GRID_ROWS = 25;
 /** Pixel size of one cell in SVG user units. */
 export const CELL_SIZE = 28;
 export const GRID_WIDTH = GRID_COLS * CELL_SIZE;
@@ -83,7 +83,7 @@ export function cellCenter(x: number, y: number): { cx: number; cy: number } {
   };
 }
 
-/** Pixel center of the template/center cell (floor(n/2)), not the geometric midpoint. */
+/** Pixel center of the template/center cell (floor(n/2)); equals geometric mid on odd grids. */
 export function gridCenterPx(): { cx: number; cy: number } {
   return cellCenter(Math.floor(GRID_COLS / 2), Math.floor(GRID_ROWS / 2));
 }
