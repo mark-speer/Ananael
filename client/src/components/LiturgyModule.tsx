@@ -23,7 +23,13 @@ import type { ModuleId } from './Sidebar';
 import RitualRunnerPanel from './RitualRunnerPanel';
 
 export interface LiturgyNavigateOptions {
-  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
+  planetaryPanel?:
+    | 'hours'
+    | 'planets'
+    | 'zodiac'
+    | 'elections'
+    | 'almanac'
+    | 'natal';
   filter?: 'working' | 'ritual' | 'all';
   ritualTemplate?: TemplateId;
   riteId?: string;

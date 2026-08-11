@@ -24,6 +24,7 @@ import {
   type PlanetId,
 } from '../lib/planetaryHours';
 import { loadPlanetaryLocation } from '../lib/planetaryLocation';
+import { natalAlmanacContextFromProfile } from '../lib/natalPersonalization';
 import { WESTERN_SIGN_GLYPHS } from '../lib/westernZodiac';
 import type { JournalEntryType } from '../lib/journal';
 import type { ModuleId } from './Sidebar';
@@ -41,10 +42,12 @@ import {
   findElectionWindows,
   type ElectionFilters,
 } from '../lib/elections';
+import NatalPanel from './NatalPanel';
+import type { PlanetaryPanelId } from '../lib/planetaryPanel';
 
-type PanelId = 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
+type PanelId = PlanetaryPanelId;
 
-export type PlanetaryPanelId = PanelId;
+export type { PlanetaryPanelId };
 
 type TimingNavigateOptions = TreeNavigateOptions & {
   planetaryPanel?: PanelId;
@@ -65,6 +68,7 @@ const PANEL_IDS: PanelId[] = [
   'zodiac',
   'elections',
   'almanac',
+  'natal',
 ];
 
 function toDateInputValue(d: Date): string {
@@ -110,7 +114,8 @@ export default function CelestialTimingModule({
   initialPanel = 'hours',
   onNavigate,
 }: CelestialTimingModuleProps) {
-  const { location: authLocation, saveLocation, isAuthenticated } = useAuth();
+  const { location: authLocation, saveLocation, isAuthenticated, natal } =
+    useAuth();
   const nowInit = new Date();
   const coords = initialCoords(authLocation);
   const [latitude, setLatitude] = useState(coords.lat);
@@ -274,6 +279,7 @@ export default function CelestialTimingModule({
     { id: 'zodiac', label: 'Zodiac' },
     { id: 'elections', label: 'Elections' },
     { id: 'almanac', label: 'Almanac' },
+    { id: 'natal', label: 'Natal' },
   ];
 
   const electionWindows = useMemo(() => {
@@ -296,15 +302,28 @@ export default function CelestialTimingModule({
     avoidRetro,
   ]);
 
+  const natalAlmanac = useMemo(
+    () => natalAlmanacContextFromProfile(natal),
+    [natal]
+  );
+
   const almanacDays = useMemo(
     () =>
       buildMonthDays(
         almanacCursor.year,
         almanacCursor.month,
         coordsValid ? lat : undefined,
-        coordsValid ? lon : undefined
+        coordsValid ? lon : undefined,
+        natalAlmanac
       ),
-    [almanacCursor.year, almanacCursor.month, coordsValid, lat, lon]
+    [
+      almanacCursor.year,
+      almanacCursor.month,
+      coordsValid,
+      lat,
+      lon,
+      natalAlmanac,
+    ]
   );
 
   const almanacMarkers = useMemo(
@@ -336,9 +355,10 @@ export default function CelestialTimingModule({
     return buildDayCounsel(
       selectedAlmanacDay.date,
       coordsValid ? lat : undefined,
-      coordsValid ? lon : undefined
+      coordsValid ? lon : undefined,
+      natalAlmanac
     );
-  }, [selectedAlmanacDay, coordsValid, lat, lon]);
+  }, [selectedAlmanacDay, coordsValid, lat, lon, natalAlmanac]);
 
   const almanacDayElections = useMemo(() => {
     if (!coordsValid || !selectedAlmanacDay || panel !== 'almanac') return [];
@@ -1188,16 +1208,20 @@ export default function CelestialTimingModule({
                         'min-h-[4.5rem] rounded-md border px-1.5 py-1.5 text-left transition',
                         selected
                           ? 'border-ananael-gold/70 bg-ananael-violet/25'
-                          : today
-                            ? 'border-ananael-violet/50 bg-ananael-panel/80 hover:border-ananael-gold/40'
-                            : 'border-ananael-border/40 bg-ananael-bg/40 hover:border-ananael-gold/30',
+                          : day.isBirthday
+                            ? 'border-ananael-gold/50 bg-ananael-gold/10 hover:border-ananael-gold/70'
+                            : day.natalResonance
+                              ? 'border-ananael-violet/60 bg-ananael-violet/15 hover:border-ananael-gold/40'
+                              : today
+                                ? 'border-ananael-violet/50 bg-ananael-panel/80 hover:border-ananael-gold/40'
+                                : 'border-ananael-border/40 bg-ananael-bg/40 hover:border-ananael-gold/30',
                       ].join(' ')}
                     >
                       <div className="flex items-start justify-between gap-1">
                         <span
                           className={[
                             'text-sm font-medium',
-                            selected || today
+                            selected || today || day.isBirthday
                               ? 'text-ananael-gold'
                               : 'text-zinc-100',
                           ].join(' ')}
@@ -1211,6 +1235,16 @@ export default function CelestialTimingModule({
                       <p className="mt-1 text-[10px] text-zinc-400">
                         {moonPhaseShort(day.moonPhase)}
                       </p>
+                      {day.isBirthday && (
+                        <p className="mt-1 text-[10px] text-ananael-gold">
+                          Birthday
+                        </p>
+                      )}
+                      {!day.isBirthday && day.natalResonance && (
+                        <p className="mt-1 text-[10px] text-ananael-violet">
+                          Natal
+                        </p>
+                      )}
                       {dayMarkers.length > 0 && (
                         <p className="mt-1 truncate text-[10px] text-ananael-violet">
                           {dayMarkers[0].label}
@@ -1294,6 +1328,16 @@ export default function CelestialTimingModule({
                       {dayCounsel.operation.axiom}
                     </p>
                   </div>
+                  {dayCounsel.natalAffinity && (
+                    <div className="rounded-lg border border-ananael-gold/40 bg-ananael-gold/10 px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-wider text-ananael-gold">
+                        Natal affinity
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-zinc-200">
+                        {dayCounsel.natalAffinity}
+                      </p>
+                    </div>
+                  )}
                   {(markersByDay.get(selectedAlmanacDay.day) ?? []).length >
                     0 && (
                     <ul className="space-y-1 text-xs text-ananael-violet">
@@ -1417,6 +1461,8 @@ export default function CelestialTimingModule({
           )}
         </div>
       )}
+
+      {panel === 'natal' && <NatalPanel onNavigate={onNavigate} />}
     </div>
   );
 }

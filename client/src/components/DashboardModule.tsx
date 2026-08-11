@@ -11,6 +11,14 @@ import {
   formatTime,
   type PlanetaryHoursChart,
 } from '../lib/planetaryHours';
+import {
+  formatNatalSummaryLine,
+  WESTERN_SIGN_GLYPHS,
+} from '../lib/natalChart';
+import {
+  fullNatalChartFromProfile,
+  natalAlmanacContextFromProfile,
+} from '../lib/natalPersonalization';
 import { summarizeReading } from '../lib/tarotSummary';
 import type { OpusStageId } from '../data/alchemy';
 import type { TemplateId } from '../data/ritualTools';
@@ -28,7 +36,13 @@ export interface DashboardNavigateOptions {
   gematriaPrefill?: string;
   correspondencesQuery?: string;
   divinationTab?: 'tarot' | 'iching' | 'geomancy' | 'runes';
-  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
+  planetaryPanel?:
+    | 'hours'
+    | 'planets'
+    | 'zodiac'
+    | 'elections'
+    | 'almanac'
+    | 'natal';
   ritualTemplate?: TemplateId;
   opusPane?: 'stages' | 'vessel' | 'emblem';
   stageId?: OpusStageId;
@@ -92,7 +106,7 @@ function TileLink({
  * journal/workings, and deep-links into live modules.
  */
 export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
-  const { isAuthenticated, location, saveLocation } = useAuth();
+  const { isAuthenticated, location, saveLocation, natal } = useAuth();
   const [now, setNow] = useState(() => new Date());
   const [dealt, setDealt] = useState<DealtCard | null>(null);
   const [deckStyle] = useState(() => loadDeckStyle());
@@ -130,9 +144,18 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     ? chart.currentHour.end.getTime() - now.getTime()
     : null;
 
+  const natalCtx = useMemo(
+    () => natalAlmanacContextFromProfile(natal),
+    [natal]
+  );
+  const fullNatal = useMemo(
+    () => fullNatalChartFromProfile(natal),
+    [natal]
+  );
+
   const dayCounsel = useMemo(
-    () => buildDayCounsel(now, loc?.lat, loc?.lon),
-    [now, loc?.lat, loc?.lon]
+    () => buildDayCounsel(now, loc?.lat, loc?.lon, natalCtx),
+    [now, loc?.lat, loc?.lon, natalCtx]
   );
 
   const nextHighlight = useMemo(
@@ -511,6 +534,14 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           <p className="mt-2 text-xs italic text-ananael-muted">
             {dayCounsel.operation.axiom}
           </p>
+          {dayCounsel.natalAffinity && (
+            <p className="mt-3 rounded-md border border-ananael-gold/40 bg-ananael-gold/10 px-2.5 py-2 text-xs text-zinc-200">
+              <span className="text-[11px] uppercase tracking-wider text-ananael-gold">
+                Natal ·{' '}
+              </span>
+              {dayCounsel.natalAffinity}
+            </p>
+          )}
           {nextHighlight && (
             <p className="mt-3 text-xs text-ananael-violet">
               Next: {nextHighlight.label} ·{' '}
@@ -523,6 +554,73 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             </p>
           )}
         </section>
+
+        {fullNatal && (
+          <section className={tileClassName()}>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="font-display text-lg text-ananael-gold">
+                  Natal chart
+                </h2>
+                <p className="mt-0.5 text-xs text-ananael-muted">
+                  Whole Sign · your saved birth figure
+                </p>
+              </div>
+              <TileLink
+                label="Open Natal"
+                onClick={() =>
+                  onNavigate('planetary', { planetaryPanel: 'natal' })
+                }
+                tone="gold"
+              />
+            </div>
+            <p className="mt-4 text-sm text-zinc-200">
+              {formatNatalSummaryLine(fullNatal)}
+            </p>
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                  Sun
+                </dt>
+                <dd className="text-zinc-100">
+                  {fullNatal.sunSign
+                    ? `${WESTERN_SIGN_GLYPHS[fullNatal.sunSign]} ${fullNatal.sunSign}`
+                    : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                  Asc
+                </dt>
+                <dd className="text-zinc-100">
+                  {fullNatal.ascendant
+                    ? `${WESTERN_SIGN_GLYPHS[fullNatal.ascendant.sign]} ${fullNatal.ascendant.sign}`
+                    : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                  Ruler
+                </dt>
+                <dd className="text-zinc-100">
+                  {fullNatal.hermetic?.planet ?? '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                  Year
+                </dt>
+                <dd className="text-zinc-100">{fullNatal.chineseYearLabel}</dd>
+              </div>
+            </dl>
+            {dayCounsel.natalAffinity && (
+              <p className="mt-3 text-xs text-ananael-violet">
+                Today: favor hours of {fullNatal.hermetic?.planet ?? 'your ruler'}{' '}
+                when electing.
+              </p>
+            )}
+          </section>
+        )}
 
         {/* Quick tarot */}
         <section className={tileClassName()}>

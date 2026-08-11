@@ -54,7 +54,13 @@ export type AlchemyNavigateOptions = TreeNavigateOptions & {
   opusPane?: OpusPaneId;
   stageId?: OpusStageId;
   metal?: string;
-  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
+  planetaryPanel?:
+    | 'hours'
+    | 'planets'
+    | 'zodiac'
+    | 'elections'
+    | 'almanac'
+    | 'natal';
   filter?: 'working' | 'ritual' | 'all';
 };
 

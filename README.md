@@ -69,11 +69,11 @@ Open **http://localhost:5173**. Vite proxies `/api` to `http://localhost:5000`.
 
 | Module               | Status                        |
 |----------------------|-------------------------------|
-| Magical OS           | Active (Phase 8 / 24, default home; deep-links every module)|
+| Magical OS           | Active (Phase 8 / 24 / 30 natal personalization, default home)|
 | Divination           | Active (Phase 9–11: Tarot, I Ching, Geomancy, Runes) |
 | Magical Journal      | Active (Phase 7)              |
 | Gematria             | Active (Phase 2a)             |
-| Celestial Timing     | Active (Phase 2b+ / 13 Elections / 17 Almanac / 22 charts) |
+| Celestial Timing     | Active (Phase 2b+ / 13 / 17 / 22 / 26–29 Natal chart) |
 | Script Translator    | Active (Phase 2c)             |
 | Tree of Life         | Active (Phase 4a / 24 PNG·JSON export) |
 | Correspondences      | Active (Phase 18 metals / principles) |
@@ -90,8 +90,9 @@ Phased implementation details: see [ROADMAP.md](ROADMAP.md).
 
 - `POST /api/auth/register` — `{ username, email, password }`
 - `POST /api/auth/login` — `{ email, password }`
-- `GET /api/auth/me` — Bearer JWT; current user (includes `location`)
+- `GET /api/auth/me` — Bearer JWT; current user (includes `location`, `natal`)
 - `PUT /api/auth/location` — Bearer JWT; `{ lat, lon }` saved on the user profile for Celestial Timing / Magical OS / journal sky
+- `PUT /api/auth/natal` — Bearer JWT; `{ birthDate, birthTime?, birthPlace?, label? }` natal birth profile for Celestial Timing Natal panel
 - `POST /api/tarot/save` — Bearer JWT; saves a Magical Journal divination entry (`spreadType`, `cardsDrawn`, `userNotes?`, `sky?`)
 - `GET /api/tarot/history` — Bearer JWT; recent tarot journal entries (compat shape)
 - `POST /api/gematria/save` — Bearer JWT; `{ text, system, total, notes? }`

@@ -18,14 +18,14 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 |----------------------|---------|--------------|
 | Tarot                | Active  | 1 (in Divination) |
 | Gematria             | Active  | 2a           |
-| Celestial Timing     | Active  | 2b+ / 13 / 17 / 22 |
+| Celestial Timing     | Active  | 2b+ / 13 / 17 / 22 / 26–29 |
 | Script Translator    | Active  | 2c           |
 | I Ching              | Active  | 3 (in Divination) |
 | Tree of Life         | Active  | 4a / 24      |
 | Ritual Space Planner | Active  | 4b           |
 | Solomonic Circles    | Active  | 5–6 / 21     |
 | Magical Journal      | Active  | 7            |
-| Magical OS Dashboard | Active  | 8 / 24       |
+| Magical OS Dashboard | Active  | 8 / 24 / 30  |
 | Divination portal    | Active  | 9–11         |
 | Geomancy             | Active  | 10 (tab)     |
 | Runes                | Active  | 11 (tab)     |
@@ -376,6 +376,61 @@ Guided practice mode inside Ritual Library (no new sidebar module).
 - Client: `client/src/lib/ritualRunner.ts`, `RitualRunnerPanel.tsx`
 
 **Done when:** Start → step → Complete for guest and signed-in; Magical OS Resume restores mid-rite; sky strip + suggested-planet match; browse + Log working unchanged.
+
+---
+
+## Phase 26 — Natal birth profile + panel foundation — Shipped
+
+Birth data persistence and Celestial Timing **Natal** panel (no separate birthday calculator).
+
+- `User.natal` + `PUT /api/auth/natal`; AuthContext + guest `localStorage` (`natalProfile.ts`)
+- Timing panel `natal`: birth date/time/place form; summary (tropical Sun/Moon, Chinese year/pillars, hermetic ruler + 777 stones, modern month birthstones, Lahiri/nakshatra)
+- Correspondences deep-link from sun sign / positions
+- Unknown time → local noon with banner; houses/wheel gated on time + place
+
+**Done when:** Natal tab; save birth profile (guest + account); summary fields visible.
+
+---
+
+## Phase 27 — Natal planets + major aspects — Shipped
+
+- Positions Sun–Pluto at birth moment (`natalChart.ts` / ephemeris)
+- Major aspects (☌ ⚹ □ △ ☍) with orbs 8° lights / 6° others
+- Natal panel Positions + Aspects tables
+
+**Done when:** positions + aspects for any birth date (noon if time unknown).
+
+---
+
+## Phase 28 — Ascendant + Whole Sign houses — Shipped
+
+- Ascendant from GAST + latitude (`ascendantLongitude`)
+- Whole Sign houses (house 1 = Asc sign); planet-in-house column
+- CTA when time/place missing (no fake Asc)
+
+**Done when:** Asc + 12 houses with complete birth data.
+
+---
+
+## Phase 29 — Natal chart wheel — Shipped
+
+- SVG wheel: signs, house numbers, planet glyphs, aspect lines (`NatalChartWheel.tsx`)
+- Export PNG / JSON via `svgExport`
+- Defines **full natal** for Magical OS / Almanac personalization gate
+
+**Done when:** wheel renders for full birth data; export works.
+
+---
+
+## Phase 30 — Almanac + Magical OS natal personalization — Shipped
+
+Personalization only when a full natal exists (date + time + place + houses/wheel).
+
+- Almanac: birthday / resonance day highlights; day counsel **Natal affinity** line
+- Magical OS: Natal chart tile + affinity on Almanac tile; soft election hint; deep-link `planetaryPanel: 'natal'`
+- Date-only profiles do not trigger personalization
+
+**Done when:** full-natal users see personalized Almanac + OS tile; others unchanged.
 
 ---
 

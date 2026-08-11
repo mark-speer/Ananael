@@ -1,5 +1,9 @@
 import { Router, Request, Response } from 'express';
-import User, { type IUser, type IUserLocation } from '../models/User';
+import User, {
+  type IUser,
+  type IUserLocation,
+  type IUserNatal,
+} from '../models/User';
 import { AuthRequest, protect } from '../middleware/auth';
 import {
   clearAuthCookie,
@@ -23,12 +27,25 @@ function serializeLocation(
   return { lat: location.lat, lon: location.lon };
 }
 
+function serializeNatal(natal: IUser['natal']): IUserNatal | null {
+  if (!natal || typeof natal.birthDate !== 'string' || !natal.birthDate) {
+    return null;
+  }
+  return {
+    birthDate: natal.birthDate,
+    birthTime: natal.birthTime ?? null,
+    birthPlace: serializeLocation(natal.birthPlace ?? undefined),
+    label: natal.label ?? null,
+  };
+}
+
 function publicUser(user: IUser) {
   return {
     _id: user._id.toString(),
     username: user.username,
     email: user.email,
     location: serializeLocation(user.location),
+    natal: serializeNatal(user.natal),
   };
 }
 
@@ -51,6 +68,72 @@ function parseLocationBody(
     };
   }
   return { ok: true, location: { lat, lon } };
+}
+
+function isValidBirthDate(date: unknown): date is string {
+  if (typeof date !== 'string') return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const [y, m, d] = date.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return (
+    dt.getUTCFullYear() === y &&
+    dt.getUTCMonth() === m - 1 &&
+    dt.getUTCDate() === d
+  );
+}
+
+function isValidBirthTime(time: unknown): time is string {
+  if (typeof time !== 'string' || time === '') return false;
+  if (!/^\d{2}:\d{2}$/.test(time)) return false;
+  const [hh, mm] = time.split(':').map(Number);
+  return hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59;
+}
+
+function parseNatalBody(
+  body: Record<string, unknown>
+): { ok: true; natal: IUserNatal } | { ok: false; message: string } {
+  if (!isValidBirthDate(body.birthDate)) {
+    return {
+      ok: false,
+      message: 'birthDate must be a valid YYYY-MM-DD date',
+    };
+  }
+
+  let birthTime: string | null = null;
+  if (body.birthTime != null && body.birthTime !== '') {
+    if (!isValidBirthTime(body.birthTime)) {
+      return { ok: false, message: 'birthTime must be HH:MM (24h)' };
+    }
+    birthTime = body.birthTime;
+  }
+
+  let birthPlace: IUserLocation | null = null;
+  if (body.birthPlace != null && body.birthPlace !== '') {
+    if (typeof body.birthPlace !== 'object') {
+      return { ok: false, message: 'birthPlace must be { lat, lon }' };
+    }
+    const place = body.birthPlace as Record<string, unknown>;
+    const parsed = parseLocationBody(place);
+    if (!parsed.ok) {
+      return { ok: false, message: `birthPlace: ${parsed.message}` };
+    }
+    birthPlace = parsed.location;
+  }
+
+  const label =
+    typeof body.label === 'string' && body.label.trim()
+      ? body.label.trim().slice(0, 80)
+      : null;
+
+  return {
+    ok: true,
+    natal: {
+      birthDate: body.birthDate,
+      birthTime,
+      birthPlace,
+      label,
+    },
+  };
 }
 
 /**
@@ -242,6 +325,40 @@ router.put(
     } catch (error) {
       console.error('Auth location error:', error);
       res.status(500).json({ message: 'Server error while saving location' });
+    }
+  }
+);
+
+/**
+ * PUT /api/auth/natal
+ * Body: { birthDate, birthTime?, birthPlace?, label? } — natal birth profile.
+ */
+router.put(
+  '/natal',
+  protect,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const parsed = parseNatalBody(req.body as Record<string, unknown>);
+      if (!parsed.ok) {
+        res.status(400).json({ message: parsed.message });
+        return;
+      }
+
+      const user = await User.findByIdAndUpdate(
+        req.userId,
+        { natal: parsed.natal },
+        { new: true }
+      );
+
+      if (!user) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
+
+      res.json({ user: publicUser(user) });
+    } catch (error) {
+      console.error('Auth natal error:', error);
+      res.status(500).json({ message: 'Server error while saving natal profile' });
     }
   }
 );

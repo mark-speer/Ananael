@@ -7,12 +7,25 @@ export interface IUserLocation {
   lon: number;
 }
 
+/** Birth profile for natal chart (Celestial Timing Natal panel). */
+export interface IUserNatal {
+  /** Local civil date YYYY-MM-DD. */
+  birthDate: string;
+  /** Optional local time HH:MM. */
+  birthTime?: string | null;
+  /** Birth place coordinates (required for Asc / Whole Sign houses). */
+  birthPlace?: IUserLocation | null;
+  /** Optional display label. */
+  label?: string | null;
+}
+
 /** Public shape returned to the client (never include password). */
 export interface IUserPublic {
   _id: string;
   username: string;
   email: string;
   location?: IUserLocation | null;
+  natal?: IUserNatal | null;
 }
 
 export interface IUser extends Document {
@@ -20,6 +33,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   location?: IUserLocation | null;
+  natal?: IUserNatal | null;
   /** Last authenticated activity (presence / online count). */
   lastSeenAt?: Date | null;
   comparePassword(candidate: string): Promise<boolean>;
@@ -51,6 +65,15 @@ const UserSchema = new Schema<IUser>(
     location: {
       lat: { type: Number, min: -90, max: 90 },
       lon: { type: Number, min: -180, max: 180 },
+    },
+    natal: {
+      birthDate: { type: String, trim: true },
+      birthTime: { type: String, trim: true, default: null },
+      birthPlace: {
+        lat: { type: Number, min: -90, max: 90 },
+        lon: { type: Number, min: -180, max: 180 },
+      },
+      label: { type: String, trim: true, maxlength: 80, default: null },
     },
     lastSeenAt: {
       type: Date,

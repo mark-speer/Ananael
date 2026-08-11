@@ -35,7 +35,13 @@ export type AppNavigateOptions = TreeNavigateOptions & {
   filter?: JournalEntryType | 'all';
   entryId?: string;
   divinationTab?: DivinationTab;
-  planetaryPanel?: 'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac';
+  planetaryPanel?:
+    | 'hours'
+    | 'planets'
+    | 'zodiac'
+    | 'elections'
+    | 'almanac'
+    | 'natal';
   ritualTemplate?: TemplateId;
   opusPane?: OpusPaneId;
   stageId?: OpusStageId;
@@ -75,7 +81,7 @@ export default function App() {
   const [journalEntryId, setJournalEntryId] = useState<string | undefined>();
   const [divinationTab, setDivinationTab] = useState<DivinationTab>('tarot');
   const [planetaryPanel, setPlanetaryPanel] = useState<
-    'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac'
+    'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac' | 'natal'
   >('hours');
   const [ritualTemplate, setRitualTemplate] = useState<
     TemplateId | undefined

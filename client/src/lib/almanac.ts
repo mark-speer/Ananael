@@ -16,6 +16,32 @@ import { buildJournalSky, type JournalSky } from './journalSky';
 import { getMoonPhase, type MoonPhaseName } from './moonPhase';
 import { DAY_RULERS, type PlanetId } from './planetaryHours';
 
+export interface DayCounsel {
+  sky: JournalSky;
+  dayTheme: string;
+  moonTheme: string;
+  /** Alchemical operation counsel (stage, metal, principle). */
+  alchemyTheme: string;
+  stageId: OpusStageId;
+  operation: DayOperation;
+  /** One- or two-line practice counsel. */
+  summary: string;
+  /** Present only when a full natal chart personalizes the day. */
+  natalAffinity?: string;
+}
+
+/** Full-natal fields used to personalize Almanac / Magical OS. */
+export interface NatalAlmanacContext {
+  isFullNatal: boolean;
+  sunSign?: string;
+  ascSign?: string;
+  /** Hermetic / sign ruler planet name. */
+  rulerPlanet?: string;
+  /** Local birth month 1–12 and day. */
+  birthMonth?: number;
+  birthDay?: number;
+}
+
 export interface AlmanacDay {
   /** Local calendar date at noon. */
   date: Date;
@@ -27,6 +53,10 @@ export interface AlmanacDay {
   moonIllum: number;
   sunSign?: string;
   chineseDay: string;
+  /** True when this civil day matches the saved natal birthday. */
+  isBirthday?: boolean;
+  /** True when day ruler or sun sign resonates with natal. */
+  natalResonance?: boolean;
 }
 
 export type AlmanacMarkerKind =
@@ -41,18 +71,6 @@ export interface AlmanacMarker {
   year: number;
   month: number;
   day: number;
-}
-
-export interface DayCounsel {
-  sky: JournalSky;
-  dayTheme: string;
-  moonTheme: string;
-  /** Alchemical operation counsel (stage, metal, principle). */
-  alchemyTheme: string;
-  stageId: OpusStageId;
-  operation: DayOperation;
-  /** One- or two-line practice counsel. */
-  summary: string;
 }
 
 const DAY_THEMES: Record<PlanetId, string> = {
@@ -133,7 +151,8 @@ export function buildMonthDays(
   year: number,
   month: number,
   lat?: number,
-  lon?: number
+  lon?: number,
+  natal?: NatalAlmanacContext | null
 ): AlmanacDay[] {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const out: AlmanacDay[] = [];
@@ -142,6 +161,7 @@ export function buildMonthDays(
     lon != null &&
     Number.isFinite(lat) &&
     Number.isFinite(lon);
+  const fullNatal = Boolean(natal?.isFullNatal);
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = noonLocal(year, month, day);
@@ -152,16 +172,31 @@ export function buildMonthDays(
       hasLoc ? lon : undefined
     );
     const sun = getBody(sky, 'Sun');
+    const dayRuler = DAY_RULERS[date.getDay()] as PlanetId;
+    const sunSign = sun?.tropical.sign;
+    const isBirthday =
+      fullNatal &&
+      natal?.birthMonth === month + 1 &&
+      natal?.birthDay === day;
+    const natalResonance =
+      fullNatal &&
+      Boolean(
+        (natal?.sunSign && sunSign === natal.sunSign) ||
+          (natal?.rulerPlanet && dayRuler === natal.rulerPlanet) ||
+          (natal?.ascSign && sunSign === natal.ascSign)
+      );
     out.push({
       date,
       year,
       month,
       day,
-      dayRuler: DAY_RULERS[date.getDay()] as PlanetId,
+      dayRuler,
       moonPhase: moon.name,
       moonIllum: moon.illumination,
-      sunSign: sun?.tropical.sign,
+      sunSign,
       chineseDay: formatPillarShort(dayPillar(date)),
+      isBirthday: isBirthday || undefined,
+      natalResonance: natalResonance || undefined,
     });
   }
   return out;
@@ -213,7 +248,8 @@ export function monthMarkers(year: number, month: number): AlmanacMarker[] {
 export function buildDayCounsel(
   when: Date = new Date(),
   lat?: number,
-  lon?: number
+  lon?: number,
+  natal?: NatalAlmanacContext | null
 ): DayCounsel {
   const sky = buildJournalSky(when, lat, lon);
   const dayRuler = (sky.dayRuler as PlanetId | undefined) ?? DAY_RULERS[when.getDay()];
@@ -222,7 +258,31 @@ export function buildDayCounsel(
   const moonTheme = MOON_THEMES[moonName];
   const operation = operationForDay(dayRuler, moonName, when);
   const alchemyTheme = operation.counsel;
-  const summary = `Day of ${dayRuler}: ${dayTheme} ${moonName}: ${moonTheme} Operation: ${alchemyTheme} ${operation.axiom}`;
+  let natalAffinity: string | undefined;
+  if (natal?.isFullNatal) {
+    const hits: string[] = [];
+    if (natal.sunSign && sky.sunSign === natal.sunSign) {
+      hits.push(`Sun traverses your natal ${natal.sunSign}`);
+    }
+    if (natal.ascSign && sky.sunSign === natal.ascSign) {
+      hits.push(`Sun in your Ascendant sign ${natal.ascSign}`);
+    }
+    if (natal.rulerPlanet && dayRuler === natal.rulerPlanet) {
+      hits.push(`Day of your natal ruler ${natal.rulerPlanet}`);
+    }
+    if (
+      natal.birthMonth === when.getMonth() + 1 &&
+      natal.birthDay === when.getDate()
+    ) {
+      hits.push('Natal solar birthday');
+    }
+    if (hits.length) {
+      natalAffinity = hits.join(' · ');
+    }
+  }
+  const summary = natalAffinity
+    ? `Day of ${dayRuler}: ${dayTheme} ${moonName}: ${moonTheme} Operation: ${alchemyTheme} ${operation.axiom} Natal: ${natalAffinity}`
+    : `Day of ${dayRuler}: ${dayTheme} ${moonName}: ${moonTheme} Operation: ${alchemyTheme} ${operation.axiom}`;
   return {
     sky,
     dayTheme,
@@ -231,6 +291,7 @@ export function buildDayCounsel(
     stageId: operation.stageId,
     operation,
     summary,
+    natalAffinity,
   };
 }
 
