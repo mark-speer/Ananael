@@ -363,7 +363,22 @@ function ChakraDetailPanel({
         {chakra.bija && (
           <div>
             <dt className="text-xs uppercase tracking-wider text-ananael-muted">Bija</dt>
-            <dd className="text-sm text-zinc-200">{chakra.bija}</dd>
+            <dd className="text-sm text-zinc-200">
+              {chakra.bija}{' '}
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigate('translator', {
+                    translatorPrefill: chakra.bija!.toLowerCase(),
+                    translatorSource: 'latin',
+                    translatorTarget: 'sanskrit',
+                  })
+                }
+                className="text-ananael-gold hover:underline"
+              >
+                Transliterate
+              </button>
+            </dd>
           </div>
         )}
         {map && (

@@ -8,18 +8,20 @@ import {
   CHAKRA_SEPHIRAH_MAP,
   NEIDAN_STAGES,
   DANTIANS,
+  getOpusStageForNeidan,
   type NeidanStage,
 } from '../data/subtleBodyMaps';
 import { LITURGY_RITES } from '../data/liturgy';
 import { formatPeakHour } from '../data/meridians';
 
-export type SubtleBodyPane = 'chakras' | 'meridians' | 'maps' | 'neidan';
+export type SubtleBodyPane = 'chakras' | 'meridians' | 'maps' | 'neidan' | 'practice';
 
 export const SUBTLE_BODY_PANES: { id: SubtleBodyPane; label: string }[] = [
   { id: 'chakras', label: 'Chakras' },
   { id: 'meridians', label: 'Meridians' },
   { id: 'maps', label: 'Maps' },
   { id: 'neidan', label: 'Neidan' },
+  { id: 'practice', label: 'Practice' },
 ];
 
 export function searchSubtleBody(
@@ -47,6 +49,17 @@ export function relatedRitesForChakra(chakraId: string) {
   );
 }
 
+export function relatedRitesForNeidanStage(stageId: string) {
+  const byStage: Record<string, string[]> = {
+    jing: ['zhan-zhuang'],
+    qi: ['microcosmic-orbit', 'ba-duan-jin'],
+    shen: ['inner-smile'],
+    xu: ['inner-smile', 'microcosmic-orbit'],
+  };
+  const ids = byStage[stageId] ?? ['microcosmic-orbit'];
+  return LITURGY_RITES.filter((r) => ids.includes(r.id));
+}
+
 export function relatedRitesForMeridian(meridianId: string) {
   return LITURGY_RITES.filter(
     (r) =>
@@ -63,6 +76,6 @@ export function meridianDisplayOrder(): Meridian[] {
   return [...MERIDIANS];
 }
 
-export { CHAKRA_SEPHIRAH_MAP, NEIDAN_STAGES, DANTIANS, formatPeakHour };
+export { CHAKRA_SEPHIRAH_MAP, NEIDAN_STAGES, DANTIANS, getOpusStageForNeidan, formatPeakHour };
 
 export type { Chakra, Meridian, NeidanStage };

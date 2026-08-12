@@ -6,6 +6,7 @@
 import { getChakra, CHAKRAS, type Chakra, type ChakraId } from './chakras';
 import { getMeridian, MERIDIANS, type Meridian, type MeridianId } from './meridians';
 import { TRIGRAMS, type TrigramId } from './ichingCorrespondences';
+import type { OpusStageId } from './alchemy';
 
 export interface ChakraSephirahMap {
   chakraId: ChakraId;
@@ -71,6 +72,66 @@ export const DANTIANS: Dantian[] = [
     notes: 'Spirit and shen cultivation in neidan study; not a substitute for lineage instruction.',
   },
 ];
+
+export interface NeidanOpusMap {
+  neidanStageId: string;
+  opusStageId: OpusStageId;
+  source: string;
+  notes?: string;
+}
+
+/** Comparative neidan ↔ hermetic opus stages — study map only. */
+export const NEIDAN_OPUS_MAP: NeidanOpusMap[] = [
+  {
+    neidanStageId: 'jing',
+    opusStageId: 'nigredo',
+    source: 'Comparative internal alchemy / opus chart',
+    notes: 'Refining jing ↔ blackening / dissolution of the gross.',
+  },
+  {
+    neidanStageId: 'qi',
+    opusStageId: 'albedo',
+    source: 'Comparative internal alchemy / opus chart',
+    notes: 'Circulating qi ↔ whitening / purification.',
+  },
+  {
+    neidanStageId: 'shen',
+    opusStageId: 'rubedo',
+    source: 'Comparative internal alchemy / opus chart',
+    notes: 'Refining shen ↔ reddening / solar crowning metaphor.',
+  },
+  {
+    neidanStageId: 'xu',
+    opusStageId: 'rubedo',
+    source: 'Comparative internal alchemy / opus chart',
+    notes: 'Return to emptiness ↔ completion / union (rubedo or beyond in some maps).',
+  },
+];
+
+export function getOpusStageForNeidan(
+  neidanStageId: string
+): NeidanOpusMap | undefined {
+  return NEIDAN_OPUS_MAP.find((m) => m.neidanStageId === neidanStageId);
+}
+
+export function getNeidanStagesForOpus(opusStageId: OpusStageId): NeidanOpusMap[] {
+  return NEIDAN_OPUS_MAP.filter((m) => m.opusStageId === opusStageId);
+}
+
+export function searchDantians(query: string): Dantian[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return DANTIANS;
+  return DANTIANS.filter((d) => {
+    const hay = [d.id, d.name, d.chinese, d.location, d.notes]
+      .join(' ')
+      .toLowerCase();
+    return hay.includes(q);
+  });
+}
+
+export function getDantian(id: string): Dantian | undefined {
+  return DANTIANS.find((d) => d.id === id);
+}
 
 export interface NeidanStage {
   id: string;

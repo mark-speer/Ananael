@@ -12,6 +12,7 @@ import {
   getChakraForSephirah,
   getMeridianForTrigram,
 } from './subtleBodyMaps';
+import { nakshatraFieldStringsForKey } from './nakshatraChakras';
 
 export const TRIGRAM_IDS = [
   'qian',
@@ -188,5 +189,6 @@ export function subtleBodyFieldStringsForKey(key: number): string[] {
   if (chakra) {
     parts.push(chakra.name, chakra.sanskrit, chakra.id, chakra.bija ?? '');
   }
+  parts.push(...nakshatraFieldStringsForKey(key));
   return parts;
 }

@@ -11,8 +11,8 @@ import {
   type SeasonMarker,
 } from './celestialEphemeris';
 import { dayPillar, formatPillarShort } from './chineseAstrology';
-import { meridianPeakingAt } from '../data/meridians';
 import { operationForDay, type DayOperation, type OpusStageId } from './alchemy';
+import { buildSubtleBodyCounsel, buildNatalSubtleBodyAffinity } from './subtleBodyCounsel';
 import { buildJournalSky, type JournalSky } from './journalSky';
 import { getMoonPhase, type MoonPhaseName } from './moonPhase';
 import { DAY_RULERS, type PlanetId } from './planetaryHours';
@@ -31,6 +31,8 @@ export interface DayCounsel {
   natalAffinity?: string;
   /** Eastern subtle-body practice hint tied to meridian hours and moon phase. */
   subtleBodyTheme?: string;
+  /** Natal subtle-body resonance when full natal chart is saved. */
+  natalSubtleBodyAffinity?: string;
 }
 
 /** Full-natal fields used to personalize Almanac / Magical OS. */
@@ -43,6 +45,8 @@ export interface NatalAlmanacContext {
   /** Local birth month 1–12 and day. */
   birthMonth?: number;
   birthDay?: number;
+  natalMoonSign?: string;
+  natalMoonNakshatra?: string;
 }
 
 export interface AlmanacDay {
@@ -96,26 +100,6 @@ const MOON_THEMES: Record<MoonPhaseName, string> = {
   'Last Quarter': 'Cut and clear — banish, compost, and close what is finished.',
   'Waning Crescent': 'Rest and empty — dream deep, purify, and prepare the next seed.',
 };
-
-function buildSubtleBodyCounsel(
-  when: Date,
-  moonName: MoonPhaseName
-): string {
-  const peaking = meridianPeakingAt(when.getHours());
-  const parts: string[] = [];
-  if (peaking.length) {
-    parts.push(
-      `${peaking.map((m) => m.name).join(' / ')} meridian peak — consider qigong, breath, or meridian-aware stillness.`
-    );
-  }
-  if (moonName === 'Waning Crescent' || moonName === 'New Moon') {
-    parts.push('Ren/Du inward work and standing meditation suit yin-phase moons.');
-  }
-  if (moonName === 'Full Moon' || moonName === 'Waxing Gibbous') {
-    parts.push('Chakra circulation and heart-center work resonate with luminous moons.');
-  }
-  return parts.join(' ');
-}
 
 /** Compact moon label for calendar cells. */
 export function moonPhaseShort(name: MoonPhaseName): string {
@@ -281,7 +265,12 @@ export function buildDayCounsel(
   const moonTheme = MOON_THEMES[moonName];
   const operation = operationForDay(dayRuler, moonName, when);
   const alchemyTheme = operation.counsel;
-  const subtleBodyTheme = buildSubtleBodyCounsel(when, moonName);
+  const subtleBodyTheme = buildSubtleBodyCounsel(
+    when,
+    moonName,
+    sky.nakshatra
+  );
+  const natalSubtleBodyAffinity = buildNatalSubtleBodyAffinity(natal);
   let natalAffinity: string | undefined;
   if (natal?.isFullNatal) {
     const hits: string[] = [];
@@ -317,6 +306,7 @@ export function buildDayCounsel(
     summary,
     natalAffinity,
     subtleBodyTheme: subtleBodyTheme || undefined,
+    natalSubtleBodyAffinity,
   };
 }
 

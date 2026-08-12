@@ -21,6 +21,7 @@ import { getChakraForSephirah } from '../data/subtleBodyMaps';
 import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import type { ModuleId } from './Sidebar';
 import type { LiturgyMode } from '../lib/ritualRunner';
+import type { ScriptId } from '../lib/transliterate';
 
 export interface TreeNavigateOptions {
   gematriaPrefill?: string;
@@ -36,8 +37,13 @@ export interface TreeNavigateOptions {
     | 'natal';
   riteId?: string;
   liturgyMode?: LiturgyMode;
-  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan';
+  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan' | 'practice';
   subtleBodyFocus?: string;
+  translatorPrefill?: string;
+  translatorSource?: ScriptId;
+  translatorTarget?: ScriptId;
+  opusPane?: 'stages' | 'vessel' | 'emblem';
+  stageId?: string;
 }
 
 interface TreeOfLifeModuleProps {

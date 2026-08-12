@@ -42,6 +42,7 @@ import {
   findElectionWindows,
   type ElectionFilters,
 } from '../lib/elections';
+import { meridianPeakingAt } from '../data/meridians';
 import NatalPanel from './NatalPanel';
 import type { PlanetaryPanelId } from '../lib/planetaryPanel';
 
@@ -130,6 +131,8 @@ export default function CelestialTimingModule({
   const [electionMoon, setElectionMoon] =
     useState<ElectionFilters['moon']>('any');
   const [avoidRetro, setAvoidRetro] = useState<PlanetId | 'none'>('none');
+  const [electionPractice, setElectionPractice] =
+    useState<ElectionFilters['practice']>('any');
   const [almanacCursor, setAlmanacCursor] = useState(() => {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
@@ -289,6 +292,7 @@ export default function CelestialTimingModule({
       hourPlanet: electionHour,
       moon: electionMoon,
       avoidRetrograde: avoidRetro,
+      practice: electionPractice,
     });
   }, [
     coordsValid,
@@ -300,6 +304,7 @@ export default function CelestialTimingModule({
     electionHour,
     electionMoon,
     avoidRetro,
+    electionPractice,
   ]);
 
   const natalAlmanac = useMemo(
@@ -418,6 +423,7 @@ export default function CelestialTimingModule({
       hour: electionHour,
       moon: electionMoon,
       avoidRetro,
+      practice: electionPractice,
     },
     almanacCursor,
   });
@@ -496,6 +502,13 @@ export default function CelestialTimingModule({
       }
       if (el.avoidRetro === 'none' || typeof el.avoidRetro === 'string') {
         setAvoidRetro(el.avoidRetro as PlanetId | 'none');
+      }
+      if (
+        el.practice === 'any' ||
+        el.practice === 'meridian-peak' ||
+        el.practice === 'yin-moon'
+      ) {
+        setElectionPractice(el.practice);
       }
     }
     const cursor =
@@ -802,6 +815,36 @@ export default function CelestialTimingModule({
                 </div>
               </div>
 
+              {chart.currentHour &&
+                meridianPeakingAt(chart.currentHour.start.getHours()).length >
+                  0 && (
+                  <p className="rounded-xl border border-ananael-violet/30 bg-ananael-violet/10 px-4 py-3 text-sm text-zinc-200">
+                    <span className="text-[11px] uppercase tracking-wider text-ananael-violet">
+                      Meridian peak ·{' '}
+                    </span>
+                    {meridianPeakingAt(chart.currentHour.start.getHours())
+                      .map((m) => m.name)
+                      .join(' / ')}{' '}
+                    — qigong, breath, or meridian-aware stillness.{' '}
+                    {onNavigate && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onNavigate('subtleBody', {
+                            subtleBodyPane: 'meridians',
+                            subtleBodyFocus: meridianPeakingAt(
+                              chart.currentHour!.start.getHours()
+                            )[0]?.id,
+                          })
+                        }
+                        className="text-ananael-gold hover:underline"
+                      >
+                        Atlas
+                      </button>
+                    )}
+                  </p>
+                )}
+
               <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
                 <table className="min-w-full text-left text-sm">
                   <thead>
@@ -809,6 +852,7 @@ export default function CelestialTimingModule({
                       <th className="px-4 py-3 font-medium">#</th>
                       <th className="px-4 py-3 font-medium">Segment</th>
                       <th className="px-4 py-3 font-medium">Planet</th>
+                      <th className="px-4 py-3 font-medium">Meridian</th>
                       <th className="px-4 py-3 font-medium">Start</th>
                       <th className="px-4 py-3 font-medium">End</th>
                     </tr>
@@ -816,6 +860,7 @@ export default function CelestialTimingModule({
                   <tbody>
                     {chart.hours.map((h) => {
                       const isCurrent = chart.currentHour?.index === h.index;
+                      const peaking = meridianPeakingAt(h.start.getHours());
                       return (
                         <tr
                           key={h.index}
@@ -830,6 +875,28 @@ export default function CelestialTimingModule({
                           <td className="px-4 py-2 capitalize">{h.segment}</td>
                           <td className="px-4 py-2 font-medium">
                             {h.planet as PlanetId}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-zinc-300">
+                            {peaking.length ? (
+                              onNavigate ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    onNavigate('subtleBody', {
+                                      subtleBodyPane: 'meridians',
+                                      subtleBodyFocus: peaking[0].id,
+                                    })
+                                  }
+                                  className="text-left text-ananael-violet hover:underline"
+                                >
+                                  {peaking.map((m) => m.name).join(' / ')}
+                                </button>
+                              ) : (
+                                peaking.map((m) => m.name).join(' / ')
+                              )
+                            ) : (
+                              '—'
+                            )}
                           </td>
                           <td className="px-4 py-2">{formatTime(h.start)}</td>
                           <td className="px-4 py-2">{formatTime(h.end)}</td>
@@ -1005,7 +1072,7 @@ export default function CelestialTimingModule({
               Enter a valid latitude and longitude to compute elections.
             </p>
           )}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <label className="block text-sm text-ananael-muted">
               Preferred day
               <select
@@ -1072,6 +1139,22 @@ export default function CelestialTimingModule({
                     </option>
                   )
                 )}
+              </select>
+            </label>
+            <label className="block text-sm text-ananael-muted">
+              Practice
+              <select
+                value={electionPractice}
+                onChange={(e) =>
+                  setElectionPractice(
+                    e.target.value as ElectionFilters['practice']
+                  )
+                }
+                className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
+              >
+                <option value="any">Any</option>
+                <option value="meridian-peak">Meridian peak</option>
+                <option value="yin-moon">Yin moon (Ren/Du)</option>
               </select>
             </label>
           </div>

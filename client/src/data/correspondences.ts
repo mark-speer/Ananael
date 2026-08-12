@@ -80,6 +80,7 @@ export const CORRESPONDENCE_FACETS = [
   'metal',
   'chakra',
   'meridian',
+  'dantian',
 ] as const;
 
 export type CorrespondenceFacet = (typeof CORRESPONDENCE_FACETS)[number];
@@ -102,6 +103,7 @@ export const FACET_LABELS: Record<CorrespondenceFacet, string> = {
   metal: 'Metal',
   chakra: 'Chakra',
   meridian: 'Meridian',
+  dantian: 'Dantian',
 };
 
 /** Flatten all pantheon deity names on a key. */

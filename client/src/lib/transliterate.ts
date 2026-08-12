@@ -6,8 +6,11 @@ import {
   LATIN_TO_GREEK,
   LATIN_TO_HEBREW,
   LATIN_TO_RUNE,
+  LATIN_TO_SANSKRIT,
   RUNE_DIGRAPHS,
   RUNE_TO_LATIN,
+  SANSKRIT_DIGRAPHS,
+  SANSKRIT_TO_LATIN,
   SCRIPTS,
   type ScriptId,
 } from '../data/scripts/mappings';
@@ -42,6 +45,8 @@ function scriptToLatin(text: string, from: ScriptId): { latin: string; unmapped:
       mapped = GREEK_TO_LATIN[ch];
     } else if (from === 'runes') {
       mapped = RUNE_TO_LATIN[ch];
+    } else if (from === 'sanskrit') {
+      mapped = SANSKRIT_TO_LATIN[ch];
     }
 
     if (mapped !== undefined) {
@@ -90,13 +95,17 @@ function latinToScript(
   const digraphs =
     to === 'runes'
       ? [...RUNE_DIGRAPHS, ...LATIN_DIGRAPHS]
-      : [...LATIN_DIGRAPHS];
+      : to === 'sanskrit'
+        ? [...SANSKRIT_DIGRAPHS, ...LATIN_DIGRAPHS]
+        : [...LATIN_DIGRAPHS];
   const table =
     to === 'hebrew'
       ? LATIN_TO_HEBREW
       : to === 'greek'
         ? LATIN_TO_GREEK
-        : LATIN_TO_RUNE;
+        : to === 'sanskrit'
+          ? LATIN_TO_SANSKRIT
+          : LATIN_TO_RUNE;
 
   while (i < lower.length) {
     const ch = lower[i];
@@ -134,6 +143,7 @@ function latinToScript(
  * - Hebrew ↔ Latin uses scholarly digraphs (ch, tz, sh, th, aa).
  * - Greek ↔ Latin uses digraphs (th, ph, ch, ps, ee, oo).
  * - Runes fold c→k and y→j on Latin→Rune; reverse uses canonical keys.
+ * - Sanskrit uses IAST Latin keys (with diacritics) ↔ Devanagari; bija syllables map directly.
  */
 export function transliterate(
   text: string,

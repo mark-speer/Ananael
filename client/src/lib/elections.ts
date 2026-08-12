@@ -3,7 +3,9 @@
  */
 
 import { isRetrograde, type CelestialBodyId } from './celestialEphemeris';
+import { meridianPeakingAt } from '../data/meridians';
 import { getMoonPhase, type MoonPhaseName } from './moonPhase';
+import { isYinMoonPhase } from './subtleBodyCounsel';
 import {
   buildPlanetaryHours,
   type PlanetId,
@@ -19,6 +21,8 @@ export interface ElectionFilters {
   avoidRetrograde?: PlanetId | 'none';
   /** Prefer waxing / waning / any. */
   moon?: 'any' | 'waxing' | 'waning' | 'new' | 'full';
+  /** Subtle-body practice preference. */
+  practice?: 'any' | 'meridian-peak' | 'yin-moon';
 }
 
 export interface ElectionWindow {
@@ -114,6 +118,25 @@ export function findElectionWindows(
       if (filters.dayPlanet === chart.dayRuler) {
         score += 2;
         reasons.push('Matches preferred planetary day');
+      }
+
+      if (filters.practice === 'meridian-peak') {
+        const peaking = meridianPeakingAt(hour.start.getHours());
+        if (peaking.length) {
+          score += 2;
+          reasons.push(
+            `Meridian peak: ${peaking.map((m) => m.name).join(' / ')}`
+          );
+        } else {
+          score -= 1;
+        }
+      } else if (filters.practice === 'yin-moon') {
+        if (isYinMoonPhase(moon.name)) {
+          score += 2;
+          reasons.push(`${moon.name} — yin-phase Ren/Du stillness`);
+        } else {
+          score -= 1;
+        }
       }
 
       const avoid = filters.avoidRetrograde;

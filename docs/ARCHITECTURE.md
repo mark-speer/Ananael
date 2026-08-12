@@ -197,7 +197,7 @@ Structural map of all 15 sidebar modules. Phase history and done-when criteria: 
 | Talisman Atelier | `talisman` | `TalismanModule.tsx` | — | `kamea`, `sigil`, `svgExport` | `/api/talisman/designs` → `TalismanDesign` |
 | Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
-| Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `subtleBodyMaps` | `subtleBody` | Client-only |
+| Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |
 
 ---
 
@@ -301,6 +301,7 @@ All mutating routes (except auth register/login) require JWT via `protect` middl
 - `POST /api/talisman/designs` / `GET /api/talisman/designs` / `PUT /api/talisman/designs/:id`
 - `POST /api/planetary/charts` / `GET /api/planetary/charts` / `PUT /api/planetary/charts/:id`
 - `POST /api/opus/vessels` / `GET /api/opus/vessels` / `PUT /api/opus/vessels/:id`
+- `POST /api/practice/vessels` / `GET /api/practice/vessels` / `PUT /api/practice/vessels/:id` — subtle-body practice intent (`config`: intent, neidanStageId, chakraId, riteId)
 - `POST /api/enochian/notes` / `GET /api/enochian/notes`
 
 #### Other

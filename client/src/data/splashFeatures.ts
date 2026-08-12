@@ -50,7 +50,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'translator',
     title: 'Script Translator',
     description:
-      'Transliterate Latin text into Hebrew, Greek, and Elder Futhark runes—useful for consecrations, talismans, and working names across classical and Northern scripts.',
+      'Transliterate Latin text into Hebrew, Greek, Elder Futhark, and Sanskrit (IAST ↔ Devanagari)—useful for bija mantras, consecrations, talismans, and working names across traditions.',
   },
   {
     id: 'tree',
@@ -62,7 +62,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'correspondences',
     title: 'Correspondences',
     description:
-      'A digital Liber 777–style key scale (1–32): search Hebrew letters, Tarot, planets, elements, metals, colors, chakras, meridians, and gods across the traditional tables of correspondence.',
+      'A digital Liber 777–style key scale (1–32): search Hebrew letters, Tarot, planets, elements, metals, colors, chakras, meridians, dantians, and gods across the traditional tables of correspondence.',
   },
   {
     id: 'opus',
@@ -98,12 +98,12 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'liturgy',
     title: 'Ritual Library',
     description:
-      'Expanded liturgy corpus (Golden Dawn, Heptameron, Goetia, Alchemy, Yoga, Taoist qigong, solar adorations, consecrations) with purpose, notes, sources, suggested planetary hours, Ritual Space templates, guided Ritual Runner sessions (step checklist + hold timers, live hour strip, resume from Magical OS), and one-click Magical Journal workings.',
+      'Expanded liturgy corpus (Golden Dawn, Heptameron, Goetia, Alchemy, Yoga, Taoist qigong, Buddhist meditation, solar adorations, consecrations) with purpose, notes, sources, suggested planetary hours, Ritual Space templates, guided Ritual Runner sessions (step checklist + hold timers, live hour strip, resume from Magical OS), and one-click Magical Journal workings.',
   },
   {
     id: 'subtleBody',
     title: 'Subtle Body',
     description:
-      'Chakra spine atlas, twelve meridians plus Ren/Du, comparative chakra↔sephirah maps, neidan study stages, deep-links to Correspondences and Celestial Timing peak hours, and one-tap launch of Eastern rites in the Ritual Library.',
+      'Chakra spine atlas, twelve meridians plus Ren/Du, comparative chakra↔sephirah and neidan↔opus maps, practice vessel planner, meridian peak-hour counsel in Celestial Timing, contextual rite suggestions on Magical OS, and one-tap launch of Eastern rites in the Ritual Library.',
   },
 ];

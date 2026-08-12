@@ -28,6 +28,10 @@ import { apiFetch } from '../lib/api';
 import { buildDayCounsel } from '../lib/almanac';
 import type { JournalEntry } from '../lib/journal';
 import { buildJournalSky } from '../lib/journalSky';
+import {
+  getNeidanStagesForOpus,
+  NEIDAN_STAGES,
+} from '../data/subtleBodyMaps';
 import { getMoonPhase } from '../lib/moonPhase';
 import { DAY_RULERS, type PlanetId } from '../lib/planetaryHours';
 import type { ModuleId } from './Sidebar';
@@ -723,6 +727,10 @@ function StagesPane({
           <p className="mt-2 text-xs text-ananael-muted">
             Operations: {selected.operations.join(', ')}
           </p>
+          <ComparativeNeidanStrip
+            opusStageId={selectedId}
+            onNavigate={onNavigate}
+          />
           {isAuthenticated && (
             <div className="mt-4 border-t border-ananael-border/40 pt-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -941,5 +949,47 @@ function EmblemPane({
         Related Alchemy rites in Ritual Library
       </button>
     </div>
+  );
+}
+
+function ComparativeNeidanStrip({
+  opusStageId,
+  onNavigate,
+}: {
+  opusStageId: OpusStageId;
+  onNavigate: (module: ModuleId, opts?: AlchemyNavigateOptions) => void;
+}) {
+  const maps = getNeidanStagesForOpus(opusStageId);
+  if (!maps.length) return null;
+  const stages = maps
+    .map((m) => NEIDAN_STAGES.find((s) => s.id === m.neidanStageId))
+    .filter(Boolean);
+  return (
+    <details className="mt-4 rounded-md border border-ananael-violet/30 bg-ananael-violet/5 px-3 py-2">
+      <summary className="cursor-pointer text-xs uppercase tracking-wider text-ananael-violet">
+        Comparative neidan (study map)
+      </summary>
+      <ul className="mt-2 space-y-2 text-sm text-zinc-300">
+        {stages.map((s) =>
+          s ? (
+            <li key={s.id}>
+              {s.name} ({s.chinese}) — {s.gloss.slice(0, 80)}…{' '}
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigate('subtleBody', {
+                    subtleBodyPane: 'neidan',
+                    subtleBodyFocus: s.id,
+                  })
+                }
+                className="text-ananael-gold hover:underline"
+              >
+                Subtle Body
+              </button>
+            </li>
+          ) : null
+        )}
+      </ul>
+    </details>
   );
 }

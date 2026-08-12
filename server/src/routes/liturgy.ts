@@ -147,6 +147,42 @@ const rites = [
     tradition: 'Taoist',
     tags: ['meditation', 'taoist', 'daily'],
   },
+  {
+    id: 'anapanasati',
+    title: 'Mindfulness of Breath (intro)',
+    tradition: 'Buddhist',
+    tags: ['meditation', 'buddhist', 'daily', 'breath'],
+  },
+  {
+    id: 'metta-bhavana',
+    title: 'Loving-Kindness (intro)',
+    tradition: 'Buddhist',
+    tags: ['meditation', 'buddhist', 'daily', 'metta'],
+  },
+  {
+    id: 'kapalabhati-intro',
+    title: 'Skull-Shining Breath (intro)',
+    tradition: 'Yoga',
+    tags: ['pranayama', 'energy', 'kapalabhati'],
+  },
+  {
+    id: 'wu-qin-xi',
+    title: 'Five Animal Frolics (outline)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'movement', 'daily'],
+  },
+  {
+    id: 'six-healing-sounds',
+    title: 'Liu Zi Jue (study outline)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'breath', 'sound', 'daily'],
+  },
+  {
+    id: 'middle-pillar-east',
+    title: 'Middle Pillar ↔ Chakra comparative run',
+    tradition: 'General',
+    tags: ['energy', 'qabalah', 'chakra', 'bridge', 'daily'],
+  },
 ];
 
 router.get('/rites', (_req, res) => {

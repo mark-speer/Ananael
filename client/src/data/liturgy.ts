@@ -726,6 +726,8 @@ export const LITURGY_RITES: LiturgyRite[] = [
     title: 'Alternate Nostril Breathing',
     tradition: 'Yoga',
     tags: ['pranayama', 'balance', 'daily'],
+    relatedChakras: ['ajna', 'anahata'],
+    relatedMeridians: ['lung', 'triple-burner'],
     tools: ['upright seat', 'right hand for nostril closure (Vishnu mudra as taught)'],
     purpose:
       'Equilibrate the lunar and solar breath currents (ida and pingala) through alternating nostril pranayama.',
@@ -773,6 +775,7 @@ export const LITURGY_RITES: LiturgyRite[] = [
     title: 'Eight Brocades (study outline)',
     tradition: 'Taoist',
     tags: ['qigong', 'movement', 'daily'],
+    relatedMeridians: ['triple-burner', 'kidney', 'liver', 'stomach'],
     tools: ['standing room', 'loose clothing', 'natural breath'],
     purpose:
       'Gentle standing qigong sequence to mobilize qi through eight traditional movements of sinew and breath.',
@@ -788,34 +791,42 @@ export const LITURGY_RITES: LiturgyRite[] = [
       {
         title: 'Two Hands Hold Up the Heavens',
         body: 'Interlace or press palms upward above the crown, stretching gently through the sides. Rise on breath; lower on exhale. Mobilize the triple warmer as taught.',
+        durationSec: 90,
       },
       {
         title: 'Drawing the Bow',
         body: 'Horse stance or stable bow stance. One hand draws the bow, the other extends; gaze along the arrow. Alternate left and right with even breath.',
+        durationSec: 90,
       },
       {
         title: 'Separate Heaven and Earth',
         body: 'One palm presses upward, one downward at the sides of the torso. Stretch the flanks; exchange hands with the breath.',
+        durationSec: 90,
       },
       {
         title: 'Wise Owl Gazes Back',
         body: 'Turn the head and gaze over the shoulder; keep hips forward. Loosen the neck and spine. Alternate sides slowly.',
+        durationSec: 60,
       },
       {
         title: 'Sway the Head and Shake the Tail',
         body: 'Soft lateral sway or rotation of the torso as taught in your lineage. Keep the crown suspended; do not force the lower back.',
+        durationSec: 60,
       },
       {
         title: 'Two Hands Hold the Feet',
         body: 'Forward bend with soft knees if needed; reach toward the feet to stretch the kidneys and hamstrings. Rise slowly on exhale.',
+        durationSec: 90,
       },
       {
         title: 'Clench the Fists and Glare Fiercely',
         body: 'Horse stance; punch or extend with coordinated breath and focused gaze. Release tension on exhale.',
+        durationSec: 90,
       },
       {
         title: 'Bouncing on the Toes',
         body: 'Rise onto the toes and let the heels drop lightly (Seven Disorders of the hundred meridians). Settle three breaths standing still.',
+        durationSec: 60,
       },
       {
         title: 'Close',
@@ -909,6 +920,8 @@ export const LITURGY_RITES: LiturgyRite[] = [
     title: 'Inner Smile (intro)',
     tradition: 'Taoist',
     tags: ['meditation', 'taoist', 'daily'],
+    relatedMeridians: ['heart', 'lung', 'liver', 'kidney', 'spleen'],
+    relatedChakras: ['anahata'],
     tools: ['comfortable seat', 'breath', 'gentle attention'],
     purpose:
       'Transform tension into vitality by smiling inward to organs and centers, harmonizing the emotional body.',
@@ -924,22 +937,327 @@ export const LITURGY_RITES: LiturgyRite[] = [
       {
         title: 'Smile to the heart',
         body: 'Direct the inner smile to the heart center. Sense warmth, joy, or forgiveness spreading through the chest. Exhale any heaviness softly.',
+        durationSec: 90,
       },
       {
         title: 'Smile to the organs',
         body: 'In sequence as taught—often lungs, liver, spleen/pancreas, kidneys—rest the smile on each organ. Use color associations from your tradition if helpful.',
+        durationSec: 120,
       },
       {
         title: 'Smile to the brain',
         body: 'Smile to the pituitary and pineal or whole brain; cool clarity at the brow. Release forehead tension.',
+        durationSec: 90,
       },
       {
         title: 'Collect at dantian',
         body: 'Gather the golden or warm feeling into the lower dantian. Hands may rest there. Rest in silence.',
+        durationSec: 60,
       },
       {
         title: 'Close',
         body: 'Open the eyes when ready. Move slowly. Note mood in the Magical Journal if desired.',
+      },
+    ],
+  },
+  {
+    id: 'anapanasati',
+    title: 'Mindfulness of Breath (intro)',
+    tradition: 'Buddhist',
+    tags: ['meditation', 'buddhist', 'daily', 'breath'],
+    relatedChakras: ['anahata', 'ajna'],
+    tools: ['quiet seat', 'upright posture', 'natural breath'],
+    purpose:
+      'Develop calm and insight through sustained attention to the in-and-out breath (ānāpānasati).',
+    notes:
+      'Study outline of classical satipatthana breath meditation. Confirm longer sits and retreat protocol with a qualified teacher.',
+    sources: ['Pāli Canon ānāpānasati tradition (study outline)'],
+    suggestedPlanet: 'Moon',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Sit with stable base and straight but relaxed spine. Soften the gaze or close the eyes. Take three settling breaths.',
+      },
+      {
+        title: 'Know the long breath',
+        body: 'When the breath is long, know it is long. When short, know it is short. Do not control; simply notice length and texture.',
+        durationSec: 180,
+      },
+      {
+        title: 'Whole body',
+        body: 'Feel the whole body breathing — expansion and release. If tension appears, breathe with it without fixing.',
+        durationSec: 180,
+      },
+      {
+        title: 'Calming formations',
+        body: 'Allow the breath to calm mental formations. When the mind wanders, return gently to the nostrils or belly without judgment.',
+        durationSec: 180,
+      },
+      {
+        title: 'Close',
+        body: 'Rest in natural breath for a minute. Bow or nod. Note clarity and mood in the Magical Journal if desired.',
+      },
+    ],
+  },
+  {
+    id: 'metta-bhavana',
+    title: 'Loving-Kindness (intro)',
+    tradition: 'Buddhist',
+    tags: ['meditation', 'buddhist', 'daily', 'metta'],
+    relatedChakras: ['anahata'],
+    tools: ['comfortable seat', 'phrase or image as taught'],
+    purpose:
+      'Cultivate benevolence toward self and others through traditional mettā phrases and felt warmth.',
+    notes:
+      'Classic four-person sequence (self, benefactor, neutral person, difficult person). Adapt phrases to your lineage; do not force emotion.',
+    sources: ['Buddhist mettā bhāvanā tradition (study outline)'],
+    suggestedPlanet: 'Venus',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Sit calmly. Place attention at the heart or center of the chest. Breathe softly.',
+      },
+      {
+        title: 'Self',
+        body: 'Offer phrases such as: May I be safe. May I be well. May I be peaceful. May I live with ease. Feel warmth if it arises; if not, repeat with patience.',
+        durationSec: 120,
+      },
+      {
+        title: 'Benefactor',
+        body: 'Bring to mind someone who has helped you. Extend the same phrases to them. Sense goodwill radiating outward.',
+        durationSec: 120,
+      },
+      {
+        title: 'Neutral person',
+        body: 'Choose someone you neither like nor dislike. Extend the phrases evenly, without preference.',
+        durationSec: 120,
+      },
+      {
+        title: 'Difficult person',
+        body: 'If ready in your practice, include someone challenging — with care and teacher guidance. Shorten if agitation rises.',
+        durationSec: 90,
+      },
+      {
+        title: 'All beings',
+        body: 'Expand mettā to all beings in all directions. Rest in silence.',
+      },
+      {
+        title: 'Close',
+        body: 'Release the phrases. Open the eyes slowly. Carry the tone into the day.',
+      },
+    ],
+  },
+  {
+    id: 'kapalabhati-intro',
+    title: 'Skull-Shining Breath (intro)',
+    tradition: 'Yoga',
+    tags: ['pranayama', 'energy', 'kapalabhati'],
+    relatedChakras: ['manipura', 'ajna'],
+    relatedMeridians: ['triple-burner', 'lung'],
+    tools: ['upright seat', 'empty stomach preferred'],
+    purpose:
+      'Invigorate prana through rapid passive inhale and active exhale (kapālabhāti) — introductory rounds only.',
+    notes:
+      'Contraindicated in pregnancy, high blood pressure, hernia, recent abdominal surgery, or acute illness. Learn full technique from a qualified hatha teacher.',
+    sources: ['Classical hatha kapalabhati tradition (introductory study outline)'],
+    suggestedPlanet: 'Sun',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Sit with spine erect on an empty or light stomach. Establish natural breath. Place one hand on the belly if helpful.',
+      },
+      {
+        title: 'Passive inhale — active exhale',
+        body: 'Snap the belly inward on exhale; allow passive inhale as the belly releases. Keep the face and shoulders soft. Begin with very short rounds.',
+      },
+      {
+        title: 'Round 1',
+        body: 'Perform 15–27 pumps as taught, then return to natural breath. Observe heat and clarity without strain.',
+        durationSec: 45,
+      },
+      {
+        title: 'Rest',
+        body: 'Breathe normally until the heart rate steadies. Never continue if dizzy or pained.',
+        durationSec: 60,
+      },
+      {
+        title: 'Round 2 (optional)',
+        body: 'If stable, one more short round only. Advanced practitioners use more rounds under supervision.',
+        durationSec: 45,
+      },
+      {
+        title: 'Close',
+        body: 'Sit in silence. Follow with gentle nadi shodhana if your teacher recommends balancing.',
+      },
+    ],
+  },
+  {
+    id: 'wu-qin-xi',
+    title: 'Five Animal Frolics (outline)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'movement', 'daily'],
+    relatedMeridians: ['liver', 'kidney', 'heart', 'lung', 'spleen'],
+    tools: ['standing room', 'loose clothing'],
+    purpose:
+      'Imitate the tiger, deer, bear, monkey, and bird to harmonize the five zang organs in traditional qigong.',
+    notes:
+      'Movement names and sequences vary by lineage (Hua Tuo tradition). Study outline only — learn full form from an instructor.',
+    sources: ['Wu Qin Xi / Five Animal Frolics (public-domain movement names; study summary)'],
+    suggestedPlanet: 'Jupiter',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Stand naturally, breath into the lower belly. Soften the joints.',
+      },
+      {
+        title: 'Tiger',
+        body: 'Tiger pounces or stretches — claws forward, spine alive, gaze fierce but relaxed. Associated with liver/gall bladder in traditional maps.',
+        durationSec: 90,
+      },
+      {
+        title: 'Deer',
+        body: 'Deer looks back or antler stretch — lengthen the spine and legs. Kidney/water themes in study maps.',
+        durationSec: 90,
+      },
+      {
+        title: 'Bear',
+        body: 'Bear sways or digs — heavy stable root, turning at the waist. Spleen/earth themes.',
+        durationSec: 90,
+      },
+      {
+        title: 'Monkey',
+        body: 'Monkey picks fruit — agile hands and light feet. Heart/small intestine themes.',
+        durationSec: 90,
+      },
+      {
+        title: 'Bird',
+        body: 'Bird spreads wings — open chest, balance on one leg if stable. Lung/large intestine themes.',
+        durationSec: 90,
+      },
+      {
+        title: 'Close',
+        body: 'Hands on lower dantian. Store qi. Bow to close.',
+      },
+    ],
+  },
+  {
+    id: 'six-healing-sounds',
+    title: 'Liu Zi Jue (study outline)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'breath', 'sound', 'daily'],
+    relatedMeridians: ['lung', 'heart', 'liver', 'spleen', 'kidney', 'triple-burner'],
+    tools: ['standing or seated posture', 'sub-vocal or audible exhale'],
+    purpose:
+      'Release stagnant qi from the zang organs through six traditional healing sounds on the exhale.',
+    notes:
+      'Xu (spleen), He (heart), Hu (stomach/spleen variants), Si (lung), Chui (kidney), Xi (triple burner) — spellings vary. Confirm with your qigong source.',
+    sources: ['Liu Zi Jue / Six Healing Sounds tradition (study outline)'],
+    suggestedPlanet: 'Mercury',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Stand or sit with tongue on palate if taught. Breathe into the lower dantian.',
+      },
+      {
+        title: 'Xu — spleen / earth',
+        body: 'Inhale; on exhale sub-vocalize XU, lips rounded, releasing worry from the middle burner as taught.',
+        durationSec: 45,
+      },
+      {
+        title: 'He — heart / fire',
+        body: 'Inhale; exhale HE with mouth open, dispersing heat or agitation from the chest.',
+        durationSec: 45,
+      },
+      {
+        title: 'Hu — stomach / earth',
+        body: 'Inhale; exhale HU, softening digestive tension.',
+        durationSec: 45,
+      },
+      {
+        title: 'Si — lung / metal',
+        body: 'Inhale; exhale SI (ssss), releasing grief or constriction from the upper body.',
+        durationSec: 45,
+      },
+      {
+        title: 'Chui — kidney / water',
+        body: 'Inhale; exhale CHUI (chway), lips pursed, settling fear or cold in the lower back.',
+        durationSec: 45,
+      },
+      {
+        title: 'Xi — triple burner',
+        body: 'Inhale; exhale XI (shee), harmonizing upper, middle, and lower burners.',
+        durationSec: 45,
+      },
+      {
+        title: 'Close',
+        body: 'Three natural breaths. Hands on dantian. Rest in silence.',
+      },
+    ],
+  },
+  {
+    id: 'middle-pillar-east',
+    title: 'Middle Pillar ↔ Chakra comparative run',
+    tradition: 'General',
+    tags: ['energy', 'qabalah', 'chakra', 'bridge', 'daily'],
+    relatedChakras: [
+      'muladhara',
+      'svadhisthana',
+      'manipura',
+      'anahata',
+      'vishuddha',
+      'ajna',
+      'sahasrara',
+    ],
+    tools: ['upright seat or standing', 'breath', 'visualization'],
+    purpose:
+      'Run the Golden Dawn Middle Pillar centers alongside comparative chakra awareness — a cross-tradition study session, not identity claim.',
+    notes:
+      'Explicit bridge rite for practitioners working both Western and Eastern subtle-body maps. Vibrate Hebrew god-names only as your lineage teaches; bija silently or as instructed.',
+    sources: [
+      'Golden Dawn Middle Pillar + comparative qabalah–tantra charts (study outline)',
+    ],
+    suggestedPlanet: 'Sun',
+    ritualTemplate: 'blank',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Stand or sit with spine erect. Breathe until the field steadies. Set intention for balanced study across traditions.',
+      },
+      {
+        title: 'Malkuth / Muladhara',
+        body: 'At the feet and base, sphere of Earth — deep red root center. Inhale light; exhale stability. AH-TAH or LAM as taught.',
+      },
+      {
+        title: 'Yesod / Svadhisthana',
+        body: 'At the genitals / lower abdomen — lunar violet or orange sacral light. VAM or YHVH ELOHIM as your practice directs.',
+      },
+      {
+        title: 'Netzach / Manipura & Hod',
+        body: 'At hips and solar plexus — green and orange-gold currents. Balance desire and intellect; RAM at the navel if using bija.',
+      },
+      {
+        title: 'Tiphareth / Anahata',
+        body: 'At the heart — golden rose radiance. YAM or YHVH ELOAH VA-DAATH. Open compassion without sentimentality.',
+      },
+      {
+        title: 'Geburah–Chesed / Vishuddha',
+        body: 'At the throat — sky-blue expression. HAM or names of severity and mercy as taught in your GD lineage.',
+      },
+      {
+        title: 'Binah–Chokmah / Ajna',
+        body: 'At the brow — indigo single point. OM or AUM; sense depth and wisdom, not pressure.',
+      },
+      {
+        title: 'Kether / Sahasrara',
+        body: 'Above the crown — violet-white brilliance. Silence or subtle vibration. Spaciousness.',
+      },
+      {
+        title: 'Circulation',
+        body: 'Fountain light up the central column and rain down the periphery, or circulate root to crown and back. Comparative map only — traditions disagree on exact correspondences.',
+      },
+      {
+        title: 'Close',
+        body: 'Hands at heart. Thank both lineages in silence. Log sensations and any entity tags in the Magical Journal.',
       },
     ],
   },
@@ -978,6 +1296,7 @@ export const LITURGY_TRADITION_ORDER = [
   'Alchemy',
   'Yoga',
   'Taoist',
+  'Buddhist',
   'General',
 ] as const;
 

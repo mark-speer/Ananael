@@ -4,7 +4,7 @@ import {
   type AlphabetLetter,
 } from '../gematria/alphabets';
 
-export type ScriptId = 'latin' | 'hebrew' | 'greek' | 'runes';
+export type ScriptId = 'latin' | 'hebrew' | 'greek' | 'runes' | 'sanskrit';
 
 export interface ScriptMeta {
   id: ScriptId;
@@ -28,6 +28,11 @@ export const SCRIPTS: ScriptMeta[] = [
     id: 'runes',
     label: 'Elder Futhark',
     description: '24-rune Elder Futhark',
+  },
+  {
+    id: 'sanskrit',
+    label: 'Sanskrit (Devanagari)',
+    description: 'IAST Latin ↔ Devanagari (bija and basic alphabet)',
   },
 ];
 
@@ -164,3 +169,101 @@ export const RUNE_TO_LATIN: Record<string, string> = {
 
 /** Digraphs for Latin → runes (longest first). */
 export const RUNE_DIGRAPHS = ['th', 'ng'] as const;
+
+/** IAST multi-char sequences for Sanskrit (longest first). */
+export const SANSKRIT_DIGRAPHS = [
+  'aum',
+  'om',
+  'lam',
+  'vam',
+  'ram',
+  'yam',
+  'ham',
+  'ksh',
+  'jñ',
+  'sh',
+  'ch',
+  'th',
+  'dh',
+  'bh',
+  'ph',
+  'gh',
+  'kh',
+  'ṭh',
+  'ḍh',
+  'ṇ',
+  'ṃ',
+  'ḥ',
+  'ā',
+  'ī',
+  'ū',
+  'ṛ',
+  'ai',
+  'au',
+] as const;
+
+/** IAST Latin keys → Devanagari glyphs (basic alphabet + common bija). */
+export const LATIN_TO_SANSKRIT: Record<string, string> = {
+  om: 'ॐ',
+  aum: 'ॐ',
+  lam: 'लं',
+  vam: 'वं',
+  ram: 'रं',
+  yam: 'यं',
+  ham: 'हं',
+  a: 'अ',
+  ā: 'आ',
+  i: 'इ',
+  ī: 'ई',
+  u: 'उ',
+  ū: 'ऊ',
+  ṛ: 'ऋ',
+  e: 'ए',
+  ai: 'ऐ',
+  o: 'ओ',
+  au: 'औ',
+  k: 'क',
+  kh: 'ख',
+  g: 'ग',
+  gh: 'घ',
+  ṅ: 'ङ',
+  c: 'च',
+  ch: 'छ',
+  j: 'ज',
+  jh: 'झ',
+  ñ: 'ञ',
+  ṭ: 'ट',
+  ṭh: 'ठ',
+  ḍ: 'ड',
+  ḍh: 'ढ',
+  ṇ: 'ण',
+  t: 'त',
+  th: 'थ',
+  d: 'द',
+  dh: 'ध',
+  n: 'न',
+  p: 'प',
+  ph: 'फ',
+  b: 'ब',
+  bh: 'भ',
+  m: 'म',
+  y: 'य',
+  r: 'र',
+  l: 'ल',
+  v: 'व',
+  w: 'व',
+  sh: 'श',
+  ṣ: 'ष',
+  s: 'स',
+  h: 'ह',
+  ksh: 'क्ष',
+  jñ: 'ज्ञ',
+  ṁ: 'ं',
+  ḥ: 'ः',
+};
+
+export const SANSKRIT_TO_LATIN: Record<string, string> = Object.fromEntries(
+  Object.entries(LATIN_TO_SANSKRIT).map(([k, v]) => [v, k])
+);
+// Prefer om over aum for ॐ
+SANSKRIT_TO_LATIN['ॐ'] = 'om';

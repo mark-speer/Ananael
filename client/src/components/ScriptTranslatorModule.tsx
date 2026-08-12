@@ -1,18 +1,40 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   SCRIPTS,
   transliterate,
   type ScriptId,
 } from '../lib/transliterate';
 
+interface ScriptTranslatorModuleProps {
+  initialInput?: string;
+  initialSource?: ScriptId;
+  initialTarget?: ScriptId;
+}
+
 /**
- * Script Translator: Latin ↔ Hebrew / Greek / Elder Futhark (transliteration only).
+ * Script Translator: Latin ↔ Hebrew / Greek / Elder Futhark / Sanskrit (transliteration only).
  */
-export default function ScriptTranslatorModule() {
-  const [source, setSource] = useState<ScriptId>('latin');
-  const [target, setTarget] = useState<ScriptId>('hebrew');
-  const [input, setInput] = useState('');
+export default function ScriptTranslatorModule({
+  initialInput,
+  initialSource,
+  initialTarget,
+}: ScriptTranslatorModuleProps) {
+  const [source, setSource] = useState<ScriptId>(initialSource ?? 'latin');
+  const [target, setTarget] = useState<ScriptId>(initialTarget ?? 'hebrew');
+  const [input, setInput] = useState(initialInput ?? '');
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialSource) setSource(initialSource);
+  }, [initialSource]);
+
+  useEffect(() => {
+    if (initialTarget) setTarget(initialTarget);
+  }, [initialTarget]);
+
+  useEffect(() => {
+    if (initialInput !== undefined) setInput(initialInput);
+  }, [initialInput]);
 
   const result = useMemo(
     () => transliterate(input, source, target),
@@ -44,7 +66,8 @@ export default function ScriptTranslatorModule() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Phonetic and traditional letter mapping between Latin, Hebrew, Greek,
-          and Elder Futhark. This is transliteration — not semantic translation.
+          Elder Futhark, and Sanskrit (IAST ↔ Devanagari). This is
+          transliteration — not semantic translation.
         </p>
       </header>
 

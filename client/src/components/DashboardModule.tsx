@@ -24,6 +24,7 @@ import type { OpusStageId } from '../data/alchemy';
 import type { TemplateId } from '../data/ritualTools';
 import type { LiturgyMode } from '../lib/ritualRunner';
 import { isRitualRunnerPayload } from '../lib/ritualRunner';
+import { suggestEasternRite } from '../lib/subtleBodyCounsel';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
 
@@ -50,7 +51,7 @@ export interface DashboardNavigateOptions {
   riteId?: string;
   runEntryId?: string;
   liturgyMode?: LiturgyMode;
-  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan';
+  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan' | 'practice';
   subtleBodyFocus?: string;
 };
 
@@ -158,6 +159,17 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const dayCounsel = useMemo(
     () => buildDayCounsel(now, loc?.lat, loc?.lon, natalCtx),
     [now, loc?.lat, loc?.lon, natalCtx]
+  );
+
+  const easternRiteSuggestion = useMemo(
+    () =>
+      suggestEasternRite(
+        now,
+        (dayCounsel.sky.moonPhase as import('../lib/moonPhase').MoonPhaseName) ??
+          'New Moon',
+        dayCounsel.sky.nakshatra
+      ),
+    [now, dayCounsel.sky.moonPhase, dayCounsel.sky.nakshatra]
   );
 
   const nextHighlight = useMemo(
@@ -544,6 +556,14 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               {dayCounsel.natalAffinity}
             </p>
           )}
+          {dayCounsel.natalSubtleBodyAffinity && (
+            <p className="mt-3 rounded-md border border-ananael-violet/40 bg-ananael-violet/10 px-2.5 py-2 text-xs text-zinc-200">
+              <span className="text-[11px] uppercase tracking-wider text-ananael-violet">
+                Natal subtle body ·{' '}
+              </span>
+              {dayCounsel.natalSubtleBodyAffinity}
+            </p>
+          )}
           {dayCounsel.subtleBodyTheme && (
             <p className="mt-3 rounded-md border border-ananael-violet/30 bg-ananael-violet/10 px-2.5 py-2 text-xs text-zinc-200">
               <span className="text-[11px] uppercase tracking-wider text-ananael-violet">
@@ -564,13 +584,13 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 type="button"
                 onClick={() =>
                   onNavigate('liturgy', {
-                    riteId: 'zhan-zhuang',
+                    riteId: easternRiteSuggestion.riteId,
                     liturgyMode: 'run',
                   })
                 }
                 className="text-ananael-gold hover:underline"
               >
-                Zhan Zhuang
+                {easternRiteSuggestion.label}
               </button>
             </p>
           )}
@@ -866,6 +886,21 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           <p className="mt-3 text-sm text-zinc-300">
             Eastern internal work across traditions — comparative maps to the
             Tree and I Ching, plus guided rites in the Ritual Library.
+          </p>
+          <p className="mt-2 text-xs text-ananael-muted">
+            Today: {easternRiteSuggestion.reason} — try{' '}
+            <button
+              type="button"
+              onClick={() =>
+                onNavigate('liturgy', {
+                  riteId: easternRiteSuggestion.riteId,
+                  liturgyMode: 'run',
+                })
+              }
+              className="text-ananael-gold hover:underline"
+            >
+              {easternRiteSuggestion.label}
+            </button>
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <TileLink

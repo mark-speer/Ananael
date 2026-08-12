@@ -30,6 +30,7 @@ import type { OpusStageId } from './data/alchemy';
 import type { TemplateId } from './data/ritualTools';
 import type { JournalEntryType } from './lib/journal';
 import type { LiturgyMode } from './lib/ritualRunner';
+import type { ScriptId } from './lib/transliterate';
 import { useAuth } from './context/AuthContext';
 
 export type AppNavigateOptions = TreeNavigateOptions & {
@@ -98,6 +99,9 @@ export default function App() {
   >();
   const [subtleBodyPane, setSubtleBodyPane] = useState<SubtleBodyPane>('chakras');
   const [subtleBodyFocus, setSubtleBodyFocus] = useState<string | undefined>();
+  const [translatorPrefill, setTranslatorPrefill] = useState<string | undefined>();
+  const [translatorSource, setTranslatorSource] = useState<ScriptId | undefined>();
+  const [translatorTarget, setTranslatorTarget] = useState<ScriptId | undefined>();
 
   useEffect(() => {
     if (wasAuthenticated.current && !isAuthenticated) {
@@ -170,6 +174,15 @@ export default function App() {
     } else {
       setSubtleBodyFocus(undefined);
     }
+    if (target === 'translator') {
+      setTranslatorPrefill(opts?.translatorPrefill);
+      setTranslatorSource(opts?.translatorSource);
+      setTranslatorTarget(opts?.translatorTarget);
+    } else {
+      setTranslatorPrefill(undefined);
+      setTranslatorSource(undefined);
+      setTranslatorTarget(undefined);
+    }
     setActiveModule(target);
   };
 
@@ -215,7 +228,13 @@ export default function App() {
           />
         );
       case 'translator':
-        return <ScriptTranslatorModule />;
+        return (
+          <ScriptTranslatorModule
+            initialInput={translatorPrefill}
+            initialSource={translatorSource}
+            initialTarget={translatorTarget}
+          />
+        );
       case 'tree':
         return <TreeOfLifeModule onNavigate={navigateToModule} />;
       case 'correspondences':

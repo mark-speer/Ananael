@@ -5,6 +5,10 @@
 import { buildNatalChart, type NatalChart } from './natalChart';
 import type { NatalAlmanacContext } from './almanac';
 import {
+  nakshatraFromSidereal,
+  siderealFromTropical,
+} from './hinduAstrology';
+import {
   hasNatalHousesReady,
   type NatalProfile,
 } from './natalProfile';
@@ -16,6 +20,12 @@ export function natalAlmanacContextFromProfile(
   const chart = buildNatalChart(profile);
   if (!chart?.isFullNatal) return null;
   const [, month, day] = profile.birthDate.split('-').map(Number);
+  const moonSid =
+    chart.moon != null
+      ? siderealFromTropical(chart.moon.longitude, chart.when)
+      : undefined;
+  const nak =
+    moonSid != null ? nakshatraFromSidereal(moonSid.longitude) : undefined;
   return {
     isFullNatal: true,
     sunSign: chart.sunSign,
@@ -23,6 +33,8 @@ export function natalAlmanacContextFromProfile(
     rulerPlanet: chart.hermetic?.planet,
     birthMonth: month,
     birthDay: day,
+    natalMoonSign: chart.moonSign,
+    natalMoonNakshatra: nak?.name,
   };
 }
 

@@ -27,6 +27,8 @@ import { searchMeridians, type Meridian } from '../data/meridians';
 import {
   getComparativeMap,
   getChakraForSephirah,
+  searchDantians,
+  type Dantian,
 } from '../data/subtleBodyMaps';
 import { LITURGY_RITES } from '../data/liturgy';
 import { getCardById } from '../data/tarotDeck';
@@ -51,6 +53,7 @@ export interface CorrespondenceSearchResult {
   matches: CorrespondenceKey[];
   chakras: Chakra[];
   meridians: Meridian[];
+  dantians: Dantian[];
 }
 
 function normalize(s: string): string {
@@ -202,6 +205,8 @@ function facetFieldValues(
       }
       return parts;
     }
+    case 'dantian':
+      return ['dantian', 'lower dantian', 'middle dantian', 'upper dantian', '丹田'];
     default:
       return [];
   }
@@ -425,6 +430,27 @@ function buildChakraCluster(chakra: Chakra): EntityCluster {
   };
 }
 
+function buildDantianCluster(dantian: Dantian): EntityCluster {
+  const highlights: { label: string; value: string }[] = [
+    { label: 'Chinese', value: dantian.chinese },
+    { label: 'Location', value: dantian.location },
+  ];
+  const rites = LITURGY_RITES.filter(
+    (r) =>
+      r.tags.some((t) => ['qigong', 'neidan', 'taoist'].includes(t)) ||
+      r.relatedMeridians?.includes('ren')
+  ).map((r) => r.title);
+  if (rites.length) {
+    highlights.push({ label: 'Related rites', value: rites.slice(0, 2).join(', ') });
+  }
+  return {
+    label: dantian.name,
+    facet: 'dantian',
+    highlights,
+    subtleBodyId: dantian.id,
+  };
+}
+
 function buildMeridianCluster(meridian: Meridian): EntityCluster {
   const highlights: { label: string; value: string }[] = [
     { label: 'Chinese', value: meridian.chinese },
@@ -498,6 +524,21 @@ function resolveCluster(
   const meridianPartial = searchMeridians(rawQuery);
   if (meridianPartial.length === 1) {
     return buildMeridianCluster(meridianPartial[0]!);
+  }
+
+  for (const d of searchDantians(rawQuery)) {
+    if (
+      normalize(d.name) === q ||
+      normalize(d.id) === q ||
+      q.includes('dantian') ||
+      q.includes(normalize(d.id))
+    ) {
+      return buildDantianCluster(d);
+    }
+  }
+  const dantianPartial = searchDantians(rawQuery);
+  if (dantianPartial.length === 1) {
+    return buildDantianCluster(dantianPartial[0]!);
   }
 
   // Exact King Wen number or hexagram name
@@ -655,21 +696,28 @@ export function searchCorrespondences(
   const q = normalize(query);
 
   const chakras =
-    facet === 'meridian'
+    facet === 'meridian' || facet === 'dantian'
       ? []
       : facet === 'chakra' || !facet
         ? searchChakras(query)
         : [];
 
   const meridians =
-    facet === 'chakra'
+    facet === 'chakra' || facet === 'dantian'
       ? []
       : facet === 'meridian' || !facet
         ? searchMeridians(query)
         : [];
 
-  const matches =
+  const dantians =
     facet === 'chakra' || facet === 'meridian'
+      ? []
+      : facet === 'dantian' || !facet
+        ? searchDantians(query)
+        : [];
+
+  const matches =
+    facet === 'chakra' || facet === 'meridian' || facet === 'dantian'
       ? CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q))
       : CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q));
 
@@ -682,6 +730,7 @@ export function searchCorrespondences(
     matches,
     chakras,
     meridians,
+    dantians,
   };
 }
 

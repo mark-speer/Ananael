@@ -49,6 +49,10 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Subtle Body bridge   | Active  | 33           |
 | Subtle Body module   | Active  | 34           |
 | Eastern OS polish    | Active  | 35           |
+| Eastern timing deepen | Active | 36           |
+| Eastern liturgy expand | Active | 37          |
+| Neidan Athanor bridge | Active | 38          |
+| Mantra script tools  | Active  | 39           |
 
 ---
 
@@ -484,6 +488,48 @@ Personalization only when a full natal exists (date + time + place + houses/whee
 - Splash features updated
 
 **Done when:** Timing → Subtle Body → Run rite path is live on Magical OS.
+
+---
+
+## Phase 36 — Eastern Timing Deepening — Shipped
+
+- `client/src/data/nakshatraChakras.ts` — 27-entry nakshatra ↔ chakra study map
+- `client/src/lib/subtleBodyCounsel.ts` — counsel, natal affinity, contextual rite suggestion
+- Celestial Timing Hours panel: meridian peak column + banner
+- Elections: `practice` filter (`meridian-peak`, `yin-moon`)
+- Almanac / Magical OS: nakshatra + Chinese pillar hints; natal subtle-body affinity
+
+**Done when:** Hours table shows meridian peaks; full-natal users see subtle-body affinity; OS suggests contextual Eastern rite.
+
+---
+
+## Phase 37 — Eastern Liturgy Expansion — Shipped
+
+- Six new rites: Buddhist (anapanasati, metta), kapalabhati, wu-qin-xi, six-healing-sounds, middle-pillar-east bridge
+- `Buddhist` tradition in `LITURGY_TRADITION_ORDER`
+- `relatedChakras` / `relatedMeridians` on all Eastern rites; `durationSec` on movement/hold steps
+
+**Done when:** ≥11 Eastern-family rites; hold timers on ≥4 rites; server catalog synced.
+
+---
+
+## Phase 38 — Neidan ↔ Athanor Bridge — Shipped
+
+- `NEIDAN_OPUS_MAP` in `subtleBodyMaps.ts`; cross-links in Subtle Body neidan pane + Athanor Stages
+- `dantian` Correspondences facet
+- `PracticeVessel` model + `POST/GET/PUT /api/practice/vessels`
+- Subtle Body **Practice** pane: save/reload vessel, log working
+
+**Done when:** Neidan↔opus visible in both modules; dantian searchable; signed-in vessel save/reload works.
+
+---
+
+## Phase 39 — Mantra & Script Tools — Shipped
+
+- Sanskrit (IAST ↔ Devanagari) in Script Translator; bija deep-links from chakras
+- ROADMAP + splash + ARCHITECTURE docs for Phases 36–39
+
+**Done when:** Sanskrit round-trip for bija strings; chakra panels link to translator; docs updated.
 
 ---
 
