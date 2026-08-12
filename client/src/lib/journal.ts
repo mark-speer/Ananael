@@ -10,8 +10,8 @@ import {
 import { CORRESPONDENCE_KEYS, flattenDeities } from '../data/correspondences';
 import { getHexagramsForKey } from '../data/ichingCorrespondences';
 import { GOETIA_SPIRITS } from '../data/arsGoetia';
-import { searchChakras, CHAKRAS } from '../data/chakras';
-import { searchMeridians, MERIDIANS } from '../data/meridians';
+import { searchChakras } from '../data/chakras';
+import { searchMeridians } from '../data/meridians';
 import { DANTIANS } from '../data/subtleBodyMaps';
 import { searchCorrespondences } from './correspondences';
 

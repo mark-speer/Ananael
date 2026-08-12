@@ -10,7 +10,6 @@ import {
 import {
   getHexagramsForKey,
   getTrigramsForKey,
-  getHexagramStructure,
 } from '../data/ichingCorrespondences';
 import { getCardById } from '../data/tarotDeck';
 import type { Chakra } from '../data/chakras';

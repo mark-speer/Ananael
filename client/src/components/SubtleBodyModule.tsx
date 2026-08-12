@@ -19,12 +19,14 @@ import {
   searchSubtleBody,
   type SubtleBodyPane,
 } from '../lib/subtleBody';
+import type { JournalEntryType } from '../lib/journal';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
 
 export interface SubtleBodyNavigateOptions extends TreeNavigateOptions {
   subtleBodyPane?: SubtleBodyPane;
   subtleBodyFocus?: string;
+  filter?: JournalEntryType | 'all';
 }
 
 interface SubtleBodyModuleProps {

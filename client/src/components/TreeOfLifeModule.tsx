@@ -18,6 +18,7 @@ import {
   type TreePath,
 } from '../data/treeOfLife';
 import { getChakraForSephirah } from '../data/subtleBodyMaps';
+import { apiFetch } from '../lib/api';
 import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import type { ModuleId } from './Sidebar';
 import type { LiturgyMode } from '../lib/ritualRunner';

@@ -19,6 +19,7 @@ import Sidebar, {
   MODULE_SELECT_GROUPS,
   type ModuleId,
 } from './components/Sidebar';
+import SplashPage from './components/SplashPage';
 import SolomonicCircleModule from './components/SolomonicCircleModule';
 import SubtleBodyModule from './components/SubtleBodyModule';
 import type { SubtleBodyPane } from './lib/subtleBody';
@@ -46,7 +47,6 @@ export type AppNavigateOptions = TreeNavigateOptions & {
     | 'natal';
   ritualTemplate?: TemplateId;
   opusPane?: OpusPaneId;
-  stageId?: OpusStageId;
   metal?: string;
   riteId?: string;
   runEntryId?: string;
@@ -153,7 +153,7 @@ export default function App() {
     }
     if (target === 'opus') {
       setOpusPane(opts?.opusPane ?? 'stages');
-      setOpusStageId(opts?.stageId);
+      setOpusStageId(opts?.stageId as OpusStageId | undefined);
       setOpusMetal(opts?.metal);
     } else {
       setOpusStageId(undefined);
