@@ -1,5 +1,7 @@
 # Ananael Roadmap
 
+For codebase structure, module wiring, and contributor conventions, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 
 **Priority:** calculation tools first → I Ching → Tree of Life + Ritual Space Planner → Solomonic Circles → Magical Journal → Magical OS.
