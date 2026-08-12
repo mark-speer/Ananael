@@ -54,7 +54,6 @@ const KANJI_LINE = 24;
 const KANJI_COL_GAP = 8;
 const BONJI_FONT = 14;
 const BONJI_LINE = 17;
-const BONJI_COL_GAP = 10;
 
 export function splitVerticalColumn(text: string): string[] {
   return [...text.replace(/\s/g, '')];
