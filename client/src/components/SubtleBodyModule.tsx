@@ -629,58 +629,61 @@ function ChakraSpineDiagram({
   onSelect: (id: string) => void;
 }) {
   return (
-    <svg
-      viewBox="0 0 120 340"
-      className="mx-auto w-full max-w-[280px] rounded-xl border border-ananael-border/50 bg-ananael-surface p-4"
-      role="img"
-      aria-label="Chakra spine diagram"
-    >
-      <line
-        x1="60"
-        y1="20"
-        x2="60"
-        y2="320"
-        stroke="#52525b"
-        strokeWidth="2"
-      />
-      {chakras.map((c) => {
-        const y = CHAKRA_Y[c.id] ?? 170;
-        const active = c.id === selectedId;
-        return (
-          <g
-            key={c.id}
-            className="cursor-pointer"
-            onClick={() => onSelect(c.id)}
-            role="button"
-            tabIndex={0}
-            aria-label={c.name}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onSelect(c.id);
-              }
-            }}
-          >
-            <circle
-              cx="60"
-              cy={y}
-              r={active ? 14 : 11}
-              fill={active ? '#5b21b6' : '#18181b'}
-              stroke={active ? '#c9a227' : '#7c3aed'}
-              strokeWidth={active ? 3 : 2}
-            />
-            <text
-              x="82"
-              y={y + 4}
-              className="fill-zinc-300 text-[10px]"
-              style={{ fontSize: 10 }}
+    <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-4">
+      <svg
+        viewBox="0 0 200 340"
+        className="mx-auto block w-full max-w-[280px]"
+        role="img"
+        aria-label="Chakra spine diagram"
+        overflow="visible"
+      >
+        <line
+          x1="60"
+          y1="20"
+          x2="60"
+          y2="320"
+          stroke="#52525b"
+          strokeWidth="2"
+        />
+        {chakras.map((c) => {
+          const y = CHAKRA_Y[c.id] ?? 170;
+          const active = c.id === selectedId;
+          return (
+            <g
+              key={c.id}
+              className="cursor-pointer"
+              onClick={() => onSelect(c.id)}
+              role="button"
+              tabIndex={0}
+              aria-label={c.name}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelect(c.id);
+                }
+              }}
             >
-              {c.name}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+              <circle
+                cx="60"
+                cy={y}
+                r={active ? 14 : 11}
+                fill={active ? '#5b21b6' : '#18181b'}
+                stroke={active ? '#c9a227' : '#7c3aed'}
+                strokeWidth={active ? 3 : 2}
+              />
+              <text
+                x="82"
+                y={y + 4}
+                className="fill-zinc-300 text-[10px]"
+                style={{ fontSize: 10 }}
+              >
+                {c.name}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 
