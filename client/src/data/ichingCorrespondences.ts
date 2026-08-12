@@ -8,6 +8,10 @@
  */
 
 import { getHexagram, KING_WEN_BY_BINARY, type HexagramText } from './iching';
+import {
+  getChakraForSephirah,
+  getMeridianForTrigram,
+} from './subtleBodyMaps';
 
 export const TRIGRAM_IDS = [
   'qian',
@@ -166,6 +170,23 @@ export function ichingFieldStringsForKey(key: number): string[] {
       h.name.replace(/^The\s+/i, ''),
       h.chinese,
     );
+  }
+  return parts;
+}
+
+/** Searchable subtle-body strings for Liber 777 keys (trigram ↔ meridian bridges). */
+export function subtleBodyFieldStringsForKey(key: number): string[] {
+  const parts: string[] = [];
+  const trigrams = getTrigramsForKey(key);
+  for (const t of trigrams) {
+    const meridians = getMeridianForTrigram(t.id);
+    for (const m of meridians) {
+      parts.push(m.name, m.pinyin, m.chinese, m.element, m.associatedOrgan);
+    }
+  }
+  const chakra = getChakraForSephirah(key);
+  if (chakra) {
+    parts.push(chakra.name, chakra.sanskrit, chakra.id, chakra.bija ?? '');
   }
   return parts;
 }

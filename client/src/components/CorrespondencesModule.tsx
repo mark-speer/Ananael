@@ -10,8 +10,12 @@ import {
 import {
   getHexagramsForKey,
   getTrigramsForKey,
+  getHexagramStructure,
 } from '../data/ichingCorrespondences';
 import { getCardById } from '../data/tarotDeck';
+import type { Chakra } from '../data/chakras';
+import type { Meridian } from '../data/meridians';
+import { getComparativeMap, getChakraForSephirah } from '../data/subtleBodyMaps';
 import {
   metalForPlanet,
   planetForMetal,
@@ -50,11 +54,17 @@ export default function CorrespondencesModule({
   const [query, setQuery] = useState(initialQuery);
   const [facet, setFacet] = useState<CorrespondenceFacet | null>(null);
   const [selectedKey, setSelectedKey] = useState<number | null>(null);
+  const [selectedChakraId, setSelectedChakraId] = useState<string | null>(null);
+  const [selectedMeridianId, setSelectedMeridianId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (initialQuery) {
       setQuery(initialQuery);
       setSelectedKey(null);
+      setSelectedChakraId(null);
+      setSelectedMeridianId(null);
     }
   }, [initialQuery]);
 
@@ -71,7 +81,24 @@ export default function CorrespondencesModule({
   const toggleFacet = (f: CorrespondenceFacet) => {
     setFacet((prev) => (prev === f ? null : f));
     setSelectedKey(null);
+    setSelectedChakraId(null);
+    setSelectedMeridianId(null);
   };
+
+  const showSubtlePrimary =
+    facet === 'chakra' ||
+    facet === 'meridian' ||
+    (result.chakras.length > 0 && result.meridians.length === 0 && !result.matches.length) ||
+    (result.meridians.length > 0 && result.chakras.length === 0 && !result.matches.length);
+
+  const selectedChakra =
+    result.chakras.find((c) => c.id === selectedChakraId) ??
+    result.chakras[0] ??
+    null;
+  const selectedMeridian =
+    result.meridians.find((m) => m.id === selectedMeridianId) ??
+    result.meridians[0] ??
+    null;
 
   return (
     <div className="space-y-6">
@@ -82,8 +109,8 @@ export default function CorrespondencesModule({
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Digital Liber 777 — Golden Dawn key scale 1–32. Search by sephirah,
           planet, zodiac, Hebrew letter, angel, deity, hexagram, element, color,
-          incense, stone, or plant. Pantheon parallels and I Ching hexagrams
-          (via trigrams) relate on the same key.
+          incense, stone, plant, chakra, or meridian. Pantheon parallels and I
+          Ching hexagrams (via trigrams) relate on the same key.
         </p>
       </header>
 
@@ -96,6 +123,8 @@ export default function CorrespondencesModule({
             onChange={(e) => {
               setQuery(e.target.value);
               setSelectedKey(null);
+              setSelectedChakraId(null);
+              setSelectedMeridianId(null);
             }}
             placeholder="Search — e.g. Venus, Hathor, Creative, Netzach…"
             className="w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-ananael-muted focus:border-ananael-violet"
@@ -153,62 +182,284 @@ export default function CorrespondencesModule({
       )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        <section className="space-y-2">
-          <p className="text-xs uppercase tracking-wider text-ananael-muted">
-            {result.matches.length} key
-            {result.matches.length === 1 ? '' : 's'}
-            {facet ? ` · ${FACET_LABELS[facet]}` : ''}
-          </p>
-          <ul className="max-h-[50vh] space-y-1 overflow-y-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-2 sm:max-h-[32rem]">
-            {result.matches.length === 0 && (
-              <li className="px-3 py-4 text-sm text-ananael-muted">
-                No correspondences match this search.
-              </li>
-            )}
-            {result.matches.map((key) => {
-              const isActive = selected?.key === key.key;
-              return (
-                <li key={key.key}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedKey(key.key)}
-                    className={[
-                      'flex w-full items-start gap-3 rounded-md px-3 py-2.5 text-left transition',
-                      isActive
-                        ? 'bg-ananael-violet/20 text-ananael-gold'
-                        : 'text-zinc-300 hover:bg-ananael-panel hover:text-ananael-gold',
-                    ].join(' ')}
-                  >
-                    <span className="w-8 shrink-0 font-display text-sm tabular-nums text-ananael-muted">
-                      {key.key}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">{key.name}</span>
-                      <span className="block truncate text-xs text-ananael-muted">
-                        {primaryCorrespondenceLabel(key)}
-                        {key.tarotId
-                          ? ` · ${getCardById(key.tarotId)?.name ?? key.tarotId}`
-                          : ''}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <section className="space-y-4">
+          {(facet === 'chakra' || (!facet && result.chakras.length > 0)) && (
+            <SubtleBodyList
+              label={`${result.chakras.length} chakra${result.chakras.length === 1 ? '' : 's'}`}
+              items={result.chakras.map((c) => ({
+                id: c.id,
+                title: c.name,
+                subtitle: c.sanskrit,
+                active: selectedChakra?.id === c.id,
+                onSelect: () => {
+                  setSelectedChakraId(c.id);
+                  setSelectedMeridianId(null);
+                  setSelectedKey(null);
+                },
+              }))}
+            />
+          )}
+          {(facet === 'meridian' || (!facet && result.meridians.length > 0)) && (
+            <SubtleBodyList
+              label={`${result.meridians.length} meridian${result.meridians.length === 1 ? '' : 's'}`}
+              items={result.meridians.map((m) => ({
+                id: m.id,
+                title: m.name,
+                subtitle: m.pinyin,
+                active: selectedMeridian?.id === m.id,
+                onSelect: () => {
+                  setSelectedMeridianId(m.id);
+                  setSelectedChakraId(null);
+                  setSelectedKey(null);
+                },
+              }))}
+            />
+          )}
+          {(!showSubtlePrimary || result.matches.length > 0) && (
+            <>
+              <p className="text-xs uppercase tracking-wider text-ananael-muted">
+                {result.matches.length} key
+                {result.matches.length === 1 ? '' : 's'}
+                {facet && facet !== 'chakra' && facet !== 'meridian'
+                  ? ` · ${FACET_LABELS[facet]}`
+                  : ''}
+              </p>
+              <ul className="max-h-[50vh] space-y-1 overflow-y-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-2 sm:max-h-[32rem]">
+                {result.matches.length === 0 && !result.chakras.length && !result.meridians.length && (
+                  <li className="px-3 py-4 text-sm text-ananael-muted">
+                    No correspondences match this search.
+                  </li>
+                )}
+                {result.matches.map((key) => {
+                  const isActive = selected?.key === key.key;
+                  return (
+                    <li key={key.key}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedKey(key.key);
+                          setSelectedChakraId(null);
+                          setSelectedMeridianId(null);
+                        }}
+                        className={[
+                          'flex w-full items-start gap-3 rounded-md px-3 py-2.5 text-left transition',
+                          isActive
+                            ? 'bg-ananael-violet/20 text-ananael-gold'
+                            : 'text-zinc-300 hover:bg-ananael-panel hover:text-ananael-gold',
+                        ].join(' ')}
+                      >
+                        <span className="w-8 shrink-0 font-display text-sm tabular-nums text-ananael-muted">
+                          {key.key}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium">{key.name}</span>
+                          <span className="block truncate text-xs text-ananael-muted">
+                            {primaryCorrespondenceLabel(key)}
+                            {key.tarotId
+                              ? ` · ${getCardById(key.tarotId)?.name ?? key.tarotId}`
+                              : ''}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </section>
 
         <section>
-          {selected ? (
+          {selectedChakra && (facet === 'chakra' || selectedChakraId || showSubtlePrimary) ? (
+            <ChakraDetailPanel chakra={selectedChakra} onNavigate={onNavigate} />
+          ) : selectedMeridian &&
+            (facet === 'meridian' || selectedMeridianId || showSubtlePrimary) ? (
+            <MeridianDetailPanel meridian={selectedMeridian} onNavigate={onNavigate} />
+          ) : selected ? (
             <KeyDetailPanel keyData={selected} onNavigate={onNavigate} />
           ) : (
             <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
               <p className="text-sm text-ananael-muted">
-                Select a key to view its full correspondences.
+                Select a key, chakra, or meridian to view full correspondences.
               </p>
             </div>
           )}
         </section>
+      </div>
+    </div>
+  );
+}
+
+function SubtleBodyList({
+  label,
+  items,
+}: {
+  label: string;
+  items: {
+    id: string;
+    title: string;
+    subtitle: string;
+    active: boolean;
+    onSelect: () => void;
+  }[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="space-y-2">
+      <p className="text-xs uppercase tracking-wider text-ananael-muted">{label}</p>
+      <ul className="max-h-[40vh] space-y-1 overflow-y-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-2">
+        {items.map((item) => (
+          <li key={item.id}>
+            <button
+              type="button"
+              onClick={item.onSelect}
+              className={[
+                'flex w-full flex-col rounded-md px-3 py-2.5 text-left transition',
+                item.active
+                  ? 'bg-ananael-violet/20 text-ananael-gold'
+                  : 'text-zinc-300 hover:bg-ananael-panel hover:text-ananael-gold',
+              ].join(' ')}
+            >
+              <span className="text-sm font-medium">{item.title}</span>
+              <span className="text-xs text-ananael-muted">{item.subtitle}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ChakraDetailPanel({
+  chakra,
+  onNavigate,
+}: {
+  chakra: Chakra;
+  onNavigate: (module: ModuleId, opts?: TreeNavigateOptions) => void;
+}) {
+  const map = getComparativeMap(chakra.id);
+  return (
+    <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
+      <div>
+        <p className="text-xs uppercase tracking-wider text-ananael-muted">Chakra</p>
+        <h2 className="mt-1 font-display text-xl text-ananael-gold">{chakra.name}</h2>
+        <p className="text-sm text-ananael-muted">{chakra.sanskrit}</p>
+      </div>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">Location</dt>
+          <dd className="text-sm text-zinc-200">{chakra.location}</dd>
+        </div>
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">Color</dt>
+          <dd className="text-sm text-zinc-200">{chakra.color}</dd>
+        </div>
+        {chakra.element && (
+          <div>
+            <dt className="text-xs uppercase tracking-wider text-ananael-muted">Element</dt>
+            <dd className="text-sm text-zinc-200">{chakra.element}</dd>
+          </div>
+        )}
+        {chakra.bija && (
+          <div>
+            <dt className="text-xs uppercase tracking-wider text-ananael-muted">Bija</dt>
+            <dd className="text-sm text-zinc-200">{chakra.bija}</dd>
+          </div>
+        )}
+        {map && (
+          <div className="sm:col-span-2">
+            <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+              Comparative sephirah
+            </dt>
+            <dd className="text-sm text-zinc-200">
+              {map.sephirahName} (Key {map.sephirahKey}) — {map.source}
+            </dd>
+          </div>
+        )}
+      </dl>
+      {chakra.notes && (
+        <p className="text-xs text-ananael-muted">{chakra.notes}</p>
+      )}
+      <div className="flex flex-wrap gap-2 border-t border-ananael-border/40 pt-4">
+        <button
+          type="button"
+          onClick={() =>
+            onNavigate('liturgy', { riteId: 'chakra-circulation', liturgyMode: 'run' })
+          }
+          className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
+        >
+          Run chakra circulation
+        </button>
+        {map && (
+          <button
+            type="button"
+            onClick={() => onNavigate('tree')}
+            className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
+          >
+            Open Tree of Life
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MeridianDetailPanel({
+  meridian,
+  onNavigate,
+}: {
+  meridian: Meridian;
+  onNavigate: (module: ModuleId, opts?: TreeNavigateOptions) => void;
+}) {
+  return (
+    <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
+      <div>
+        <p className="text-xs uppercase tracking-wider text-ananael-muted">Meridian</p>
+        <h2 className="mt-1 font-display text-xl text-ananael-gold">{meridian.name}</h2>
+        <p className="text-sm text-ananael-muted">{meridian.chinese} · {meridian.pinyin}</p>
+      </div>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">Element</dt>
+          <dd className="text-sm text-zinc-200">{meridian.element}</dd>
+        </div>
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">Yin / Yang</dt>
+          <dd className="text-sm text-zinc-200">{meridian.yinYang}</dd>
+        </div>
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">Organ</dt>
+          <dd className="text-sm text-zinc-200">{meridian.associatedOrgan}</dd>
+        </div>
+        {meridian.peakHourStart >= 0 && (
+          <div>
+            <dt className="text-xs uppercase tracking-wider text-ananael-muted">Peak hour</dt>
+            <dd className="text-sm text-zinc-200">
+              {meridian.peakHourStart}:00 – {meridian.peakHourEnd}:00
+            </dd>
+          </div>
+        )}
+      </dl>
+      {meridian.notes && (
+        <p className="text-xs text-ananael-muted">{meridian.notes}</p>
+      )}
+      <div className="flex flex-wrap gap-2 border-t border-ananael-border/40 pt-4">
+        <button
+          type="button"
+          onClick={() =>
+            onNavigate('liturgy', { riteId: 'microcosmic-orbit', liturgyMode: 'run' })
+          }
+          className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
+        >
+          Run microcosmic orbit
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigate('planetary', { planetaryPanel: 'hours' })}
+          className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
+        >
+          Celestial Timing
+        </button>
       </div>
     </div>
   );
@@ -303,6 +554,8 @@ function KeyDetailPanel({
 
   const trigrams = getTrigramsForKey(keyData.key);
   const hexagrams = getHexagramsForKey(keyData.key);
+  const comparativeChakra =
+    keyData.kind === 'sephira' ? getChakraForSephirah(keyData.key) : undefined;
 
   return (
     <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
@@ -357,6 +610,18 @@ function KeyDetailPanel({
             elemental tradition maps (Crowley left Mexican columns blank). These
             are tradition maps on the key scale, not claims of identity between
             deities.
+          </p>
+        </div>
+      )}
+
+      {comparativeChakra && (
+        <div className="border-t border-ananael-border/40 pt-4">
+          <h3 className="text-xs uppercase tracking-wider text-ananael-muted">
+            Comparative chakra
+          </h3>
+          <p className="mt-2 text-sm text-zinc-200">
+            {comparativeChakra.name} ({comparativeChakra.sanskrit}) — study map
+            only, not identity between systems.
           </p>
         </div>
       )}

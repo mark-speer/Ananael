@@ -30,6 +30,9 @@ export type JournalEntityKind =
   | 'goetia'
   | 'tarot'
   | 'hexagram'
+  | 'chakra'
+  | 'meridian'
+  | 'dantian'
   | 'other';
 
 export interface IJournalEntity {
@@ -92,6 +95,9 @@ const ENTITY_KINDS: JournalEntityKind[] = [
   'goetia',
   'tarot',
   'hexagram',
+  'chakra',
+  'meridian',
+  'dantian',
   'other',
 ];
 

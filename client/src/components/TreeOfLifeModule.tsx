@@ -17,15 +17,27 @@ import {
   type Sephira,
   type TreePath,
 } from '../data/treeOfLife';
-import { apiFetch } from '../lib/api';
+import { getChakraForSephirah } from '../data/subtleBodyMaps';
 import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import type { ModuleId } from './Sidebar';
+import type { LiturgyMode } from '../lib/ritualRunner';
 
 export interface TreeNavigateOptions {
   gematriaPrefill?: string;
   /** Prefill Correspondences search when navigating there. */
   correspondencesQuery?: string;
   divinationTab?: 'tarot' | 'iching' | 'geomancy' | 'runes';
+  planetaryPanel?:
+    | 'hours'
+    | 'planets'
+    | 'zodiac'
+    | 'elections'
+    | 'almanac'
+    | 'natal';
+  riteId?: string;
+  liturgyMode?: LiturgyMode;
+  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan';
+  subtleBodyFocus?: string;
 }
 
 interface TreeOfLifeModuleProps {
@@ -343,6 +355,24 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
               subtitle={`${selectedSephira.hebrew} · ${selectedSephira.title}`}
               correspondence={selectedSephira.correspondence}
               blurb={selectedSephira.blurb}
+              extra={
+                (() => {
+                  const comparativeChakra = getChakraForSephirah(
+                    selectedSephira.id
+                  );
+                  if (!comparativeChakra) return null;
+                  return (
+                    <p className="text-sm text-zinc-300">
+                      <span className="text-xs uppercase tracking-wider text-ananael-muted">
+                        Comparative chakra
+                      </span>
+                      <br />
+                      {comparativeChakra.name} ({comparativeChakra.sanskrit}) —
+                      study map only, not identity.
+                    </p>
+                  );
+                })()
+              }
             />
           )}
 

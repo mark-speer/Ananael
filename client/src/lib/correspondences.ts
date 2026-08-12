@@ -20,7 +20,15 @@ import {
   getKeysForHexagram,
   getTrigramsForKey,
   ichingFieldStringsForKey,
+  subtleBodyFieldStringsForKey,
 } from '../data/ichingCorrespondences';
+import { searchChakras, type Chakra } from '../data/chakras';
+import { searchMeridians, type Meridian } from '../data/meridians';
+import {
+  getComparativeMap,
+  getChakraForSephirah,
+} from '../data/subtleBodyMaps';
+import { LITURGY_RITES } from '../data/liturgy';
 import { getCardById } from '../data/tarotDeck';
 
 export interface EntityCluster {
@@ -32,6 +40,8 @@ export interface EntityCluster {
   highlights: { label: string; value: string }[];
   /** Primary key when one sephira anchors the entity. */
   primaryKey?: number;
+  /** Subtle-body entity id when cluster is chakra/meridian */
+  subtleBodyId?: string;
 }
 
 export interface CorrespondenceSearchResult {
@@ -39,6 +49,8 @@ export interface CorrespondenceSearchResult {
   facet: CorrespondenceFacet | null;
   cluster?: EntityCluster;
   matches: CorrespondenceKey[];
+  chakras: Chakra[];
+  meridians: Meridian[];
 }
 
 function normalize(s: string): string {
@@ -80,6 +92,7 @@ function fieldStrings(key: CorrespondenceKey): string[] {
       (p) => PANTHEON_LABELS[p],
     ),
     ...ichingFieldStringsForKey(key.key),
+    ...subtleBodyFieldStringsForKey(key.key),
   ];
 
   if (key.tarotId) {
@@ -175,6 +188,20 @@ function facetFieldValues(
       return key.plant ?? [];
     case 'metal':
       return key.metal ? [key.metal] : [];
+    case 'chakra': {
+      const c = getChakraForSephirah(key.key);
+      return c ? [c.name, c.sanskrit, c.id] : [];
+    }
+    case 'meridian': {
+      const trigrams = getTrigramsForKey(key.key);
+      const parts: string[] = [];
+      for (const t of trigrams) {
+        for (const m of searchMeridians(t.name)) {
+          parts.push(m.name, m.pinyin, m.chinese);
+        }
+      }
+      return parts;
+    }
     default:
       return [];
   }
@@ -365,12 +392,113 @@ function buildHexagramCluster(number: number): EntityCluster | undefined {
   };
 }
 
+function buildChakraCluster(chakra: Chakra): EntityCluster {
+  const map = getComparativeMap(chakra.id);
+  const highlights: { label: string; value: string }[] = [
+    { label: 'Sanskrit', value: chakra.sanskrit },
+    { label: 'Location', value: chakra.location },
+    { label: 'Color', value: chakra.color },
+  ];
+  if (chakra.element) highlights.push({ label: 'Element', value: chakra.element });
+  if (chakra.bija) highlights.push({ label: 'Bija', value: chakra.bija });
+  if (map) {
+    highlights.push({
+      label: 'Comparative sephirah',
+      value: `${map.sephirahName} (Key ${map.sephirahKey})`,
+    });
+  }
+  if (chakra.planet) highlights.push({ label: 'Planet', value: chakra.planet });
+  const rites = LITURGY_RITES.filter(
+    (r) =>
+      r.relatedChakras?.includes(chakra.id) ||
+      r.tags.includes('chakra')
+  ).map((r) => r.title);
+  if (rites.length) {
+    highlights.push({ label: 'Related rites', value: rites.slice(0, 2).join(', ') });
+  }
+  return {
+    label: chakra.name,
+    facet: 'chakra',
+    highlights,
+    primaryKey: map?.sephirahKey,
+    subtleBodyId: chakra.id,
+  };
+}
+
+function buildMeridianCluster(meridian: Meridian): EntityCluster {
+  const highlights: { label: string; value: string }[] = [
+    { label: 'Chinese', value: meridian.chinese },
+    { label: 'Pinyin', value: meridian.pinyin },
+    { label: 'Element', value: meridian.element },
+    { label: 'Organ', value: meridian.associatedOrgan },
+  ];
+  if (meridian.peakHourStart >= 0) {
+    const fmt = (h: number) => {
+      const hour = h % 24;
+      if (hour === 0) return '12 AM';
+      if (hour === 12) return '12 PM';
+      return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
+    };
+    highlights.push({
+      label: 'Peak hour',
+      value: `${fmt(meridian.peakHourStart)} – ${fmt(meridian.peakHourEnd)}`,
+    });
+  }
+  const rites = LITURGY_RITES.filter(
+    (r) =>
+      r.relatedMeridians?.includes(meridian.id) ||
+      r.tags.some((t) => ['qigong', 'neidan'].includes(t))
+  ).map((r) => r.title);
+  if (rites.length) {
+    highlights.push({ label: 'Related rites', value: rites.slice(0, 2).join(', ') });
+  }
+  return {
+    label: meridian.name,
+    facet: 'meridian',
+    highlights,
+    subtleBodyId: meridian.id,
+  };
+}
+
 function resolveCluster(
   rawQuery: string,
   matches: CorrespondenceKey[],
 ): EntityCluster | undefined {
   const q = normalize(rawQuery);
   if (!q) return undefined;
+
+  // Chakra exact / partial
+  for (const c of searchChakras(rawQuery)) {
+    if (
+      normalize(c.name) === q ||
+      normalize(c.id) === q ||
+      normalize(c.sanskrit.replace(/[^\w\s]/g, ' ')) === q ||
+      q.includes(normalize(c.id))
+    ) {
+      return buildChakraCluster(c);
+    }
+  }
+  const chakraPartial = searchChakras(rawQuery);
+  if (chakraPartial.length === 1) {
+    return buildChakraCluster(chakraPartial[0]!);
+  }
+
+  // Meridian exact / partial
+  for (const m of searchMeridians(rawQuery)) {
+    if (
+      normalize(m.name) === q ||
+      normalize(m.id) === q ||
+      normalize(m.pinyin) === q ||
+      q.includes('ren') && m.id === 'ren' ||
+      q.includes('du') && m.id === 'du'
+    ) {
+      return buildMeridianCluster(m);
+    }
+  }
+  const meridianPartial = searchMeridians(rawQuery);
+  if (meridianPartial.length === 1) {
+    return buildMeridianCluster(meridianPartial[0]!);
+  }
 
   // Exact King Wen number or hexagram name
   const asNum = Number.parseInt(q, 10);
@@ -525,17 +653,35 @@ export function searchCorrespondences(
   facet: CorrespondenceFacet | null = null,
 ): CorrespondenceSearchResult {
   const q = normalize(query);
-  const matches = CORRESPONDENCE_KEYS.filter((k) =>
-    keyMatchesFacet(k, facet, q),
-  );
 
-  const cluster = q && !facet ? resolveCluster(query, matches) : undefined;
+  const chakras =
+    facet === 'meridian'
+      ? []
+      : facet === 'chakra' || !facet
+        ? searchChakras(query)
+        : [];
+
+  const meridians =
+    facet === 'chakra'
+      ? []
+      : facet === 'meridian' || !facet
+        ? searchMeridians(query)
+        : [];
+
+  const matches =
+    facet === 'chakra' || facet === 'meridian'
+      ? CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q))
+      : CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q));
+
+  const cluster = q ? resolveCluster(query, matches) : undefined;
 
   return {
     query,
     facet,
     cluster,
     matches,
+    chakras,
+    meridians,
   };
 }
 

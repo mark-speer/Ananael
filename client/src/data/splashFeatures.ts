@@ -5,8 +5,8 @@
 export const SPLASH_MISSION = {
   headline: 'Tools for the work, gathered in one sanctum.',
   support:
-    'Ananael is the Inner Sanctum: a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, alchemy, ritual design, and a journal for your workings.',
-  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; craft kamea and sigils; plan altar layouts and Solomonic circles; browse a Ritual Library with guided Ritual Runner sessions; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
+    'Ananael is the Inner Sanctum: a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, alchemy, ritual design, subtle-body work, and a journal for your workings.',
+  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; explore chakras, meridians, and neidan with comparative maps to the Western schema; craft kamea and sigils; plan altar layouts and Solomonic circles; browse a Ritual Library with Yoga and Taoist rites plus guided Ritual Runner sessions; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
 } as const;
 
 export interface SplashFeature {
@@ -62,7 +62,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'correspondences',
     title: 'Correspondences',
     description:
-      'A digital Liber 777–style key scale (1–32): search Hebrew letters, Tarot, planets, elements, metals, colors, and gods across the traditional tables of correspondence.',
+      'A digital Liber 777–style key scale (1–32): search Hebrew letters, Tarot, planets, elements, metals, colors, chakras, meridians, and gods across the traditional tables of correspondence.',
   },
   {
     id: 'opus',
@@ -98,6 +98,12 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'liturgy',
     title: 'Ritual Library',
     description:
-      'Expanded liturgy corpus (Golden Dawn, Heptameron, Goetia, Alchemy, solar adorations, consecrations) with purpose, notes, sources, suggested planetary hours, Ritual Space templates, guided Ritual Runner sessions (step checklist + live hour strip, resume from Magical OS), and one-click Magical Journal workings.',
+      'Expanded liturgy corpus (Golden Dawn, Heptameron, Goetia, Alchemy, Yoga, Taoist qigong, solar adorations, consecrations) with purpose, notes, sources, suggested planetary hours, Ritual Space templates, guided Ritual Runner sessions (step checklist + hold timers, live hour strip, resume from Magical OS), and one-click Magical Journal workings.',
+  },
+  {
+    id: 'subtleBody',
+    title: 'Subtle Body',
+    description:
+      'Chakra spine atlas, twelve meridians plus Ren/Du, comparative chakra↔sephirah maps, neidan study stages, deep-links to Correspondences and Celestial Timing peak hours, and one-tap launch of Eastern rites in the Ritual Library.',
   },
 ];

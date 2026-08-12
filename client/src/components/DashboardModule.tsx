@@ -50,6 +50,8 @@ export interface DashboardNavigateOptions {
   riteId?: string;
   runEntryId?: string;
   liturgyMode?: LiturgyMode;
+  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan';
+  subtleBodyFocus?: string;
 };
 
 interface DashboardModuleProps {
@@ -542,6 +544,36 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               {dayCounsel.natalAffinity}
             </p>
           )}
+          {dayCounsel.subtleBodyTheme && (
+            <p className="mt-3 rounded-md border border-ananael-violet/30 bg-ananael-violet/10 px-2.5 py-2 text-xs text-zinc-200">
+              <span className="text-[11px] uppercase tracking-wider text-ananael-violet">
+                Subtle body ·{' '}
+              </span>
+              {dayCounsel.subtleBodyTheme}{' '}
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigate('subtleBody', { subtleBodyPane: 'meridians' })
+                }
+                className="text-ananael-gold hover:underline"
+              >
+                Atlas
+              </button>
+              {' · '}
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigate('liturgy', {
+                    riteId: 'zhan-zhuang',
+                    liturgyMode: 'run',
+                  })
+                }
+                className="text-ananael-gold hover:underline"
+              >
+                Zhan Zhuang
+              </button>
+            </p>
+          )}
           {nextHighlight && (
             <p className="mt-3 text-xs text-ananael-violet">
               Next: {nextHighlight.label} ·{' '}
@@ -812,6 +844,48 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               })}
             </ul>
           )}
+        </section>
+
+        {/* Subtle Body */}
+        <section className={tileClassName()}>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="font-display text-lg text-ananael-gold">
+                Subtle Body
+              </h2>
+              <p className="mt-0.5 text-xs text-ananael-muted">
+                Chakras, meridians, neidan study
+              </p>
+            </div>
+            <TileLink
+              label="Open atlas"
+              onClick={() => onNavigate('subtleBody')}
+              tone="violet"
+            />
+          </div>
+          <p className="mt-3 text-sm text-zinc-300">
+            Eastern internal work across traditions — comparative maps to the
+            Tree and I Ching, plus guided rites in the Ritual Library.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <TileLink
+              label="Chakras"
+              onClick={() =>
+                onNavigate('subtleBody', { subtleBodyPane: 'chakras' })
+              }
+              tone="gold"
+            />
+            <TileLink
+              label="Qigong rites"
+              onClick={() =>
+                onNavigate('liturgy', {
+                  riteId: 'ba-duan-jin',
+                  liturgyMode: 'browse',
+                })
+              }
+              tone="bronze"
+            />
+          </div>
         </section>
 
         {/* Correspondences */}

@@ -42,6 +42,11 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Athanor deepen       | Active  | 23           |
 | Cross-module polish  | Active  | 24           |
 | Ritual Runner        | Active  | 25           |
+| Eastern Ritual Library | Active | 31         |
+| Subtle Body corpus   | Active  | 32           |
+| Subtle Body bridge   | Active  | 33           |
+| Subtle Body module   | Active  | 34           |
+| Eastern OS polish    | Active  | 35           |
 
 ---
 
@@ -431,6 +436,52 @@ Personalization only when a full natal exists (date + time + place + houses/whee
 - Date-only profiles do not trigger personalization
 
 **Done when:** full-natal users see personalized Almanac + OS tile; others unchanged.
+
+---
+
+## Phase 31 — Eastern Ritual Library — Shipped
+
+- Six Yoga/Taoist rites in `client/src/data/liturgy.ts`
+- Traditions `Yoga` and `Taoist` in `LITURGY_TRADITION_ORDER`
+- Server catalog mirror in `server/src/routes/liturgy.ts`
+
+**Done when:** All rites browsable, runnable, and resumable from Magical OS active workings.
+
+---
+
+## Phase 32 — Subtle Body Data Corpus — Shipped
+
+- `client/src/data/chakras.ts`, `meridians.ts`, `subtleBodyMaps.ts`
+- Journal entity kinds: `chakra`, `meridian`, `dantian`
+
+**Done when:** Data exports compile; journal schema accepts new entity kinds.
+
+---
+
+## Phase 33 — Correspondence Bridge — Shipped
+
+- `chakra` and `meridian` facets in Correspondences encyclopedia
+- I Ching trigram ↔ meridian bridges; Tree comparative chakra panel
+
+**Done when:** Subtle-body search and cross-links work across modules.
+
+---
+
+## Phase 34 — Subtle Body Module — Shipped
+
+- `SubtleBodyModule.tsx` — atlas, meridians, maps, neidan study
+- Sidebar `subtleBody`; Ritual Runner hold timers (`durationSec`)
+
+**Done when:** Module navigable; rite launchable from atlas.
+
+---
+
+## Phase 35 — Eastern Cross-Module Polish — Shipped
+
+- Magical OS Subtle Body tile; almanac `subtleBodyTheme` counsel
+- Splash features updated
+
+**Done when:** Timing → Subtle Body → Run rite path is live on Magical OS.
 
 ---
 

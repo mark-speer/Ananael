@@ -111,6 +111,42 @@ const rites = [
     tradition: 'Alchemy',
     tags: ['alchemy', 'metal', 'planetary', 'dedication', 'daily'],
   },
+  {
+    id: 'chakra-circulation',
+    title: 'Seven-Center Breath & Light',
+    tradition: 'Yoga',
+    tags: ['chakra', 'energy', 'daily', 'pranayama'],
+  },
+  {
+    id: 'nadi-shodhana',
+    title: 'Alternate Nostril Breathing',
+    tradition: 'Yoga',
+    tags: ['pranayama', 'balance', 'daily'],
+  },
+  {
+    id: 'ba-duan-jin',
+    title: 'Eight Brocades (study outline)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'movement', 'daily'],
+  },
+  {
+    id: 'zhan-zhuang',
+    title: 'Standing Meditation',
+    tradition: 'Taoist',
+    tags: ['qigong', 'stillness', 'daily'],
+  },
+  {
+    id: 'microcosmic-orbit',
+    title: 'Microcosmic Orbit (intro)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'energy', 'neidan'],
+  },
+  {
+    id: 'inner-smile',
+    title: 'Inner Smile (intro)',
+    tradition: 'Taoist',
+    tags: ['meditation', 'taoist', 'daily'],
+  },
 ];
 
 router.get('/rites', (_req, res) => {

@@ -12,6 +12,8 @@ import {
 } from '../lib/iching';
 import { buildJournalSky } from '../lib/journalSky';
 import type { ModuleId } from './Sidebar';
+import { getHexagramStructure } from '../data/ichingCorrespondences';
+import { getMeridianForTrigram } from '../data/subtleBodyMaps';
 
 const METHODS: { id: CastMethod; label: string; description: string }[] = [
   {
@@ -100,6 +102,19 @@ function HexagramPanel({
   lines?: LineValue[];
   changingLines?: number[];
 }) {
+  const structure = getHexagramStructure(hex.number);
+  const lowerMeridians = structure
+    ? getMeridianForTrigram(structure.lower.id)
+    : [];
+  const upperMeridians = structure
+    ? getMeridianForTrigram(structure.upper.id)
+    : [];
+  const meridianNames = [
+    ...new Set(
+      [...lowerMeridians, ...upperMeridians].map((m) => m.name)
+    ),
+  ];
+
   return (
     <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
       <p className="text-xs uppercase tracking-[0.2em] text-ananael-muted">
@@ -140,6 +155,17 @@ function HexagramPanel({
               {hex.image}
             </p>
           </div>
+          {structure && meridianNames.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-wider text-ananael-muted">
+                Subtle body (trigram bridge)
+              </p>
+              <p className="mt-1 text-sm text-zinc-300">
+                {structure.lower.name} / {structure.upper.name} ↔{' '}
+                {meridianNames.join(', ')} — comparative study map.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

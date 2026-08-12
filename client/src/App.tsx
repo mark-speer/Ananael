@@ -20,7 +20,8 @@ import Sidebar, {
   type ModuleId,
 } from './components/Sidebar';
 import SolomonicCircleModule from './components/SolomonicCircleModule';
-import SplashPage from './components/SplashPage';
+import SubtleBodyModule from './components/SubtleBodyModule';
+import type { SubtleBodyPane } from './lib/subtleBody';
 import TalismanModule from './components/TalismanModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
@@ -95,6 +96,8 @@ export default function App() {
   const [liturgyRunEntryId, setLiturgyRunEntryId] = useState<
     string | undefined
   >();
+  const [subtleBodyPane, setSubtleBodyPane] = useState<SubtleBodyPane>('chakras');
+  const [subtleBodyFocus, setSubtleBodyFocus] = useState<string | undefined>();
 
   useEffect(() => {
     if (wasAuthenticated.current && !isAuthenticated) {
@@ -160,6 +163,12 @@ export default function App() {
       setLiturgyMode('browse');
       setLiturgyRiteId(undefined);
       setLiturgyRunEntryId(undefined);
+    }
+    if (target === 'subtleBody') {
+      setSubtleBodyPane(opts?.subtleBodyPane ?? 'chakras');
+      setSubtleBodyFocus(opts?.subtleBodyFocus);
+    } else {
+      setSubtleBodyFocus(undefined);
     }
     setActiveModule(target);
   };
@@ -245,6 +254,14 @@ export default function App() {
             initialPane={opusPane}
             initialStageId={opusStageId}
             initialMetal={opusMetal}
+          />
+        );
+      case 'subtleBody':
+        return (
+          <SubtleBodyModule
+            onNavigate={navigateToModule}
+            initialPane={subtleBodyPane}
+            initialFocus={subtleBodyFocus}
           />
         );
       default:

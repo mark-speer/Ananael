@@ -11,6 +11,7 @@ import {
   type SeasonMarker,
 } from './celestialEphemeris';
 import { dayPillar, formatPillarShort } from './chineseAstrology';
+import { meridianPeakingAt } from '../data/meridians';
 import { operationForDay, type DayOperation, type OpusStageId } from './alchemy';
 import { buildJournalSky, type JournalSky } from './journalSky';
 import { getMoonPhase, type MoonPhaseName } from './moonPhase';
@@ -28,6 +29,8 @@ export interface DayCounsel {
   summary: string;
   /** Present only when a full natal chart personalizes the day. */
   natalAffinity?: string;
+  /** Eastern subtle-body practice hint tied to meridian hours and moon phase. */
+  subtleBodyTheme?: string;
 }
 
 /** Full-natal fields used to personalize Almanac / Magical OS. */
@@ -93,6 +96,26 @@ const MOON_THEMES: Record<MoonPhaseName, string> = {
   'Last Quarter': 'Cut and clear — banish, compost, and close what is finished.',
   'Waning Crescent': 'Rest and empty — dream deep, purify, and prepare the next seed.',
 };
+
+function buildSubtleBodyCounsel(
+  when: Date,
+  moonName: MoonPhaseName
+): string {
+  const peaking = meridianPeakingAt(when.getHours());
+  const parts: string[] = [];
+  if (peaking.length) {
+    parts.push(
+      `${peaking.map((m) => m.name).join(' / ')} meridian peak — consider qigong, breath, or meridian-aware stillness.`
+    );
+  }
+  if (moonName === 'Waning Crescent' || moonName === 'New Moon') {
+    parts.push('Ren/Du inward work and standing meditation suit yin-phase moons.');
+  }
+  if (moonName === 'Full Moon' || moonName === 'Waxing Gibbous') {
+    parts.push('Chakra circulation and heart-center work resonate with luminous moons.');
+  }
+  return parts.join(' ');
+}
 
 /** Compact moon label for calendar cells. */
 export function moonPhaseShort(name: MoonPhaseName): string {
@@ -258,6 +281,7 @@ export function buildDayCounsel(
   const moonTheme = MOON_THEMES[moonName];
   const operation = operationForDay(dayRuler, moonName, when);
   const alchemyTheme = operation.counsel;
+  const subtleBodyTheme = buildSubtleBodyCounsel(when, moonName);
   let natalAffinity: string | undefined;
   if (natal?.isFullNatal) {
     const hits: string[] = [];
@@ -292,6 +316,7 @@ export function buildDayCounsel(
     operation,
     summary,
     natalAffinity,
+    subtleBodyTheme: subtleBodyTheme || undefined,
   };
 }
 

@@ -35,6 +35,9 @@ export interface LiturgyNavigateOptions {
   riteId?: string;
   runEntryId?: string;
   liturgyMode?: LiturgyMode;
+  correspondencesQuery?: string;
+  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan';
+  subtleBodyFocus?: string;
 }
 
 interface LiturgyModuleProps {
@@ -414,6 +417,38 @@ export default function LiturgyModule({
                   </span>
                 ))}
               </div>
+              {(rite.relatedChakras?.length || rite.relatedMeridians?.length) ? (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {rite.relatedChakras?.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() =>
+                        onNavigate?.('correspondences', {
+                          correspondencesQuery: id,
+                        })
+                      }
+                      className="rounded border border-ananael-violet/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-ananael-violet hover:bg-ananael-violet/10"
+                    >
+                      chakra: {id}
+                    </button>
+                  ))}
+                  {rite.relatedMeridians?.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() =>
+                        onNavigate?.('correspondences', {
+                          correspondencesQuery: id,
+                        })
+                      }
+                      className="rounded border border-ananael-gold/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-ananael-gold hover:bg-ananael-gold/10"
+                    >
+                      meridian: {id}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             {rite.notes && (

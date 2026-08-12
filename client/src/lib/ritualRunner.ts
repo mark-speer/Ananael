@@ -3,7 +3,10 @@
  */
 
 import type { LiturgyRite } from '../data/liturgy';
-import type { JournalSky, WorkingStatus } from './journal';
+import { CHAKRAS } from '../data/chakras';
+import { MERIDIANS } from '../data/meridians';
+import { DANTIANS } from '../data/subtleBodyMaps';
+import type { JournalSky, WorkingStatus, JournalEntity } from './journal';
 
 export const RITUAL_RUNNER_SYSTEM = 'ritual-runner' as const;
 
@@ -195,4 +198,56 @@ export function buildCompletionBody(
     lines.push(trimmed);
   }
   return lines.join('\n');
+}
+
+/** Suggest journal entities from rite tags and optional related subtle-body refs. */
+export function suggestEntitiesFromRite(rite: LiturgyRite): JournalEntity[] {
+  const entities: JournalEntity[] = [];
+  const seen = new Set<string>();
+
+  const add = (e: JournalEntity) => {
+    const k = `${e.kind}:${e.id}`;
+    if (seen.has(k)) return;
+    seen.add(k);
+    entities.push(e);
+  };
+
+  if (rite.tags.includes('chakra') || rite.id === 'chakra-circulation') {
+    for (const c of CHAKRAS) {
+      add({ kind: 'chakra', id: c.id, label: c.name });
+    }
+  }
+  if (
+    rite.tags.some((t) =>
+      ['qigong', 'neidan', 'taoist'].includes(t)
+    )
+  ) {
+    add({ kind: 'meridian', id: 'ren', label: 'Ren mai' });
+    add({ kind: 'meridian', id: 'du', label: 'Du mai' });
+    add({ kind: 'dantian', id: 'lower', label: 'Lower dantian' });
+  }
+  if (rite.id === 'microcosmic-orbit') {
+    add({ kind: 'meridian', id: 'ren', label: 'Ren mai' });
+    add({ kind: 'meridian', id: 'du', label: 'Du mai' });
+    add({ kind: 'dantian', id: 'lower', label: 'Lower dantian' });
+  }
+  if (rite.relatedChakras) {
+    for (const id of rite.relatedChakras) {
+      const c = CHAKRAS.find((ch) => ch.id === id);
+      if (c) add({ kind: 'chakra', id: c.id, label: c.name });
+    }
+  }
+  if (rite.relatedMeridians) {
+    for (const id of rite.relatedMeridians) {
+      const m = MERIDIANS.find((mer) => mer.id === id);
+      if (m) add({ kind: 'meridian', id: m.id, label: m.name });
+    }
+  }
+  for (const d of DANTIANS) {
+    if (rite.tags.includes('neidan') && d.id === 'lower') {
+      add({ kind: 'dantian', id: d.id, label: d.name });
+    }
+  }
+
+  return entities;
 }

@@ -16,7 +16,8 @@ export type ModuleId =
   | 'talisman'
   | 'enochian'
   | 'liturgy'
-  | 'opus';
+  | 'opus'
+  | 'subtleBody';
 
 export interface ModuleDef {
   id: ModuleId;
@@ -40,6 +41,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'talisman', label: 'Talisman Atelier' },
   { id: 'enochian', label: 'Enochian' },
   { id: 'liturgy', label: 'Ritual Library' },
+  { id: 'subtleBody', label: 'Subtle Body' },
 ];
 
 /** Grouped modules for the mobile switcher (shorter labels). */
@@ -58,6 +60,7 @@ export const MODULE_SELECT_GROUPS: {
       { id: 'journal', label: 'Journal' },
       { id: 'planetary', label: 'Timing' },
       { id: 'liturgy', label: 'Library' },
+      { id: 'subtleBody', label: 'Body' },
     ],
   },
   {

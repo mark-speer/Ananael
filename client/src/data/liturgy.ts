@@ -9,6 +9,8 @@ import type { TemplateId } from './ritualTools';
 export interface LiturgyStep {
   title: string;
   body: string;
+  /** Optional hold duration in seconds (qigong standing, etc.) */
+  durationSec?: number;
 }
 
 export interface LiturgyRite {
@@ -24,6 +26,8 @@ export interface LiturgyRite {
   suggestedPlanet?: PlanetId;
   ritualTemplate?: TemplateId;
   sketch?: boolean;
+  relatedChakras?: string[];
+  relatedMeridians?: string[];
 }
 
 export const LITURGY_RITES: LiturgyRite[] = [
@@ -655,6 +659,290 @@ export const LITURGY_RITES: LiturgyRite[] = [
       },
     ],
   },
+  {
+    id: 'chakra-circulation',
+    title: 'Seven-Center Breath & Light',
+    tradition: 'Yoga',
+    tags: ['chakra', 'energy', 'daily', 'pranayama'],
+    relatedChakras: [
+      'muladhara',
+      'svadhisthana',
+      'manipura',
+      'anahata',
+      'vishuddha',
+      'ajna',
+      'sahasrara',
+    ],
+    tools: ['quiet space', 'upright seat or standing posture', 'breath'],
+    purpose:
+      'Awaken and equilibrate the seven traditional centers through breath, visualization, and silent bija vibration.',
+    notes:
+      'Study outline of classical tantric and modern yoga-tantra chakra work. Confirm pronunciation of Sanskrit bija with your teacher; do not force breath retention or strain.',
+    sources: [
+      'Traditional tantric and hatha yoga chakra outlines (study summary; not a full lineage transmission)',
+    ],
+    suggestedPlanet: 'Sun',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Sit or stand with a straight spine. Soften the jaw and shoulders. Breathe naturally until the mind steadies. Optionally set a brief intention for balance rather than force.',
+      },
+      {
+        title: 'Muladhara — root',
+        body: 'Bring attention to the base of the spine / perineum. On the inhale, sense a deep red warmth; on the exhale, silently intone LAM (as taught). Feel stability without heaviness.',
+      },
+      {
+        title: 'Svadhisthana — sacral',
+        body: 'Raise attention to the lower abdomen. Visualize orange light; exhale with VAM. Sense fluid creativity and calm vitality.',
+      },
+      {
+        title: 'Manipura — solar plexus',
+        body: 'At the navel center, golden light gathers; exhale with RAM. Feel warmth and will aligned with breath, not agitation.',
+      },
+      {
+        title: 'Anahata — heart',
+        body: 'At the heart center, green or rose light; exhale with YAM. Open the chest gently; balance giving and receiving.',
+      },
+      {
+        title: 'Vishuddha — throat',
+        body: 'At the throat, sky-blue light; exhale with HAM. Sense clear expression and inner listening.',
+      },
+      {
+        title: 'Ajna — brow',
+        body: 'Between the eyebrows, indigo light; exhale with OM or AUM as taught. Rest in single-pointed awareness without strain.',
+      },
+      {
+        title: 'Sahasrara — crown',
+        body: 'At or just above the crown, violet-white radiance; silence or subtle vibration. Feel spaciousness rather than pressure.',
+      },
+      {
+        title: 'Circulation',
+        body: 'On the breath, circulate light from root to crown and back, or fountain upward through the central channel until the field feels even. Close with hands at the heart and a silent Namaste or Amen.',
+      },
+    ],
+  },
+  {
+    id: 'nadi-shodhana',
+    title: 'Alternate Nostril Breathing',
+    tradition: 'Yoga',
+    tags: ['pranayama', 'balance', 'daily'],
+    tools: ['upright seat', 'right hand for nostril closure (Vishnu mudra as taught)'],
+    purpose:
+      'Equilibrate the lunar and solar breath currents (ida and pingala) through alternating nostril pranayama.',
+    notes:
+      'Do not practice with acute congestion, high blood pressure, or pregnancy unless cleared by a qualified teacher. Keep the breath smooth; avoid forced retention early on.',
+    sources: ['Classical hatha pranayama tradition (study outline)'],
+    suggestedPlanet: 'Mercury',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Sit comfortably with spine erect. Form Vishnu mudra with the right hand (or use thumb and ring finger as taught). Exhale fully once through both nostrils.',
+      },
+      {
+        title: 'Close right — inhale left',
+        body: 'Close the right nostril with the thumb. Inhale slowly and silently through the left nostril to a comfortable fullness.',
+      },
+      {
+        title: 'Close both — optional retention',
+        body: 'Close both nostrils briefly only if retention is part of your training; otherwise proceed immediately. Never strain.',
+      },
+      {
+        title: 'Exhale right',
+        body: 'Release the right nostril; exhale smoothly through the right.',
+      },
+      {
+        title: 'Inhale right',
+        body: 'Inhale through the right nostril with the left still closed.',
+      },
+      {
+        title: 'Exhale left',
+        body: 'Close the right nostril; exhale through the left. This completes one round.',
+      },
+      {
+        title: 'Rounds',
+        body: 'Continue for 5–9 rounds or as prescribed by your teacher. End on an exhale through the left if finishing with a lunar emphasis, or as tradition directs.',
+      },
+      {
+        title: 'Close',
+        body: 'Release the hand. Breathe naturally. Observe mental clarity and bodily ease before rising.',
+      },
+    ],
+  },
+  {
+    id: 'ba-duan-jin',
+    title: 'Eight Brocades (study outline)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'movement', 'daily'],
+    tools: ['standing room', 'loose clothing', 'natural breath'],
+    purpose:
+      'Gentle standing qigong sequence to mobilize qi through eight traditional movements of sinew and breath.',
+    notes:
+      'Study outline only. Learn full form, pacing, and contraindications from a qualified qigong instructor; versions differ by lineage.',
+    sources: ['Traditional Baduanjin / Eight Brocades (public-domain movement names; study summary)'],
+    suggestedPlanet: 'Sun',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Stand with feet shoulder-width, knees soft, tongue on palate if taught. Breathe into the lower abdomen. Sink weight into the feet.',
+      },
+      {
+        title: 'Two Hands Hold Up the Heavens',
+        body: 'Interlace or press palms upward above the crown, stretching gently through the sides. Rise on breath; lower on exhale. Mobilize the triple warmer as taught.',
+      },
+      {
+        title: 'Drawing the Bow',
+        body: 'Horse stance or stable bow stance. One hand draws the bow, the other extends; gaze along the arrow. Alternate left and right with even breath.',
+      },
+      {
+        title: 'Separate Heaven and Earth',
+        body: 'One palm presses upward, one downward at the sides of the torso. Stretch the flanks; exchange hands with the breath.',
+      },
+      {
+        title: 'Wise Owl Gazes Back',
+        body: 'Turn the head and gaze over the shoulder; keep hips forward. Loosen the neck and spine. Alternate sides slowly.',
+      },
+      {
+        title: 'Sway the Head and Shake the Tail',
+        body: 'Soft lateral sway or rotation of the torso as taught in your lineage. Keep the crown suspended; do not force the lower back.',
+      },
+      {
+        title: 'Two Hands Hold the Feet',
+        body: 'Forward bend with soft knees if needed; reach toward the feet to stretch the kidneys and hamstrings. Rise slowly on exhale.',
+      },
+      {
+        title: 'Clench the Fists and Glare Fiercely',
+        body: 'Horse stance; punch or extend with coordinated breath and focused gaze. Release tension on exhale.',
+      },
+      {
+        title: 'Bouncing on the Toes',
+        body: 'Rise onto the toes and let the heels drop lightly (Seven Disorders of the hundred meridians). Settle three breaths standing still.',
+      },
+      {
+        title: 'Close',
+        body: 'Place hands on the lower dantian. Store qi with natural breath. Bow or nod to close the session.',
+      },
+    ],
+  },
+  {
+    id: 'zhan-zhuang',
+    title: 'Standing Meditation',
+    tradition: 'Taoist',
+    tags: ['qigong', 'stillness', 'daily'],
+    relatedMeridians: ['kidney', 'bladder'],
+    tools: ['standing space', 'timer optional', 'loose clothing'],
+    purpose:
+      'Build root, song (relaxation), and internal stillness through standing postures (Zhan Zhuang).',
+    notes:
+      'Start with short holds; knee alignment and teacher correction prevent strain. This outline uses a basic embracing-the-tree posture.',
+    sources: ['Zhan Zhuang standing meditation tradition (study outline)'],
+    suggestedPlanet: 'Saturn',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Stand with feet parallel, shoulder-width or slightly wider. Soften the chest; suspend the crown. Breathe into the lower belly.',
+      },
+      {
+        title: 'Embrace the Tree',
+        body: 'Raise arms as if hugging a large tree; elbows dropped, shoulders relaxed, fingers slightly apart. Eyes soft, gaze forward or slightly down.',
+      },
+      {
+        title: 'Song — release tension',
+        body: 'Scan from crown to soles; melt unnecessary tension while maintaining structure. Weight sinks; crown lifts. Knees never pass the toes.',
+      },
+      {
+        title: 'Hold',
+        body: 'Maintain the posture with natural breath for the duration taught (beginners: 3–5 minutes). If shaking arises, breathe through it without collapsing structure unless instructed.',
+        durationSec: 180,
+      },
+      {
+        title: 'Dissolve',
+        body: 'Slowly lower the arms. Shift weight side to side if taught. Feel blood and qi redistribute.',
+      },
+      {
+        title: 'Close',
+        body: 'Hands on lower dantian. Three calm breaths. Walk briefly to ground the legs.',
+      },
+    ],
+  },
+  {
+    id: 'microcosmic-orbit',
+    title: 'Microcosmic Orbit (intro)',
+    tradition: 'Taoist',
+    tags: ['qigong', 'energy', 'neidan'],
+    relatedMeridians: ['ren', 'du'],
+    tools: ['seated or standing posture', 'tongue on palate if taught', 'breath'],
+    purpose:
+      'Circulate refined qi along the Ren and Du extraordinary vessels in the small heavenly cycle.',
+    notes:
+      'Introductory study outline only. Full neidan transmission requires a qualified teacher; do not force the breath or reverse flow without instruction.',
+    sources: ['Taoist neidan / microcosmic orbit tradition (study outline)'],
+    suggestedPlanet: 'Moon',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Sit or stand with straight spine. Touch tongue to palate if part of your practice. Breathe into the lower dantian until the belly is calm.',
+      },
+      {
+        title: 'Gather at dantian',
+        body: 'Sense warmth and light at the lower abdomen (qihai / dantian). On exhale, condense attention there without muscular forcing.',
+      },
+      {
+        title: 'Du mai — ascent',
+        body: 'On inhale or subtle breath, lead attention from perineum (huiyin) up the spine, through the occiput, to the crown (baihui). Move slowly; skip any painful segment.',
+      },
+      {
+        title: 'Ren mai — descent',
+        body: 'From the palate or crown, descend along the midline of the face, throat, chest, and abdomen back to the dantian. Exhale smoothly.',
+      },
+      {
+        title: 'Cycles',
+        body: 'Repeat the orbit for 9 or 36 cycles as taught, or until stability. Keep the movement gentle and continuous.',
+      },
+      {
+        title: 'Close',
+        body: 'Seal qi at the lower dantian with hands overlaid. Rest in stillness before opening the eyes fully.',
+      },
+    ],
+  },
+  {
+    id: 'inner-smile',
+    title: 'Inner Smile (intro)',
+    tradition: 'Taoist',
+    tags: ['meditation', 'taoist', 'daily'],
+    tools: ['comfortable seat', 'breath', 'gentle attention'],
+    purpose:
+      'Transform tension into vitality by smiling inward to organs and centers, harmonizing the emotional body.',
+    notes:
+      'Based on Mantak Chia–style introductory practice widely taught in qigong communities; confirm organ sequence with your lineage.',
+    sources: ['Taoist Inner Smile meditation (study outline)'],
+    suggestedPlanet: 'Venus',
+    steps: [
+      {
+        title: 'Prepare',
+        body: 'Smile gently with the eyes and mouth. Feel the corners of the lips lift without strain. Breathe into the lower belly.',
+      },
+      {
+        title: 'Smile to the heart',
+        body: 'Direct the inner smile to the heart center. Sense warmth, joy, or forgiveness spreading through the chest. Exhale any heaviness softly.',
+      },
+      {
+        title: 'Smile to the organs',
+        body: 'In sequence as taught—often lungs, liver, spleen/pancreas, kidneys—rest the smile on each organ. Use color associations from your tradition if helpful.',
+      },
+      {
+        title: 'Smile to the brain',
+        body: 'Smile to the pituitary and pineal or whole brain; cool clarity at the brow. Release forehead tension.',
+      },
+      {
+        title: 'Collect at dantian',
+        body: 'Gather the golden or warm feeling into the lower dantian. Hands may rest there. Rest in silence.',
+      },
+      {
+        title: 'Close',
+        body: 'Open the eyes when ready. Move slowly. Note mood in the Magical Journal if desired.',
+      },
+    ],
+  },
 ];
 
 export function searchRites(query: string): LiturgyRite[] {
@@ -688,6 +976,8 @@ export const LITURGY_TRADITION_ORDER = [
   'Goetia',
   'Thelemic',
   'Alchemy',
+  'Yoga',
+  'Taoist',
   'General',
 ] as const;
 

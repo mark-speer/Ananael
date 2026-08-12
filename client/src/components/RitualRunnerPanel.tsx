@@ -103,6 +103,63 @@ function SkyStrip({
   );
 }
 
+function StepPanel({
+  step,
+  stepIndex,
+  session,
+}: {
+  step: { title: string; body: string; durationSec?: number };
+  stepIndex: number;
+  session: RitualRunnerSession;
+}) {
+  const [remaining, setRemaining] = useState<number | null>(
+    step.durationSec ?? null
+  );
+
+  useEffect(() => {
+    setRemaining(step.durationSec ?? null);
+  }, [stepIndex, step.durationSec]);
+
+  useEffect(() => {
+    if (step.durationSec == null) return;
+    const id = window.setInterval(() => {
+      setRemaining((r) => (r != null && r > 0 ? r - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [stepIndex, step.durationSec]);
+
+  const fmt = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="rounded-md border border-ananael-border/50 bg-ananael-panel px-4 py-4">
+      <p className="text-sm font-medium text-ananael-gold">
+        {stepIndex + 1}. {step.title}
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-300">{step.body}</p>
+      {step.durationSec != null && remaining != null && (
+        <p
+          className={[
+            'mt-3 font-display text-2xl tabular-nums',
+            remaining === 0 ? 'text-ananael-gold' : 'text-ananael-violet',
+          ].join(' ')}
+          aria-live="polite"
+        >
+          {remaining > 0 ? fmt(remaining) : 'Hold complete'}
+        </p>
+      )}
+      {session.completedSteps.includes(stepIndex) && (
+        <p className="mt-2 text-[10px] uppercase tracking-wider text-ananael-gold">
+          Marked done
+        </p>
+      )}
+    </div>
+  );
+}
+
 /**
  * Guided ritual run — focused steps, live hour strip, journal sync when signed in.
  */
@@ -312,19 +369,7 @@ export default function RitualRunnerPanel({
       </div>
 
       {!showComplete && step && (
-        <div className="rounded-md border border-ananael-border/50 bg-ananael-panel px-4 py-4">
-          <p className="text-sm font-medium text-ananael-gold">
-            {stepIndex + 1}. {step.title}
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
-            {step.body}
-          </p>
-          {session.completedSteps.includes(stepIndex) && (
-            <p className="mt-2 text-[10px] uppercase tracking-wider text-ananael-gold">
-              Marked done
-            </p>
-          )}
-        </div>
+        <StepPanel step={step} stepIndex={stepIndex} session={session} />
       )}
 
       {!showComplete && stepCount === 0 && (

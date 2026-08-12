@@ -10,6 +10,9 @@ import {
 import { CORRESPONDENCE_KEYS, flattenDeities } from '../data/correspondences';
 import { getHexagramsForKey } from '../data/ichingCorrespondences';
 import { GOETIA_SPIRITS } from '../data/arsGoetia';
+import { searchChakras, CHAKRAS } from '../data/chakras';
+import { searchMeridians, MERIDIANS } from '../data/meridians';
+import { DANTIANS } from '../data/subtleBodyMaps';
 import { searchCorrespondences } from './correspondences';
 
 export type JournalEntryType =
@@ -42,6 +45,9 @@ export type JournalEntityKind =
   | 'goetia'
   | 'tarot'
   | 'hexagram'
+  | 'chakra'
+  | 'meridian'
+  | 'dantian'
   | 'other';
 
 export interface JournalEntity {
@@ -138,6 +144,26 @@ export function suggestJournalEntities(query: string, limit = 12): JournalEntity
     results.push(e);
   };
 
+  for (const c of searchChakras(q)) {
+    if (results.length >= limit) break;
+    add({ kind: 'chakra', id: c.id, label: c.name });
+  }
+  for (const m of searchMeridians(q)) {
+    if (results.length >= limit) break;
+    add({ kind: 'meridian', id: m.id, label: m.name });
+  }
+  const ql = q.toLowerCase();
+  for (const d of DANTIANS) {
+    if (results.length >= limit) break;
+    if (
+      d.name.toLowerCase().includes(ql) ||
+      d.id.includes(ql) ||
+      d.chinese.includes(q)
+    ) {
+      add({ kind: 'dantian', id: d.id, label: d.name });
+    }
+  }
+
   const search = searchCorrespondences(q, null);
   for (const match of search.matches) {
     if (results.length >= limit) break;
@@ -205,7 +231,6 @@ export function suggestJournalEntities(query: string, limit = 12): JournalEntity
     }
   }
 
-  const ql = q.toLowerCase();
   for (const metal of CLASSICAL_METALS) {
     if (results.length >= limit) break;
     if (metal.toLowerCase().includes(ql)) {
