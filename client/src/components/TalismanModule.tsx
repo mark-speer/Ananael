@@ -67,6 +67,7 @@ export default function TalismanModule({
   const [designs, setDesigns] = useState<SavedDesign[]>([]);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [hideGridOnExport, setHideGridOnExport] = useState(false);
 
   useEffect(() => {
     if (!initialName) return;
@@ -136,10 +137,19 @@ export default function TalismanModule({
       width: 1200,
       height: 1200,
       background: '#0c0a12',
+      prepareClone: hideGridOnExport
+        ? (clone) => {
+            clone.querySelectorAll('[data-talisman-grid]').forEach((el) => {
+              el.remove();
+            });
+          }
+        : undefined,
     }).catch(() => {
       setStatus('PNG export failed.');
     });
   };
+
+  const showGridInPreview = tab === 'squares' || sigilMode === 'planetary';
 
   const save = async () => {
     if (!isAuthenticated || !designName.trim()) return;
@@ -293,7 +303,7 @@ export default function TalismanModule({
               grid={grid}
               points={points}
               showNumbers={tab === 'squares'}
-              showGrid={tab === 'squares' || sigilMode === 'planetary'}
+              showGrid={showGridInPreview}
             />
           </div>
           <p className="text-xs leading-relaxed text-ananael-muted">
@@ -307,6 +317,17 @@ export default function TalismanModule({
 
         <aside className="space-y-4">
           <Panel title="Export">
+            {showGridInPreview && (
+              <label className="mb-1 flex w-full items-center gap-2 text-sm text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={hideGridOnExport}
+                  onChange={(e) => setHideGridOnExport(e.target.checked)}
+                  className="accent-ananael-violet"
+                />
+                Hide kamea grid on PNG export
+              </label>
+            )}
             <button type="button" onClick={exportPng} className={GOLD_BUTTON}>
               Export PNG
             </button>
@@ -429,7 +450,7 @@ const Preview = forwardRef<
       {showGrid &&
         grid.map((row, r) =>
           row.map((value, c) => (
-            <g key={value}>
+            <g key={value} data-talisman-grid>
               <rect
                 x={c * cell}
                 y={r * cell}
