@@ -194,7 +194,7 @@ Structural map of all 15 sidebar modules. Phase history and done-when criteria: 
 | Athanor | `opus` | `AlchemyModule.tsx` | `alchemy` | `alchemy`, `alchemicalGlyphPaths` | `/api/opus/vessels` → `OpusVessel` |
 | Ritual Space Planner | `ritual` | `RitualSpaceModule.tsx` | `ritualTools` | `svgExport` | `/api/ritual/layouts` → `RitualLayout` |
 | Solomonic Circles | `solomonic` | `SolomonicCircleModule.tsx` | `solomonicCircles`, `arsGoetia` | `solomonicGeometry`, `goetiaSealArt` | `/api/solomonic/circles` → `SolomonicCircle` |
-| Talisman Atelier | `talisman` | `TalismanModule.tsx` | — | `kamea`, `sigil`, `svgExport` | `/api/talisman/designs` → `TalismanDesign` |
+| Talisman Atelier | `talisman` | `TalismanModule.tsx` | — | `kamea`, `sigil`, `ofuda`, `sutras` (data), `svgExport` | `/api/talisman/designs` → `TalismanDesign` (`kamea` \| `sigil` \| `sutra`) |
 | Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
 | Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |

@@ -7,27 +7,42 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import type { AppNavigateOptions } from '../App';
+import {
+  getSutraPreset,
+  SUTRA_PRESETS,
+  SUTRA_PURPOSE_LABELS,
+} from '../data/sutras';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
 import { metalForPlanet } from '../lib/alchemy';
-import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import {
   getKamea,
   PLANET_ORDER,
   type KameaPlanet,
 } from '../lib/kamea';
 import {
+  layoutOfuda,
+  OFUDA_FONT_JP,
+  OFUDA_FONT_LATIN,
+  OFUDA_HEIGHT,
+  OFUDA_WIDTH,
+  type OfudaLayout,
+} from '../lib/ofuda';
+import {
   chaosSigilPoints,
   kameaSigilPath,
   pointsToPolyline,
 } from '../lib/sigil';
+import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
+import { transliterate } from '../lib/transliterate';
 import type { ModuleId } from './Sidebar';
 
-type Tab = 'squares' | 'sigils';
+type Tab = 'squares' | 'sigils' | 'sutras';
 type SigilMode = 'planetary' | 'chaos';
 
 interface Props {
-  onNavigate?: (module: ModuleId) => void;
+  onNavigate?: (module: ModuleId, opts?: AppNavigateOptions) => void;
   initialName?: string;
 }
 
@@ -35,12 +50,13 @@ interface SavedDesign {
   _id: string;
   date: string;
   name: string;
-  kind: 'kamea' | 'sigil';
+  kind: 'kamea' | 'sigil' | 'sutra';
   config: Record<string, unknown>;
   notes?: string;
 }
 
 const SIZE = 300;
+const DEFAULT_SUTRA_ID = SUTRA_PRESETS[0]!.id;
 const CONTROL =
   'rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet';
 const GOLD_BUTTON =
@@ -59,6 +75,14 @@ export default function TalismanModule({
   const [sigilMode, setSigilMode] = useState<SigilMode>('planetary');
   const [name, setName] = useState(initialName);
   const [overlay, setOverlay] = useState(Boolean(initialName));
+  const [sutraId, setSutraId] = useState(DEFAULT_SUTRA_ID);
+  const [sealText, setSealText] = useState(
+    () => getSutraPreset(DEFAULT_SUTRA_ID)?.sealDefault ?? '護符'
+  );
+  const [showBonji, setShowBonji] = useState(true);
+  const [bonjiIast, setBonjiIast] = useState(
+    () => getSutraPreset(DEFAULT_SUTRA_ID)?.bonjiIast ?? ''
+  );
   const [designName, setDesignName] = useState(
     initialName ? `${initialName} talisman` : 'Untitled talisman'
   );
@@ -69,21 +93,56 @@ export default function TalismanModule({
   const [status, setStatus] = useState<string | null>(null);
   const [hideGridOnExport, setHideGridOnExport] = useState(false);
 
+  const sutraPreset = useMemo(
+    () => getSutraPreset(sutraId) ?? SUTRA_PRESETS[0]!,
+    [sutraId]
+  );
+
   useEffect(() => {
     if (!initialName) return;
     setName(initialName);
     setOverlay(true);
   }, [initialName]);
 
+  const handleSutraChange = (id: string) => {
+    setSutraId(id);
+    const preset = getSutraPreset(id);
+    if (preset) {
+      setSealText(preset.sealDefault);
+      setBonjiIast(preset.bonjiIast ?? '');
+    }
+  };
+
   const grid = useMemo(() => getKamea(planet), [planet]);
   const points = useMemo(() => {
     if (tab === 'squares') {
       return overlay ? kameaSigilPath(planet, name, SIZE) : [];
     }
-    return sigilMode === 'planetary'
-      ? kameaSigilPath(planet, name, SIZE)
-      : chaosSigilPoints(name, SIZE, SIZE);
+    if (tab === 'sigils') {
+      return sigilMode === 'planetary'
+        ? kameaSigilPath(planet, name, SIZE)
+        : chaosSigilPoints(name, SIZE, SIZE);
+    }
+    return [];
   }, [tab, overlay, sigilMode, planet, name]);
+
+  const bonjiDevanagari = useMemo(() => {
+    if (!showBonji || !bonjiIast.trim()) return '';
+    return transliterate(bonjiIast.trim(), 'latin', 'sanskrit').output;
+  }, [showBonji, bonjiIast]);
+
+  const ofudaLayout = useMemo(
+    (): OfudaLayout =>
+      layoutOfuda({
+        titleJp: sutraPreset.titleJp,
+        purposeLabel: SUTRA_PURPOSE_LABELS[sutraPreset.purpose],
+        columns: sutraPreset.columns,
+        bonjiDevanagari: showBonji ? bonjiDevanagari : undefined,
+        sealText,
+        dedication: name,
+      }),
+    [sutraPreset, showBonji, bonjiDevanagari, sealText, name]
+  );
 
   const loadHistory = useCallback(async () => {
     if (!isAuthenticated) {
@@ -107,11 +166,24 @@ export default function TalismanModule({
     void loadHistory();
   }, [loadHistory]);
 
-  const kind: SavedDesign['kind'] = tab === 'squares' ? 'kamea' : 'sigil';
-  const config = () =>
-    kind === 'kamea'
-      ? { planet, overlay, overlayName: overlay ? name : '' }
-      : { planet, mode: sigilMode, name };
+  const kind: SavedDesign['kind'] =
+    tab === 'squares' ? 'kamea' : tab === 'sigils' ? 'sigil' : 'sutra';
+
+  const config = () => {
+    if (kind === 'kamea') {
+      return { planet, overlay, overlayName: overlay ? name : '' };
+    }
+    if (kind === 'sigil') {
+      return { planet, mode: sigilMode, name };
+    }
+    return {
+      sutraId,
+      sealText,
+      showBonji,
+      bonjiIast,
+      dedication: name,
+    };
+  };
 
   const exportJson = () => {
     downloadJson(
@@ -130,21 +202,27 @@ export default function TalismanModule({
   const exportPng = () => {
     const svg = svgRef.current;
     if (!svg) return;
-    void exportSvgAsPng({
-      svg,
-      filenameBase: designName || 'talisman',
-      fallbackName: 'talisman',
-      width: 1200,
-      height: 1200,
-      background: '#0c0a12',
-      prepareClone: hideGridOnExport
-        ? (clone) => {
-            clone.querySelectorAll('[data-talisman-grid]').forEach((el) => {
-              el.remove();
-            });
-          }
-        : undefined,
-    }).catch(() => {
+    const isOfuda = tab === 'sutras';
+    void (async () => {
+      if (isOfuda && document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+      await exportSvgAsPng({
+        svg,
+        filenameBase: designName || 'talisman',
+        fallbackName: 'talisman',
+        width: isOfuda ? 900 : 1200,
+        height: isOfuda ? 1950 : 1200,
+        background: '#0c0a12',
+        prepareClone: hideGridOnExport
+          ? (clone) => {
+              clone.querySelectorAll('[data-talisman-grid]').forEach((el) => {
+                el.remove();
+              });
+            }
+          : undefined,
+      });
+    })().catch(() => {
       setStatus('PNG export failed.');
     });
   };
@@ -200,10 +278,31 @@ export default function TalismanModule({
         typeof cfg.overlayName === 'string' ? cfg.overlayName : '';
       setName(loadedName);
       setOverlay(typeof cfg.overlay === 'boolean' ? cfg.overlay : Boolean(loadedName));
-    } else {
+    } else if (design.kind === 'sigil') {
       setTab('sigils');
       setName(typeof cfg.name === 'string' ? cfg.name : '');
       setSigilMode(cfg.mode === 'chaos' ? 'chaos' : 'planetary');
+    } else {
+      setTab('sutras');
+      if (typeof cfg.sutraId === 'string' && getSutraPreset(cfg.sutraId)) {
+        setSutraId(cfg.sutraId);
+      }
+      setSealText(
+        typeof cfg.sealText === 'string'
+          ? cfg.sealText
+          : getSutraPreset(
+              typeof cfg.sutraId === 'string' ? cfg.sutraId : DEFAULT_SUTRA_ID
+            )?.sealDefault ?? '護符'
+      );
+      setShowBonji(typeof cfg.showBonji === 'boolean' ? cfg.showBonji : true);
+      setBonjiIast(typeof cfg.bonjiIast === 'string' ? cfg.bonjiIast : '');
+      setName(
+        typeof cfg.dedication === 'string'
+          ? cfg.dedication
+          : typeof cfg.name === 'string'
+            ? cfg.name
+            : ''
+      );
     }
     setSavedId(design._id);
     setDesignName(design.name);
@@ -218,8 +317,9 @@ export default function TalismanModule({
           Talisman Atelier
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          Build planetary magic squares and trace personal sigils. Export your
-          work as PNG or JSON, or sign in to keep it in your profile.
+          Build planetary magic squares, trace personal sigils, and craft sutra
+          ofuda talismans. Export your work as PNG or JSON, or sign in to keep
+          it in your profile.
         </p>
       </header>
 
@@ -227,6 +327,7 @@ export default function TalismanModule({
         {([
           ['squares', 'Squares'],
           ['sigils', 'Sigils'],
+          ['sutras', 'Sutras'],
         ] as const).map(([id, label]) => (
           <button
             key={id}
@@ -247,7 +348,51 @@ export default function TalismanModule({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
-            {(tab === 'squares' || sigilMode === 'planetary') && (
+            {tab === 'sutras' && (
+              <>
+                <Field label="Sutra">
+                  <select
+                    value={sutraId}
+                    onChange={(e) => handleSutraChange(e.target.value)}
+                    className={CONTROL}
+                  >
+                    {SUTRA_PRESETS.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.title} — {SUTRA_PURPOSE_LABELS[preset.purpose]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Seal (kanji)">
+                  <input
+                    value={sealText}
+                    onChange={(e) => setSealText(e.target.value)}
+                    maxLength={6}
+                    className={`${CONTROL} w-28`}
+                  />
+                </Field>
+                <label className="flex items-center gap-2 pb-2 text-sm text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={showBonji}
+                    onChange={(e) => setShowBonji(e.target.checked)}
+                    className="accent-ananael-violet"
+                  />
+                  Sanskrit / bonji column
+                </label>
+                {showBonji && (
+                  <Field label="Bonji (IAST)">
+                    <input
+                      value={bonjiIast}
+                      onChange={(e) => setBonjiIast(e.target.value)}
+                      maxLength={120}
+                      className={`${CONTROL} min-w-[220px]`}
+                    />
+                  </Field>
+                )}
+              </>
+            )}
+            {(tab === 'squares' || sigilMode === 'planetary') && tab !== 'sutras' && (
               <Field label="Planet">
                 <select
                   value={planet}
@@ -276,7 +421,7 @@ export default function TalismanModule({
               </Field>
             )}
             <label className="min-w-[220px] flex-1 text-sm text-ananael-muted">
-              Name or intent
+              {tab === 'sutras' ? 'Dedication or intent' : 'Name or intent'}
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -297,21 +442,42 @@ export default function TalismanModule({
             )}
           </div>
 
+          {tab === 'sutras' && showBonji && onNavigate && (
+            <button
+              type="button"
+              onClick={() =>
+                onNavigate('translator', {
+                  translatorPrefill: bonjiIast,
+                  translatorTarget: 'sanskrit',
+                })
+              }
+              className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
+            >
+              Open in Script Translator
+            </button>
+          )}
+
           <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-6">
-            <Preview
-              ref={svgRef}
-              grid={grid}
-              points={points}
-              showNumbers={tab === 'squares'}
-              showGrid={showGridInPreview}
-            />
+            {tab === 'sutras' ? (
+              <OfudaPreview ref={svgRef} layout={ofudaLayout} />
+            ) : (
+              <Preview
+                ref={svgRef}
+                grid={grid}
+                points={points}
+                showNumbers={tab === 'squares'}
+                showGrid={showGridInPreview}
+              />
+            )}
           </div>
           <p className="text-xs leading-relaxed text-ananael-muted">
-            {tab === 'squares'
-              ? `${planet}'s ${grid.length}×${grid.length} square uses 1–${grid.length ** 2}; every row, column, and diagonal has the same sum. Classical metal: ${metalForPlanet(planet)}.`
-              : sigilMode === 'planetary'
-                ? `Letters repeat on the Agrippan 1–9 key and join their kamea cell centers. Classical metal: ${metalForPlanet(planet)}.`
-                : 'Vowels and repeated consonants are removed before the remaining letters trace the consonant wheel.'}
+            {tab === 'sutras'
+              ? `${sutraPreset.notes} Historical Shingon bonji used Siddham script; Devanagari here aligns with Script Translator for study.`
+              : tab === 'squares'
+                ? `${planet}'s ${grid.length}×${grid.length} square uses 1–${grid.length ** 2}; every row, column, and diagonal has the same sum. Classical metal: ${metalForPlanet(planet)}.`
+                : sigilMode === 'planetary'
+                  ? `Letters repeat on the Agrippan 1–9 key and join their kamea cell centers. Classical metal: ${metalForPlanet(planet)}.`
+                  : 'Vowels and repeated consonants are removed before the remaining letters trace the consonant wheel.'}
           </p>
         </section>
 
@@ -428,6 +594,136 @@ export default function TalismanModule({
   );
 }
 
+const OfudaPreview = forwardRef<SVGSVGElement, { layout: OfudaLayout }>(
+  function OfudaPreview({ layout }, ref) {
+    const sealChars = layout.seal ? [...layout.seal.text] : [];
+    const sealFontSize = layout.seal
+      ? Math.min(14, (layout.seal.size - 8) / Math.max(sealChars.length, 1))
+      : 12;
+
+    return (
+      <svg
+        ref={ref}
+        viewBox={`0 0 ${OFUDA_WIDTH} ${OFUDA_HEIGHT}`}
+        className="mx-auto w-full max-w-[280px]"
+        style={{ aspectRatio: `${OFUDA_WIDTH} / ${OFUDA_HEIGHT}` }}
+        role="img"
+        aria-label="Sutra ofuda preview"
+      >
+        <rect width={OFUDA_WIDTH} height={OFUDA_HEIGHT} fill="#0c0a12" />
+        <rect
+          x={4}
+          y={4}
+          width={OFUDA_WIDTH - 8}
+          height={OFUDA_HEIGHT - 8}
+          fill="none"
+          stroke="#b91c1c"
+          strokeWidth={2}
+        />
+        <rect
+          x={8}
+          y={8}
+          width={OFUDA_WIDTH - 16}
+          height={OFUDA_HEIGHT - 16}
+          fill="none"
+          stroke="#b91c1c"
+          strokeWidth={0.8}
+        />
+        <rect
+          x={12}
+          y={12}
+          width={OFUDA_WIDTH - 24}
+          height={OFUDA_HEIGHT - 24}
+          fill="none"
+          stroke="#5b4a8a"
+          strokeWidth={0.6}
+        />
+        <text
+          x={OFUDA_WIDTH / 2}
+          y={28}
+          textAnchor="middle"
+          fill="#c9a227"
+          fontFamily={OFUDA_FONT_JP}
+          fontSize={16}
+        >
+          {layout.titleJp}
+        </text>
+        <text
+          x={OFUDA_WIDTH / 2}
+          y={44}
+          textAnchor="middle"
+          fill="#8b7aa8"
+          fontFamily={OFUDA_FONT_LATIN}
+          fontSize={9}
+          letterSpacing={1}
+        >
+          {layout.purposeLabel.toUpperCase()}
+        </text>
+        {layout.glyphs.map((glyph, i) => (
+          <text
+            key={`${glyph.x}-${glyph.y}-${glyph.char}-${i}`}
+            x={glyph.x}
+            y={glyph.y}
+            textAnchor="middle"
+            dominantBaseline="hanging"
+            fill={glyph.fill}
+            fontFamily={glyph.fontFamily}
+            fontSize={glyph.fontSize}
+          >
+            {glyph.char}
+          </text>
+        ))}
+        {layout.seal && (
+          <g>
+            <rect
+              x={layout.seal.x}
+              y={layout.seal.y}
+              width={layout.seal.size}
+              height={layout.seal.size}
+              fill="none"
+              stroke="#b91c1c"
+              strokeWidth={1.5}
+            />
+            {sealChars.map((ch, i) => (
+              <text
+                key={`seal-${i}`}
+                x={layout.seal!.x + layout.seal!.size / 2}
+                y={
+                  layout.seal!.y +
+                  (layout.seal!.size - sealChars.length * sealFontSize) / 2 +
+                  i * sealFontSize +
+                  sealFontSize * 0.85
+                }
+                textAnchor="middle"
+                fill="#dc2626"
+                fontFamily={OFUDA_FONT_JP}
+                fontSize={sealFontSize}
+              >
+                {ch}
+              </text>
+            ))}
+          </g>
+        )}
+        {layout.dedication && (
+          <text
+            x={OFUDA_WIDTH / 2}
+            y={OFUDA_HEIGHT - 12}
+            textAnchor="middle"
+            fill="#6b7280"
+            fontFamily={OFUDA_FONT_LATIN}
+            fontSize={8}
+            fontStyle="italic"
+          >
+            {layout.dedication.length > 48
+              ? `${layout.dedication.slice(0, 45)}…`
+              : layout.dedication}
+          </text>
+        )}
+      </svg>
+    );
+  }
+);
+
 const Preview = forwardRef<
   SVGSVGElement,
   {
@@ -529,4 +825,3 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
     </section>
   );
 }
-

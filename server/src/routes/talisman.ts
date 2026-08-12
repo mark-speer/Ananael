@@ -20,8 +20,8 @@ function bodyError(body: DesignBody): string | null {
   if (body.name.trim().length > 100) {
     return 'name must be at most 100 characters';
   }
-  if (body.kind !== 'kamea' && body.kind !== 'sigil') {
-    return 'kind must be kamea or sigil';
+  if (body.kind !== 'kamea' && body.kind !== 'sigil' && body.kind !== 'sutra') {
+    return 'kind must be kamea, sigil, or sutra';
   }
   if (
     !body.config ||

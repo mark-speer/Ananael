@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
-export type TalismanKind = 'kamea' | 'sigil';
+export type TalismanKind = 'kamea' | 'sigil' | 'sutra';
 
 export interface ITalismanDesign extends Document {
   userId: Types.ObjectId;
@@ -23,7 +23,7 @@ const TalismanDesignSchema = new Schema<ITalismanDesign>(
     name: { type: String, required: true, trim: true, maxlength: 100 },
     kind: {
       type: String,
-      enum: ['kamea', 'sigil'],
+      enum: ['kamea', 'sigil', 'sutra'],
       required: true,
     },
     config: {

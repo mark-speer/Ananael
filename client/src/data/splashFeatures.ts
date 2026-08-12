@@ -86,7 +86,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'talisman',
     title: 'Talisman Atelier',
     description:
-      'Planetary kamea (magic squares) and sigil craft—trace names on the square or build chaos-style stroke sigils, then export PNG/JSON or save designs to your account.',
+      'Planetary kamea (magic squares), sigil craft, and sutra ofuda talismans—trace names on the square, build chaos-style stroke sigils, or compose protective Japanese ofuda with optional Sanskrit columns, then export PNG/JSON or save designs to your account.',
   },
   {
     id: 'enochian',
