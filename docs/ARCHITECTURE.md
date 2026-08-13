@@ -2,7 +2,7 @@
 
 Codebase structure, conventions, and extension patterns for contributors and maintainers.
 
-For deployment and local dev, see [README.md](../README.md). For phased feature scope and done-when criteria, see [ROADMAP.md](../ROADMAP.md).
+For deployment and local dev, see [README.md](../README.md). For phased feature scope and done-when criteria, see [ROADMAP.md](../ROADMAP.md). For a potential future share/lodge layer (not started), see [SOCIAL-ROADMAP.md](SOCIAL-ROADMAP.md).
 
 ---
 
@@ -332,6 +332,7 @@ Follow this checklist (mirrors the Subtle Body addition, ROADMAP Phases 32–34)
 |-----|----------|
 | [README.md](../README.md) | Pitch, stack, Docker Compose, Portainer, local dev |
 | [ROADMAP.md](../ROADMAP.md) | Phased feature plan, done-when criteria |
+| [SOCIAL-ROADMAP.md](SOCIAL-ROADMAP.md) | Potential future share/lodge layer (not started) |
 | [`client/src/App.tsx`](../client/src/App.tsx) | Module routing and navigation state |
 | [`client/src/components/Sidebar.tsx`](../client/src/components/Sidebar.tsx) | Module registry |
 | [`server/src/server.ts`](../server/src/server.ts) | Route mounting and SPA serve |

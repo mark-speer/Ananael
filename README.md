@@ -6,6 +6,7 @@ A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magi
 
 - [Architecture](docs/ARCHITECTURE.md) — codebase structure, module inventory, conventions, API reference
 - [Roadmap](ROADMAP.md) — phased feature plan and done-when criteria
+- [Social roadmap](docs/SOCIAL-ROADMAP.md) — potential future share/lodge layer (not started)
 
 ## Stack
 

@@ -1,6 +1,6 @@
 # Ananael Roadmap
 
-For codebase structure, module wiring, and contributor conventions, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+For codebase structure, module wiring, and contributor conventions, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). For a potential future share/lodge layer (not started), see [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md).
 
 Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 
@@ -539,3 +539,4 @@ Personalization only when a full natal exists (date + time + place + houses/whee
 - Prefer client-side calculation for deterministic tools; Express for auth-bound persistence only
 - Preserve existing gold/violet occult visual language
 - Keep Docker Compose / single-port SPA serving unchanged
+- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–39)
