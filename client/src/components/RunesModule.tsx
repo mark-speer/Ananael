@@ -8,6 +8,8 @@ import {
   type CastRune,
   type RuneCastMode,
 } from '../lib/runes';
+import GlyphFrame from './glyphs/GlyphFrame';
+import RuneSvg from './glyphs/RuneSvg';
 import type { ModuleId } from './Sidebar';
 
 const MODES: { id: RuneCastMode; label: string; description: string }[] = [
@@ -144,15 +146,11 @@ export default function RunesModule({
               <p className="text-[10px] uppercase tracking-wider text-ananael-muted">
                 {d.position}
               </p>
-              <p
-                className={[
-                  'mt-2 font-display text-5xl text-ananael-gold',
-                  d.isReversed ? 'rotate-180' : '',
-                ].join(' ')}
-                aria-hidden
-              >
-                {d.rune.glyph}
-              </p>
+              <div className="mt-2 flex justify-center">
+                <GlyphFrame>
+                  <RuneSvg runeId={d.rune.id} reversed={d.isReversed} />
+                </GlyphFrame>
+              </div>
               <h3 className="mt-2 text-lg text-zinc-100">
                 {d.rune.name}
                 {d.isReversed ? ' (reversed)' : ''}

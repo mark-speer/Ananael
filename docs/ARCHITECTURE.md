@@ -160,7 +160,7 @@ Some sidebar entries host sub-features:
 | Layer | Role | Examples |
 |-------|------|----------|
 | `data/` | Static corpus, IDs, basic lookups | `correspondences.ts`, `liturgy.ts`, `chakras.ts` |
-| `lib/` | Algorithms, search, cross-module bridges, API glue | `correspondences.ts`, `ritualRunner.ts`, `planetaryHours.ts` |
+| `lib/` | Algorithms, search, cross-module bridges, API glue, SVG glyph generators | `correspondences.ts`, `ritualRunner.ts`, `planetaryHours.ts`, `glyphs/` |
 | `components/` | UI only; receives `onNavigate` and `initial*` props | `CorrespondencesModule.tsx` |
 
 **Rule of thumb:** if it is a table of facts, it belongs in `data/`. If it computes, searches, or connects modules, it belongs in `lib/`.
@@ -184,7 +184,7 @@ Structural map of all 15 sidebar modules. Phase history and done-when criteria: 
 | Module | `ModuleId` | Component(s) | Data | Lib | API / persistence |
 |--------|------------|--------------|------|-----|-------------------|
 | Magical OS | `dashboard` | `DashboardModule.tsx` | `splashFeatures.ts` | `almanac`, `journal`, `journalSky`, `natalPersonalization` | Auth profile (`/api/auth/location`, `/api/auth/natal`) |
-| Divination | `divination` | `DivinationModule.tsx`, `TarotModule`, `IChingModule`, `GeomancyModule`, `RunesModule` | `tarotDeck`, `tarotDeckArt`, `tarotCombos`, `iching`, `ichingCorrespondences`, `geomancy`, `runes` | `iching`, `geomancy`, `runes`, `tarotSummary` | Journal saves (`/api/tarot`, `/api/iching`, `/api/geomancy`, `/api/runes`) |
+| Divination | `divination` | `DivinationModule.tsx`, `TarotModule`, `IChingModule`, `GeomancyModule`, `RunesModule`, `glyphs/*` | `tarotDeck`, `tarotDeckArt`, `tarotCombos`, `iching`, `ichingCorrespondences`, `geomancy`, `runes` | `iching`, `geomancy`, `runes`, `tarotSummary`, `glyphs/` | Journal saves (`/api/tarot`, `/api/iching`, `/api/geomancy`, `/api/runes`) |
 | Magical Journal | `journal` | `JournalModule.tsx` | — | `journal`, `journalSky` | `/api/journal/entries` |
 | Gematria | `gematria` | `GematriaModule.tsx` | `data/gematria/` | `gematria` | `/api/gematria/save` → `GematriaQuery` |
 | Celestial Timing | `planetary` | `CelestialTimingModule.tsx` | `birthstones` | `planetaryHours`, `celestialEphemeris`, `westernZodiac`, `hinduAstrology`, `chineseAstrology`, `elections`, `almanac`, `natalChart`, `natalProfile`, `planetaryLocation`, `planetaryPanel`, `moonPhase` | `/api/planetary/charts` → `PlanetaryChart` |
@@ -237,6 +237,7 @@ Default home module (`dashboard`). Composes sky conditions, quick divination, jo
 - Tailwind CSS with `ananael-*` theme tokens (dark esoteric palette).
 - Components named `*Module.tsx`, one per sidebar `ModuleId`.
 - Shared search chrome and SVG export utilities in `lib/svgExport.ts`.
+- Divination SVG glyphs in `lib/glyphs/` (I Ching / Geomancy / Runes), rendered via `components/glyphs/` — same generator pattern as `goetiaSealArt.ts`.
 
 ---
 

@@ -22,15 +22,15 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Gematria             | Active  | 2a           |
 | Celestial Timing     | Active  | 2b+ / 13 / 17 / 22 / 26–29 |
 | Script Translator    | Active  | 2c           |
-| I Ching              | Active  | 3 (in Divination) |
+| I Ching              | Active  | 3 / 40 (in Divination) |
 | Tree of Life         | Active  | 4a / 24      |
 | Ritual Space Planner | Active  | 4b           |
 | Solomonic Circles    | Active  | 5–6 / 21     |
 | Magical Journal      | Active  | 7            |
 | Magical OS Dashboard | Active  | 8 / 24 / 30  |
 | Divination portal    | Active  | 9–11         |
-| Geomancy             | Active  | 10 (tab)     |
-| Runes                | Active  | 11 (tab)     |
+| Geomancy             | Active  | 10 / 40 (tab) |
+| Runes                | Active  | 11 / 40 (tab) |
 | Talisman Atelier     | Active  | 12           |
 | Elections            | Active  | 13 (timing)  |
 | Enochian             | Active  | 14           |
@@ -53,6 +53,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Eastern liturgy expand | Active | 37          |
 | Neidan Athanor bridge | Active | 38          |
 | Mantra script tools  | Active  | 39           |
+| Divination SVG glyphs | Active | 40           |
 
 ---
 
@@ -533,10 +534,37 @@ Personalization only when a full natal exists (date + time + place + houses/whee
 
 ---
 
+## Phase 40 — Divination SVG glyphs — Shipped
+
+Replace CSS/Unicode glyphs for I Ching, Geomancy, and Runes with shared themeable SVG generators (same pattern as Goetia seal art).
+
+- `client/src/lib/glyphs/` — `geomancyGlyph`, `ichingGlyph`, `runeGlyph` (+ theme constants); inner markup + full SVG document helpers
+- `client/src/components/glyphs/` — `GlyphFrame`, `GeomancyFigureSvg`, `HexagramSvg`, `RuneSvg`
+- Modules wired: Geomancy figure cards, I Ching hexagram panels, Runes cast cards (reverse via SVG transform)
+- Unicode rune characters remain in `data/runes.ts` for Script Translator
+- Inline React SVG only (no `public/` assets)
+
+**Done when:** all three non-tarot Divination systems render via SVG; cast/save UX unchanged; glyphs readable at ~360px; docs updated.
+
+---
+
+## Later art phases (Planned)
+
+Not started. Prefer PD / CC0 plates or generated SVG; keep Ananael gold/violet language.
+
+| Phase | Focus | Status |
+|-------|--------|--------|
+| 41 | Optional Mathers 1904 Goetia seal plates (Commons) where quality beats generated line art | Planned |
+| 42 | Athanor Emblem pane: curated *Atalanta Fugiens* / Mutus Liber PD plates mapped to opus stages | Planned |
+| 43 | Subtle Body / Tree: SVG atlas diagrams (generate or CC0 Commons) | Planned |
+| 44 | Splash / Magical OS atmosphere (sparing engraving crops; brand hierarchy intact) | Planned |
+
+---
+
 ## Cross-cutting rules
 
 - Flip module `status` from `soon` → `active` in the sidebar only when that module’s **Done when** criteria are met
 - Prefer client-side calculation for deterministic tools; Express for auth-bound persistence only
 - Preserve existing gold/violet occult visual language
 - Keep Docker Compose / single-port SPA serving unchanged
-- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–39)
+- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–40)

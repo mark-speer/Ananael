@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getHexagram, type HexagramText } from '../data/iching';
 import { apiFetch } from '../lib/api';
+import { lineLabel } from '../lib/glyphs';
 import {
   cast,
   isChanging,
-  isYang,
   type CastMethod,
   type CastResult,
   type LineValue,
 } from '../lib/iching';
 import { buildJournalSky } from '../lib/journalSky';
+import GlyphFrame from './glyphs/GlyphFrame';
+import HexagramSvg from './glyphs/HexagramSvg';
 import type { ModuleId } from './Sidebar';
 import { getHexagramStructure } from '../data/ichingCorrespondences';
 import { getMeridianForTrigram } from '../data/subtleBodyMaps';
@@ -27,69 +29,6 @@ const METHODS: { id: CastMethod; label: string; description: string }[] = [
     description: 'Traditional yarrow probabilities',
   },
 ];
-
-function lineLabel(value: LineValue): string {
-  switch (value) {
-    case 6:
-      return 'Old Yin';
-    case 7:
-      return 'Young Yang';
-    case 8:
-      return 'Young Yin';
-    case 9:
-      return 'Old Yang';
-  }
-}
-
-function HexagramGlyph({ lines }: { lines: LineValue[] }) {
-  // Display top line first (traditional visual order).
-  const topFirst = [...lines].reverse();
-  return (
-    <div className="flex flex-col gap-1.5" aria-hidden>
-      {topFirst.map((line, visualIndex) => {
-        const bottomIndex = 5 - visualIndex;
-        const changing = isChanging(line);
-        const yang = isYang(line);
-        return (
-          <div
-            key={bottomIndex}
-            className="flex h-3 items-center justify-center gap-1.5"
-            title={`Line ${bottomIndex + 1}: ${lineLabel(line)}`}
-          >
-            {yang ? (
-              <div
-                className={[
-                  'h-2.5 w-28 rounded-sm',
-                  changing ? 'bg-ananael-gold' : 'bg-zinc-200',
-                ].join(' ')}
-              />
-            ) : (
-              <>
-                <div
-                  className={[
-                    'h-2.5 w-12 rounded-sm',
-                    changing ? 'bg-ananael-gold' : 'bg-zinc-200',
-                  ].join(' ')}
-                />
-                <div
-                  className={[
-                    'h-2.5 w-12 rounded-sm',
-                    changing ? 'bg-ananael-gold' : 'bg-zinc-200',
-                  ].join(' ')}
-                />
-              </>
-            )}
-            {changing && (
-              <span className="ml-1 text-[10px] uppercase tracking-wider text-ananael-gold">
-                ×
-              </span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 function HexagramPanel({
   title,
@@ -123,7 +62,9 @@ function HexagramPanel({
       <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-8">
         {lines && (
           <div className="shrink-0">
-            <HexagramGlyph lines={lines} />
+            <GlyphFrame>
+              <HexagramSvg lines={lines} />
+            </GlyphFrame>
           </div>
         )}
         <div className="min-w-0 flex-1 space-y-3">

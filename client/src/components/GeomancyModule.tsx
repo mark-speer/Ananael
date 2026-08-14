@@ -14,6 +14,8 @@ import {
   type GeomanticChart,
 } from '../lib/geomancy';
 import { buildJournalSky } from '../lib/journalSky';
+import GeomancyFigureSvg from './glyphs/GeomancyFigureSvg';
+import GlyphFrame from './glyphs/GlyphFrame';
 import type { ModuleId } from './Sidebar';
 
 interface GeomancyModuleProps {
@@ -23,19 +25,6 @@ interface GeomancyModuleProps {
 
 const ROW_NAMES = ['Fire', 'Air', 'Water', 'Earth'];
 const GROUP_LABELS = ['First', 'Second', 'Third', 'Fourth'];
-
-function FigureGlyph({ id }: { id: FigureId }) {
-  return (
-    <div className="flex flex-col items-center gap-1" aria-hidden>
-      {GEOMANTIC_FIGURES_BY_ID[id].rows.map((single, row) => (
-        <div key={row} className="flex h-3 items-center justify-center gap-2">
-          <i className="h-2 w-2 rounded-full bg-ananael-gold" />
-          {!single && <i className="h-2 w-2 rounded-full bg-ananael-gold" />}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function FigureCard({
   id,
@@ -58,7 +47,11 @@ function FigureCard({
       <p className="text-[10px] uppercase tracking-wider text-ananael-muted">
         {label}
       </p>
-      <div className="my-3"><FigureGlyph id={id} /></div>
+      <div className="my-3 flex justify-center">
+        <GlyphFrame featured={featured}>
+          <GeomancyFigureSvg figure={id} featured={featured} />
+        </GlyphFrame>
+      </div>
       <h3 className="font-display text-base text-ananael-gold">{figure.latin}</h3>
       <p className="text-xs text-zinc-400">{figure.english}</p>
       <p className="mt-2 text-[11px] leading-relaxed text-ananael-muted">
