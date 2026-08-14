@@ -13,9 +13,10 @@ import {
 import { dayPillar, formatPillarShort } from './chineseAstrology';
 import { operationForDay, type DayOperation, type OpusStageId } from './alchemy';
 import { buildSubtleBodyCounsel, buildNatalSubtleBodyAffinity } from './subtleBodyCounsel';
+import { buildShamanismCounsel } from './shamanism';
 import { buildJournalSky, type JournalSky } from './journalSky';
 import { getMoonPhase, type MoonPhaseName } from './moonPhase';
-import { DAY_RULERS, type PlanetId } from './planetaryHours';
+import { DAY_RULERS, buildPlanetaryHours, type PlanetId } from './planetaryHours';
 
 export interface DayCounsel {
   sky: JournalSky;
@@ -33,6 +34,8 @@ export interface DayCounsel {
   subtleBodyTheme?: string;
   /** Natal subtle-body resonance when full natal chart is saved. */
   natalSubtleBodyAffinity?: string;
+  /** Three-worlds / journey hint from night hours and the Moon. */
+  shamanismTheme?: string;
 }
 
 /** Full-natal fields used to personalize Almanac / Magical OS. */
@@ -270,6 +273,17 @@ export function buildDayCounsel(
     moonName,
     sky.nakshatra
   );
+  const hoursChart =
+    lat != null && lon != null
+      ? buildPlanetaryHours(when, lat, lon, when)
+      : null;
+  const shamanismTheme = buildShamanismCounsel(
+    when,
+    moonName,
+    (hoursChart?.currentHour?.planet as PlanetId | undefined) ??
+      (sky.hourRuler as PlanetId | undefined),
+    hoursChart?.currentHour?.segment
+  );
   const natalSubtleBodyAffinity = buildNatalSubtleBodyAffinity(natal);
   let natalAffinity: string | undefined;
   if (natal?.isFullNatal) {
@@ -307,6 +321,7 @@ export function buildDayCounsel(
     natalAffinity,
     subtleBodyTheme: subtleBodyTheme || undefined,
     natalSubtleBodyAffinity,
+    shamanismTheme: shamanismTheme || undefined,
   };
 }
 

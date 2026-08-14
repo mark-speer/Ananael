@@ -506,7 +506,8 @@ export default function CelestialTimingModule({
       if (
         el.practice === 'any' ||
         el.practice === 'meridian-peak' ||
-        el.practice === 'yin-moon'
+        el.practice === 'yin-moon' ||
+        el.practice === 'journey-night'
       ) {
         setElectionPractice(el.practice);
       }
@@ -1155,6 +1156,7 @@ export default function CelestialTimingModule({
                 <option value="any">Any</option>
                 <option value="meridian-peak">Meridian peak</option>
                 <option value="yin-moon">Yin moon (Ren/Du)</option>
+                <option value="journey-night">Journey night</option>
               </select>
             </label>
           </div>
@@ -1419,6 +1421,29 @@ export default function CelestialTimingModule({
                       <p className="mt-1 text-sm leading-relaxed text-zinc-200">
                         {dayCounsel.natalAffinity}
                       </p>
+                    </div>
+                  )}
+                  {dayCounsel.shamanismTheme && (
+                    <div className="rounded-lg border border-ananael-violet/40 bg-ananael-violet/10 px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-wider text-ananael-violet">
+                        Journey
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-zinc-200">
+                        {dayCounsel.shamanismTheme}
+                      </p>
+                      {onNavigate && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onNavigate('shamanism', {
+                              shamanismPane: 'journey',
+                            })
+                          }
+                          className="mt-2 text-xs text-ananael-gold hover:underline"
+                        >
+                          Open Journey pane
+                        </button>
+                      )}
                     </div>
                   )}
                   {(markersByDay.get(selectedAlmanacDay.day) ?? []).length >

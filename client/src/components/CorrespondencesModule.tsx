@@ -57,6 +57,9 @@ export default function CorrespondencesModule({
   const [selectedMeridianId, setSelectedMeridianId] = useState<string | null>(
     null
   );
+  const [selectedShamanicId, setSelectedShamanicId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (initialQuery) {
@@ -64,6 +67,7 @@ export default function CorrespondencesModule({
       setSelectedKey(null);
       setSelectedChakraId(null);
       setSelectedMeridianId(null);
+      setSelectedShamanicId(null);
     }
   }, [initialQuery]);
 
@@ -82,6 +86,7 @@ export default function CorrespondencesModule({
     setSelectedKey(null);
     setSelectedChakraId(null);
     setSelectedMeridianId(null);
+    setSelectedShamanicId(null);
   };
 
   const showSubtlePrimary =
@@ -98,6 +103,18 @@ export default function CorrespondencesModule({
     result.meridians.find((m) => m.id === selectedMeridianId) ??
     result.meridians[0] ??
     null;
+  const selectedWorld =
+    result.worlds.find((w) => w.id === selectedShamanicId) ??
+    (facet === 'world' ? result.worlds[0] : null) ??
+    null;
+  const selectedAlly =
+    result.allies.find((a) => a.id === selectedShamanicId) ??
+    (facet === 'ally' ? result.allies[0] : null) ??
+    null;
+  const selectedDirection =
+    result.directions.find((d) => d.id === selectedShamanicId) ??
+    (facet === 'direction' ? result.directions[0] : null) ??
+    null;
 
   return (
     <div className="space-y-6">
@@ -108,7 +125,7 @@ export default function CorrespondencesModule({
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Digital Liber 777 — Golden Dawn key scale 1–32. Search by sephirah,
           planet, zodiac, Hebrew letter, angel, deity, hexagram, element, color,
-          incense, stone, plant, chakra, or meridian. Pantheon parallels and I
+          incense, stone, plant, chakra, meridian, world, ally, or direction. Pantheon parallels and I
           Ching hexagrams (via trigrams) relate on the same key.
         </p>
       </header>
@@ -210,6 +227,58 @@ export default function CorrespondencesModule({
                   setSelectedMeridianId(m.id);
                   setSelectedChakraId(null);
                   setSelectedKey(null);
+                  setSelectedShamanicId(null);
+                },
+              }))}
+            />
+          )}
+          {(facet === 'world' || (!facet && result.worlds.length > 0 && query.trim())) && (
+            <SubtleBodyList
+              label={`${result.worlds.length} world${result.worlds.length === 1 ? '' : 's'}`}
+              items={result.worlds.map((w) => ({
+                id: w.id,
+                title: w.name,
+                subtitle: w.keywords.slice(0, 3).join(' · '),
+                active: selectedWorld?.id === w.id,
+                onSelect: () => {
+                  setSelectedShamanicId(w.id);
+                  setSelectedChakraId(null);
+                  setSelectedMeridianId(null);
+                  setSelectedKey(null);
+                },
+              }))}
+            />
+          )}
+          {(facet === 'ally' || (!facet && result.allies.length > 0 && query.trim())) && (
+            <SubtleBodyList
+              label={`${result.allies.length} all${result.allies.length === 1 ? 'y' : 'ies'}`}
+              items={result.allies.map((a) => ({
+                id: a.id,
+                title: a.name,
+                subtitle: `${a.kind} · ${a.tradition}`,
+                active: selectedAlly?.id === a.id,
+                onSelect: () => {
+                  setSelectedShamanicId(a.id);
+                  setSelectedChakraId(null);
+                  setSelectedMeridianId(null);
+                  setSelectedKey(null);
+                },
+              }))}
+            />
+          )}
+          {(facet === 'direction' || (!facet && result.directions.length > 0 && query.trim())) && (
+            <SubtleBodyList
+              label={`${result.directions.length} direction${result.directions.length === 1 ? '' : 's'}`}
+              items={result.directions.map((d) => ({
+                id: d.id,
+                title: d.name,
+                subtitle: d.element ?? d.keywords[0] ?? '',
+                active: selectedDirection?.id === d.id,
+                onSelect: () => {
+                  setSelectedShamanicId(d.id);
+                  setSelectedChakraId(null);
+                  setSelectedMeridianId(null);
+                  setSelectedKey(null);
                 },
               }))}
             />
@@ -274,12 +343,67 @@ export default function CorrespondencesModule({
           ) : selectedMeridian &&
             (facet === 'meridian' || selectedMeridianId || showSubtlePrimary) ? (
             <MeridianDetailPanel meridian={selectedMeridian} onNavigate={onNavigate} />
+          ) : selectedWorld && (facet === 'world' || selectedShamanicId === selectedWorld.id) ? (
+            <SimpleEntityPanel
+              eyebrow="World"
+              title={selectedWorld.name}
+              lines={[
+                selectedWorld.keywords.join(' · '),
+                selectedWorld.typicalWork,
+                selectedWorld.sephirahName
+                  ? `Comparative sephirah: ${selectedWorld.sephirahName} (Key ${selectedWorld.sephirahKey}) — study map only`
+                  : '',
+              ]}
+              onOpen={() =>
+              onNavigate('shamanism', {
+                  shamanismPane: 'worlds',
+                  shamanismFocus: selectedWorld.id,
+                })
+              }
+              openLabel="Open Shamanism"
+            />
+          ) : selectedAlly && (facet === 'ally' || selectedShamanicId === selectedAlly.id) ? (
+            <SimpleEntityPanel
+              eyebrow={selectedAlly.kind}
+              title={selectedAlly.name}
+              lines={[
+                selectedAlly.tradition,
+                selectedAlly.keywords.join(' · '),
+                selectedAlly.notes ?? '',
+              ]}
+              onOpen={() =>
+              onNavigate('shamanism', {
+                  shamanismPane: 'allies',
+                  shamanismFocus: selectedAlly.id,
+                })
+              }
+              openLabel="Open Shamanism"
+            />
+          ) : selectedDirection &&
+            (facet === 'direction' || selectedShamanicId === selectedDirection.id) ? (
+            <SimpleEntityPanel
+              eyebrow="Direction"
+              title={selectedDirection.name}
+              lines={[
+                selectedDirection.element ?? '',
+                selectedDirection.keywords.join(' · '),
+                selectedDirection.notes ?? '',
+              ]}
+              onOpen={() =>
+              onNavigate('shamanism', {
+                  shamanismPane: 'directions',
+                  shamanismFocus: selectedDirection.id,
+                })
+              }
+              openLabel="Open Shamanism"
+            />
           ) : selected ? (
             <KeyDetailPanel keyData={selected} onNavigate={onNavigate} />
           ) : (
             <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
               <p className="text-sm text-ananael-muted">
-                Select a key, chakra, or meridian to view full correspondences.
+                Select a key, chakra, meridian, world, ally, or direction to view
+                correspondences.
               </p>
             </div>
           )}
@@ -325,6 +449,43 @@ function SubtleBodyList({
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function SimpleEntityPanel({
+  eyebrow,
+  title,
+  lines,
+  onOpen,
+  openLabel,
+}: {
+  eyebrow: string;
+  title: string;
+  lines: string[];
+  onOpen: () => void;
+  openLabel: string;
+}) {
+  return (
+    <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
+      <div>
+        <p className="text-xs uppercase tracking-wider text-ananael-muted">
+          {eyebrow}
+        </p>
+        <h2 className="mt-1 font-display text-xl text-ananael-gold">{title}</h2>
+      </div>
+      {lines.filter(Boolean).map((line) => (
+        <p key={line.slice(0, 40)} className="text-sm text-zinc-300">
+          {line}
+        </p>
+      ))}
+      <button
+        type="button"
+        onClick={onOpen}
+        className="rounded-md border border-ananael-violet/50 px-3 py-1.5 text-xs text-zinc-200 hover:bg-ananael-violet/10"
+      >
+        {openLabel}
+      </button>
     </div>
   );
 }

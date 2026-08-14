@@ -22,7 +22,9 @@ import Sidebar, {
 import SplashPage from './components/SplashPage';
 import SolomonicCircleModule from './components/SolomonicCircleModule';
 import SubtleBodyModule from './components/SubtleBodyModule';
+import ShamanismModule from './components/ShamanismModule';
 import type { SubtleBodyPane } from './lib/subtleBody';
+import type { ShamanismPane } from './lib/shamanism';
 import TalismanModule from './components/TalismanModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
@@ -99,6 +101,11 @@ export default function App() {
   >();
   const [subtleBodyPane, setSubtleBodyPane] = useState<SubtleBodyPane>('chakras');
   const [subtleBodyFocus, setSubtleBodyFocus] = useState<string | undefined>();
+  const [shamanismPane, setShamanismPane] = useState<ShamanismPane>('worlds');
+  const [shamanismFocus, setShamanismFocus] = useState<string | undefined>();
+  const [shamanismRunEntryId, setShamanismRunEntryId] = useState<
+    string | undefined
+  >();
   const [translatorPrefill, setTranslatorPrefill] = useState<string | undefined>();
   const [translatorSource, setTranslatorSource] = useState<ScriptId | undefined>();
   const [translatorTarget, setTranslatorTarget] = useState<ScriptId | undefined>();
@@ -173,6 +180,14 @@ export default function App() {
       setSubtleBodyFocus(opts?.subtleBodyFocus);
     } else {
       setSubtleBodyFocus(undefined);
+    }
+    if (target === 'shamanism') {
+      setShamanismPane(opts?.shamanismPane ?? 'worlds');
+      setShamanismFocus(opts?.shamanismFocus);
+      setShamanismRunEntryId(opts?.runEntryId);
+    } else {
+      setShamanismFocus(undefined);
+      setShamanismRunEntryId(undefined);
     }
     if (target === 'translator') {
       setTranslatorPrefill(opts?.translatorPrefill);
@@ -281,6 +296,15 @@ export default function App() {
             onNavigate={navigateToModule}
             initialPane={subtleBodyPane}
             initialFocus={subtleBodyFocus}
+          />
+        );
+      case 'shamanism':
+        return (
+          <ShamanismModule
+            onNavigate={navigateToModule}
+            initialPane={shamanismPane}
+            initialFocus={shamanismFocus}
+            initialRunEntryId={shamanismRunEntryId}
           />
         );
       default:

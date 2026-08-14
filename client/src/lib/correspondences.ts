@@ -32,6 +32,20 @@ import {
 } from '../data/subtleBodyMaps';
 import { LITURGY_RITES } from '../data/liturgy';
 import { getCardById } from '../data/tarotDeck';
+import {
+  searchAllies,
+  searchDirections,
+  searchWorlds,
+  type ShamanicAlly,
+  type ShamanicDirection,
+  type ShamanicWorld,
+} from '../data/shamanism';
+import {
+  alliesForPlanet,
+  directionsForElement,
+  shamanismFieldStringsForKey,
+  worldsForFacet,
+} from './shamanism';
 
 export interface EntityCluster {
   /** Display label for the resolved entity (e.g. "Venus"). */
@@ -54,6 +68,9 @@ export interface CorrespondenceSearchResult {
   chakras: Chakra[];
   meridians: Meridian[];
   dantians: Dantian[];
+  worlds: ShamanicWorld[];
+  allies: ShamanicAlly[];
+  directions: ShamanicDirection[];
 }
 
 function normalize(s: string): string {
@@ -96,6 +113,7 @@ function fieldStrings(key: CorrespondenceKey): string[] {
     ),
     ...ichingFieldStringsForKey(key.key),
     ...subtleBodyFieldStringsForKey(key.key),
+    ...shamanismFieldStringsForKey(key.key),
   ];
 
   if (key.tarotId) {
@@ -207,6 +225,21 @@ function facetFieldValues(
     }
     case 'dantian':
       return ['dantian', 'lower dantian', 'middle dantian', 'upper dantian', '丹田'];
+    case 'world':
+      return worldsForFacet(key.key).flatMap((w) => [w.name, w.id, ...w.keywords]);
+    case 'ally':
+      return alliesForPlanet(key.planet).flatMap((a) => [
+        a.name,
+        a.id,
+        a.kind,
+        ...a.keywords,
+      ]);
+    case 'direction':
+      return directionsForElement(key.element).flatMap((d) => [
+        d.name,
+        d.id,
+        ...d.keywords,
+      ]);
     default:
       return [];
   }
@@ -451,6 +484,60 @@ function buildDantianCluster(dantian: Dantian): EntityCluster {
   };
 }
 
+function buildWorldCluster(world: ShamanicWorld): EntityCluster {
+  const highlights: { label: string; value: string }[] = [
+    { label: 'Keywords', value: world.keywords.join(' · ') },
+    { label: 'Typical work', value: world.typicalWork },
+  ];
+  if (world.sephirahName) {
+    highlights.push({
+      label: 'Comparative sephirah',
+      value: `${world.sephirahName} (Key ${world.sephirahKey})`,
+    });
+  }
+  return {
+    label: world.name,
+    facet: 'world',
+    highlights,
+    primaryKey: world.sephirahKey,
+    subtleBodyId: world.id,
+  };
+}
+
+function buildAllyCluster(ally: ShamanicAlly): EntityCluster {
+  const highlights: { label: string; value: string }[] = [
+    { label: 'Kind', value: ally.kind },
+    { label: 'Tradition', value: ally.tradition },
+    { label: 'Keywords', value: ally.keywords.join(' · ') },
+  ];
+  if (ally.planet) highlights.push({ label: 'Planet', value: ally.planet });
+  if (ally.element) highlights.push({ label: 'Element', value: ally.element });
+  return {
+    label: ally.name,
+    facet: 'ally',
+    highlights,
+    subtleBodyId: ally.id,
+  };
+}
+
+function buildDirectionCluster(direction: ShamanicDirection): EntityCluster {
+  const highlights: { label: string; value: string }[] = [
+    { label: 'Keywords', value: direction.keywords.join(' · ') },
+  ];
+  if (direction.element) {
+    highlights.push({ label: 'Element', value: direction.element });
+  }
+  if (direction.notes) {
+    highlights.push({ label: 'Notes', value: direction.notes });
+  }
+  return {
+    label: direction.name,
+    facet: 'direction',
+    highlights,
+    subtleBodyId: direction.id,
+  };
+}
+
 function buildMeridianCluster(meridian: Meridian): EntityCluster {
   const highlights: { label: string; value: string }[] = [
     { label: 'Chinese', value: meridian.chinese },
@@ -540,6 +627,30 @@ function resolveCluster(
   if (dantianPartial.length === 1) {
     return buildDantianCluster(dantianPartial[0]!);
   }
+
+  const worldHits = searchWorlds(rawQuery);
+  for (const w of worldHits) {
+    if (normalize(w.name) === q || normalize(w.id) === q || q.includes(w.id)) {
+      return buildWorldCluster(w);
+    }
+  }
+  if (worldHits.length === 1) return buildWorldCluster(worldHits[0]!);
+
+  const allyHits = searchAllies(rawQuery);
+  for (const a of allyHits) {
+    if (normalize(a.name) === q || normalize(a.id) === q) {
+      return buildAllyCluster(a);
+    }
+  }
+  if (allyHits.length === 1) return buildAllyCluster(allyHits[0]!);
+
+  const dirHits = searchDirections(rawQuery);
+  for (const d of dirHits) {
+    if (normalize(d.name) === q || normalize(d.id) === q) {
+      return buildDirectionCluster(d);
+    }
+  }
+  if (dirHits.length === 1) return buildDirectionCluster(dirHits[0]!);
 
   // Exact King Wen number or hexagram name
   const asNum = Number.parseInt(q, 10);
@@ -694,33 +805,36 @@ export function searchCorrespondences(
   facet: CorrespondenceFacet | null = null,
 ): CorrespondenceSearchResult {
   const q = normalize(query);
+  const shamanicFacet =
+    facet === 'world' || facet === 'ally' || facet === 'direction';
 
   const chakras =
-    facet === 'meridian' || facet === 'dantian'
+    shamanicFacet || facet === 'meridian' || facet === 'dantian'
       ? []
       : facet === 'chakra' || !facet
         ? searchChakras(query)
         : [];
 
   const meridians =
-    facet === 'chakra' || facet === 'dantian'
+    shamanicFacet || facet === 'chakra' || facet === 'dantian'
       ? []
       : facet === 'meridian' || !facet
         ? searchMeridians(query)
         : [];
 
   const dantians =
-    facet === 'chakra' || facet === 'meridian'
+    shamanicFacet || facet === 'chakra' || facet === 'meridian'
       ? []
       : facet === 'dantian' || !facet
         ? searchDantians(query)
         : [];
 
-  const matches =
-    facet === 'chakra' || facet === 'meridian' || facet === 'dantian'
-      ? CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q))
-      : CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q));
+  const worlds = facet === 'world' || !facet ? searchWorlds(query) : [];
+  const allies = facet === 'ally' || !facet ? searchAllies(query) : [];
+  const directions =
+    facet === 'direction' || !facet ? searchDirections(query) : [];
 
+  const matches = CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q));
   const cluster = q ? resolveCluster(query, matches) : undefined;
 
   return {
@@ -731,6 +845,9 @@ export function searchCorrespondences(
     chakras,
     meridians,
     dantians,
+    worlds,
+    allies,
+    directions,
   };
 }
 

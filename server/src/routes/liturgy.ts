@@ -183,6 +183,24 @@ const rites = [
     tradition: 'General',
     tags: ['energy', 'qabalah', 'chakra', 'bridge', 'daily'],
   },
+  {
+    id: 'shamanic-quarters',
+    title: 'Opening the quarters (study outline)',
+    tradition: 'Shamanic',
+    tags: ['quarters', 'directions', 'opening', 'daily'],
+  },
+  {
+    id: 'shamanic-journey-protocol',
+    title: 'Three-worlds journey protocol',
+    tradition: 'Shamanic',
+    tags: ['journey', 'drum', 'axis', 'study'],
+  },
+  {
+    id: 'shamanic-grounding',
+    title: 'Grounding and return',
+    tradition: 'Shamanic',
+    tags: ['grounding', 'closing', 'daily'],
+  },
 ];
 
 router.get('/rites', (_req, res) => {

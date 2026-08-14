@@ -27,6 +27,7 @@ import opusRoutes from './routes/opus';
 import practiceRoutes from './routes/practice';
 import enochianRoutes from './routes/enochian';
 import liturgyRoutes from './routes/liturgy';
+import shamanismRoutes from './routes/shamanism';
 
 dotenv.config();
 
@@ -110,6 +111,7 @@ app.use('/api/opus', opusRoutes);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/enochian', enochianRoutes);
 app.use('/api/liturgy', liturgyRoutes);
+app.use('/api/shamanism', shamanismRoutes);
 
 if (hasClient) {
   app.use(express.static(publicDir));

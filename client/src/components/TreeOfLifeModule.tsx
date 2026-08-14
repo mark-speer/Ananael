@@ -18,6 +18,7 @@ import {
   type TreePath,
 } from '../data/treeOfLife';
 import { getChakraForSephirah } from '../data/subtleBodyMaps';
+import { getWorldForSephirah } from '../data/shamanism';
 import { apiFetch } from '../lib/api';
 import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import type { ModuleId } from './Sidebar';
@@ -40,6 +41,14 @@ export interface TreeNavigateOptions {
   liturgyMode?: LiturgyMode;
   subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan' | 'practice';
   subtleBodyFocus?: string;
+  shamanismPane?:
+    | 'worlds'
+    | 'directions'
+    | 'allies'
+    | 'journey'
+    | 'cast'
+    | 'practice';
+  shamanismFocus?: string;
   translatorPrefill?: string;
   translatorSource?: ScriptId;
   translatorTarget?: ScriptId;
@@ -367,16 +376,33 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
                   const comparativeChakra = getChakraForSephirah(
                     selectedSephira.id
                   );
-                  if (!comparativeChakra) return null;
+                  const comparativeWorld = getWorldForSephirah(
+                    selectedSephira.id
+                  );
+                  if (!comparativeChakra && !comparativeWorld) return null;
                   return (
-                    <p className="text-sm text-zinc-300">
-                      <span className="text-xs uppercase tracking-wider text-ananael-muted">
-                        Comparative chakra
-                      </span>
-                      <br />
-                      {comparativeChakra.name} ({comparativeChakra.sanskrit}) —
-                      study map only, not identity.
-                    </p>
+                    <div className="space-y-3 text-sm text-zinc-300">
+                      {comparativeChakra && (
+                        <p>
+                          <span className="text-xs uppercase tracking-wider text-ananael-muted">
+                            Comparative chakra
+                          </span>
+                          <br />
+                          {comparativeChakra.name} ({comparativeChakra.sanskrit}) —
+                          study map only, not identity.
+                        </p>
+                      )}
+                      {comparativeWorld && (
+                        <p>
+                          <span className="text-xs uppercase tracking-wider text-ananael-muted">
+                            Comparative world
+                          </span>
+                          <br />
+                          {comparativeWorld.name} — axis mundi study map only, not
+                          identity.
+                        </p>
+                      )}
+                    </div>
                   );
                 })()
               }

@@ -17,7 +17,8 @@ export type ModuleId =
   | 'enochian'
   | 'liturgy'
   | 'opus'
-  | 'subtleBody';
+  | 'subtleBody'
+  | 'shamanism';
 
 export interface ModuleDef {
   id: ModuleId;
@@ -42,6 +43,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'enochian', label: 'Enochian' },
   { id: 'liturgy', label: 'Ritual Library' },
   { id: 'subtleBody', label: 'Subtle Body' },
+  { id: 'shamanism', label: 'Shamanism' },
 ];
 
 /** Grouped modules for the mobile switcher (shorter labels). */
@@ -61,6 +63,7 @@ export const MODULE_SELECT_GROUPS: {
       { id: 'planetary', label: 'Timing' },
       { id: 'liturgy', label: 'Library' },
       { id: 'subtleBody', label: 'Body' },
+      { id: 'shamanism', label: 'Shamanism' },
     ],
   },
   {

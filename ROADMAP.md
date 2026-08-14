@@ -54,6 +54,10 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Neidan Athanor bridge | Active | 38          |
 | Mantra script tools  | Active  | 39           |
 | Divination SVG glyphs | Active | 40           |
+| Shamanism corpus     | Active  | 45           |
+| Shamanism bridge     | Active  | 46           |
+| Shamanism module     | Active  | 47           |
+| Shamanism OS polish  | Active  | 48           |
 
 ---
 
@@ -561,10 +565,62 @@ Not started. Prefer PD / CC0 plates or generated SVG; keep Ananael gold/violet l
 
 ---
 
+## Phase 45 — Shamanism Data Corpus — Shipped
+
+Static study corpora for a comparative three-worlds chamber. Not a generic indigenous kit; sources labeled on each record. No closed ceremonies or plant-medicine how-to.
+
+- `client/src/data/shamanism/worlds.ts` — Lower / Middle / Upper with keywords, typical work, sources, comparative sephirah / chakra / dantian ids
+- `client/src/data/shamanism/directions.ts` — four-quarter, six-direction, and seven-direction (center) presets
+- `client/src/data/shamanism/allies.ts` — small comparative catalog (`animal` | `plant` | `spirit` | `ancestor`)
+- `client/src/data/shamanism/lots.ts` — generic cleromancy lots (not a named living bone tradition)
+- Journal entity kinds: `world`, `ally`, `direction`
+
+**Done when:** Data exports compile; journal schema accepts the new entity kinds.
+
+---
+
+## Phase 46 — Shamanism Correspondence Bridge — Shipped
+
+- Facets `world`, `ally`, `direction` in Correspondences encyclopedia
+- Comparative axis mundi ↔ Middle Pillar / dantian strip on Tree of Life and Subtle Body Maps
+- `client/src/lib/shamanism.ts` — search helpers
+
+**Done when:** Correspondences search/filter finds shamanic keys; Tree/Subtle Body show the comparative strip.
+
+---
+
+## Phase 47 — Shamanism Module — Shipped
+
+Sidebar module `shamanism` labeled **Shamanism**. Full chamber (Soon badge off).
+
+- `ShamanismModule.tsx` panes: Worlds, Directions, Allies, Journey, Cast, Practice
+- Worlds: clickable SVG axis mundi; Journey deep-link with world preselected
+- Directions: tradition selector loads a labeled wheel
+- Allies: searchable catalog; personal allies on the practice vessel
+- Journey: intention + world + optional ally; step checklist; client-side drum; Complete → journal `working` with `payload.system: 'shamanic-journey'`; guests in-memory only
+- Cast: lots (single / three-position) + pendulum log; `POST /api/shamanism/save` → journal `divination`
+- Practice: reuse `PracticeVessel` with `config.system: 'shamanism'`; Subtle Body filters these out
+- Glyphs: `worldTreeGlyph`, `directionWheelGlyph`, `lotGlyph` (Phase 40 pattern)
+
+**Done when:** all six panes work; guest journey + cast; signed-in journey persist/resume and cast/vessel save; module Active.
+
+---
+
+## Phase 48 — Shamanism Cross-Module Polish — Shipped
+
+- Magical OS tile: suggested world from sky, Resume journey, deep-links `shamanismPane`
+- Almanac counsel line + Elections `practice` filter `journey-night`
+- Ritual Library tradition `Shamanic`: quarters opening, journey protocol, grounding (generic study outlines)
+- Splash + ARCHITECTURE inventory
+
+**Done when:** Timing → Shamanism → Journal path is live on Magical OS; rites browsable; docs match shipped 45–48.
+
+---
+
 ## Cross-cutting rules
 
 - Flip module `status` from `soon` → `active` in the sidebar only when that module’s **Done when** criteria are met
 - Prefer client-side calculation for deterministic tools; Express for auth-bound persistence only
 - Preserve existing gold/violet occult visual language
 - Keep Docker Compose / single-port SPA serving unchanged
-- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–40)
+- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–48)

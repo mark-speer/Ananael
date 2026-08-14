@@ -22,7 +22,7 @@ export interface ElectionFilters {
   /** Prefer waxing / waning / any. */
   moon?: 'any' | 'waxing' | 'waning' | 'new' | 'full';
   /** Subtle-body practice preference. */
-  practice?: 'any' | 'meridian-peak' | 'yin-moon';
+  practice?: 'any' | 'meridian-peak' | 'yin-moon' | 'journey-night';
 }
 
 export interface ElectionWindow {
@@ -136,6 +136,17 @@ export function findElectionWindows(
           reasons.push(`${moon.name} — yin-phase Ren/Du stillness`);
         } else {
           score -= 1;
+        }
+      } else if (filters.practice === 'journey-night') {
+        if (hour.segment === 'night') {
+          score += 2;
+          reasons.push('Nocturnal hour — journey window');
+        } else {
+          score -= 1;
+        }
+        if (hour.planet === 'Moon') {
+          score += 1;
+          reasons.push('Hour of the Moon');
         }
       }
 

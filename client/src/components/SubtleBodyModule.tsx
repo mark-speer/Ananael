@@ -5,6 +5,7 @@ import type { Chakra } from '../data/chakras';
 import type { Meridian } from '../data/meridians';
 import { LITURGY_RITES } from '../data/liturgy';
 import { getComparativeMap } from '../data/subtleBodyMaps';
+import { WORLDS } from '../data/shamanism';
 import {
   CHAKRA_SEPHIRAH_MAP,
   NEIDAN_STAGES,
@@ -80,7 +81,11 @@ export default function SubtleBodyModule({
       const data = (await res.json()) as {
         vessels?: typeof vessels;
       };
-      if (res.ok) setVessels(data.vessels ?? []);
+      if (res.ok) {
+        setVessels(
+          (data.vessels ?? []).filter((v) => v.config?.system !== 'shamanism')
+        );
+      }
     } catch {
       /* ignore */
     }
@@ -262,6 +267,46 @@ export default function SubtleBodyModule({
             Open Correspondences
           </button>
         </section>
+        <section className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
+          <h2 className="font-display text-lg text-ananael-gold">
+            Axis mundi ↔ Tree / dantian (comparative)
+          </h2>
+          <p className="text-xs text-ananael-muted">
+            Three-worlds study map only — not a claim that dantians or sephiroth
+            are shamanic worlds.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
+                  <th className="px-3 py-2">World</th>
+                  <th className="px-3 py-2">Sephirah</th>
+                  <th className="px-3 py-2">Dantian</th>
+                  <th className="px-3 py-2">Chakras</th>
+                </tr>
+              </thead>
+              <tbody>
+                {WORLDS.map((w) => (
+                  <tr
+                    key={w.id}
+                    className="border-b border-ananael-border/30 last:border-0"
+                  >
+                    <td className="px-3 py-2 text-zinc-200">{w.name}</td>
+                    <td className="px-3 py-2 text-zinc-200">
+                      {w.sephirahName ?? '—'}
+                    </td>
+                    <td className="px-3 py-2 text-ananael-muted">
+                      {(w.relatedDantians ?? []).join(', ') || '—'}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-ananael-muted">
+                      {(w.relatedChakras ?? []).join(', ') || '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
 
       {pane === 'neidan' && (
@@ -417,6 +462,7 @@ function PracticePane({
     setVesselStatus(null);
     try {
       const config = {
+        system: 'subtle-body',
         intent: intent.trim(),
         neidanStageId,
         chakraId: chakraId || undefined,

@@ -28,6 +28,8 @@ export interface LiturgyRite {
   sketch?: boolean;
   relatedChakras?: string[];
   relatedMeridians?: string[];
+  relatedWorlds?: string[];
+  relatedAllies?: string[];
 }
 
 export const LITURGY_RITES: LiturgyRite[] = [
@@ -1261,6 +1263,115 @@ export const LITURGY_RITES: LiturgyRite[] = [
       },
     ],
   },
+  {
+    id: 'shamanic-quarters',
+    title: 'Opening the quarters (study outline)',
+    tradition: 'Shamanic',
+    tags: ['quarters', 'directions', 'opening', 'daily'],
+    relatedWorlds: ['middle'],
+    tools: ['space to turn', 'rattle or drum optional'],
+    purpose:
+      'Greet the four quarters as a generic circular opening — elemental study default, not a closed medicine-wheel teaching.',
+    notes:
+      'Use your own names for the directions. This outline is a structural prompt, not a song or ceremony from a living people.',
+    sources: ['Comparative four-quarter opening (study outline)'],
+    suggestedPlanet: 'Moon',
+    ritualTemplate: 'lbrp',
+    steps: [
+      {
+        title: 'Center',
+        body: 'Stand at the hearth of the space. Name your intention. Feel the axis through crown and sole.',
+      },
+      {
+        title: 'East',
+        body: 'Face East. Greet breath, dawn, and beginnings in your own words. Pause.',
+        durationSec: 30,
+      },
+      {
+        title: 'South',
+        body: 'Face South. Greet warmth, growth, and vitality. Pause.',
+        durationSec: 30,
+      },
+      {
+        title: 'West',
+        body: 'Face West. Greet dusk, waters, and release. Pause.',
+        durationSec: 30,
+      },
+      {
+        title: 'North',
+        body: 'Face North. Greet earth, ancestors as a category, and endurance. Pause.',
+        durationSec: 30,
+      },
+      {
+        title: 'Close the circle',
+        body: 'Return East. Thank the quarters. Remain in the center until the space feels ordinary again.',
+      },
+    ],
+  },
+  {
+    id: 'shamanic-journey-protocol',
+    title: 'Three-worlds journey protocol',
+    tradition: 'Shamanic',
+    tags: ['journey', 'drum', 'axis', 'study'],
+    relatedWorlds: ['lower', 'middle', 'upper'],
+    tools: ['drum or rattle', 'eye covering optional', 'journal'],
+    purpose:
+      'A generic departure–travel–return structure for drum journeying. Prefer the Shamanism module Journey pane for timed drum and journal persist.',
+    notes:
+      'Not soul-retrieval training. Stop if overwhelmed; ground with food, water, and the room.',
+    sources: ['Comparative journey protocol (study outline)'],
+    suggestedPlanet: 'Moon',
+    ritualTemplate: 'blank',
+    steps: [
+      {
+        title: 'Intention',
+        body: 'Write one sentence. Choose Lower, Middle, or Upper World as a study map, not a destination claim.',
+      },
+      {
+        title: 'Opening',
+        body: 'Call any personal allies by name. Start the drum. Settle the breath.',
+        durationSec: 60,
+      },
+      {
+        title: 'Departure and travel',
+        body: 'Find the axis. Travel without forcing a story. Encounter, ask, receive.',
+        durationSec: 600,
+      },
+      {
+        title: 'Return and ground',
+        body: 'Retrace the path. Stop the drum. Feel the body. Write what you will keep. Eat or drink.',
+      },
+    ],
+  },
+  {
+    id: 'shamanic-grounding',
+    title: 'Grounding and return',
+    tradition: 'Shamanic',
+    tags: ['grounding', 'closing', 'daily'],
+    relatedWorlds: ['middle'],
+    tools: ['water or food', 'bare feet if practical'],
+    purpose:
+      'Close extra-ordinary work and re-enter the ordinary day — the missing half of many journey outlines.',
+    notes: 'Use after any journey, lots, or quarter opening.',
+    sources: ['Comparative grounding / return outline'],
+    suggestedPlanet: 'Saturn',
+    ritualTemplate: 'blank',
+    steps: [
+      {
+        title: 'Body',
+        body: 'Name five things you can see, four you can touch, three you can hear. Feel weight in the feet.',
+        durationSec: 60,
+      },
+      {
+        title: 'Nourish',
+        body: 'Drink water or eat something simple. Thank the room.',
+      },
+      {
+        title: 'Log',
+        body: 'Write a few lines. Tag world / ally / direction if useful. Leave the rest.',
+      },
+    ],
+  },
 ];
 
 export function searchRites(query: string): LiturgyRite[] {
@@ -1275,6 +1386,8 @@ export function searchRites(query: string): LiturgyRite[] {
       ...(r.sources ?? []),
       ...r.tags,
       ...r.tools,
+      ...(r.relatedWorlds ?? []),
+      ...(r.relatedAllies ?? []),
       ...r.steps.flatMap((step) => [step.title, step.body]),
     ]
       .join(' ')
@@ -1297,6 +1410,7 @@ export const LITURGY_TRADITION_ORDER = [
   'Yoga',
   'Taoist',
   'Buddhist',
+  'Shamanic',
   'General',
 ] as const;
 

@@ -133,6 +133,7 @@ flowchart TB
 | `opusPane`, `stageId`, `metal` | Athanor |
 | `riteId`, `runEntryId`, `liturgyMode` | Ritual Library |
 | `subtleBodyPane`, `subtleBodyFocus` | Subtle Body |
+| `shamanismPane`, `shamanismFocus`, `runEntryId` | Shamanism |
 | Tree options (`TreeNavigateOptions`) | Tree of Life |
 
 Modules receive `onNavigate` and `initial*` props to honor deep links from Magical OS and other modules.
@@ -150,7 +151,8 @@ Some sidebar entries host sub-features:
 | **Divination** | Tarot, I Ching, Geomancy, Runes (tabs) |
 | **Celestial Timing** | Hours, Planets, Zodiac, Elections, Almanac, Natal (panels) |
 | **Athanor** | Stages, Vessel, Emblem (panes) |
-| **Subtle Body** | Chakras, Meridians, Maps, Neidan (panes) |
+| **Subtle Body** | Chakras, Meridians, Maps, Neidan, Practice (panes) |
+| **Shamanism** | Worlds, Directions, Allies, Journey, Cast, Practice (panes) |
 | **Ritual Library** | Browse + Ritual Runner (`RitualRunnerPanel.tsx`) |
 
 ---
@@ -179,7 +181,7 @@ Need to persist user work?
 
 ## Module inventory
 
-Structural map of all 15 sidebar modules. Phase history and done-when criteria: [ROADMAP.md](../ROADMAP.md).
+Structural map of all 16 sidebar modules. Phase history and done-when criteria: [ROADMAP.md](../ROADMAP.md).
 
 | Module | `ModuleId` | Component(s) | Data | Lib | API / persistence |
 |--------|------------|--------------|------|-----|-------------------|
@@ -198,6 +200,7 @@ Structural map of all 15 sidebar modules. Phase history and done-when criteria: 
 | Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
 | Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |
+| Shamanism | `shamanism` | `ShamanismModule.tsx`, `glyphs/WorldTreeSvg`, `DirectionWheelSvg`, `LotSvg` | `shamanism/worlds`, `directions`, `allies`, `lots` | `shamanism`, `shamanismJourney`, `shamanismCast`, `shamanismDrum`, `glyphs/worldTreeGlyph` | Journal journey (`payload.system: 'shamanic-journey'`); `/api/shamanism/save` → journal; `/api/practice/vessels` with `config.system: 'shamanism'` |
 
 ---
 
@@ -217,7 +220,7 @@ Structural map of all 15 sidebar modules. Phase history and done-when criteria: 
 | Field | Purpose |
 |-------|---------|
 | `entryType` | `ritual`, `dream`, `divination`, `mood`, `working`, `note` |
-| `entities[]` | Tagged entities (`kind` + `id` + `label`) — sephirah, planet, chakra, hexagram, etc. |
+| `entities[]` | Tagged entities (`kind` + `id` + `label`) — sephirah, planet, chakra, hexagram, world, ally, direction, etc. |
 | `payload` | Module-specific JSON (spread cards, hexagram lines, ritual run state) |
 | `sky` | Moon phase, planetary hour, zodiac context at time of entry |
 | `links[]` | Cross-references to other persisted documents |
@@ -226,7 +229,7 @@ Divination saves (`/api/tarot/save`, `/api/iching/save`, etc.) write `JournalEnt
 
 ### Correspondences bridge
 
-[`client/src/lib/correspondences.ts`](../client/src/lib/correspondences.ts) is the cross-module encyclopedia layer. It consumes `data/correspondences.ts` and links outward to chakras, I Ching trigrams, liturgy rites, tree nodes, alchemy metals, and more. When adding a new corpus, wire search facets and deep-link targets here.
+[`client/src/lib/correspondences.ts`](../client/src/lib/correspondences.ts) is the cross-module encyclopedia layer. It consumes `data/correspondences.ts` and links outward to chakras, I Ching trigrams, liturgy rites, tree nodes, alchemy metals, shamanic worlds/allies/directions, and more. When adding a new corpus, wire search facets and deep-link targets here.
 
 ### Magical OS
 
@@ -237,7 +240,7 @@ Default home module (`dashboard`). Composes sky conditions, quick divination, jo
 - Tailwind CSS with `ananael-*` theme tokens (dark esoteric palette).
 - Components named `*Module.tsx`, one per sidebar `ModuleId`.
 - Shared search chrome and SVG export utilities in `lib/svgExport.ts`.
-- Divination SVG glyphs in `lib/glyphs/` (I Ching / Geomancy / Runes), rendered via `components/glyphs/` — same generator pattern as `goetiaSealArt.ts`.
+- Divination SVG glyphs in `lib/glyphs/` (I Ching / Geomancy / Runes / world-tree / direction wheel / lots), rendered via `components/glyphs/` — same generator pattern as `goetiaSealArt.ts`.
 
 ---
 
@@ -260,6 +263,8 @@ Default home module (`dashboard`). Composes sky conditions, quick divination, jo
 | `/api/talisman` | `TalismanDesign` | Talisman designs |
 | `/api/planetary` | `PlanetaryChart` | Chart bookmarks |
 | `/api/opus` | `OpusVessel` | Athanor vessels |
+| `/api/practice` | `PracticeVessel` | Subtle Body and Shamanism vessels (`config.system`) |
+| `/api/shamanism` | `JournalEntry` | Cleromancy / pendulum save |
 | `/api/enochian` | `EnochianNote` | Study notes |
 | `/api/liturgy` | — | Metadata catalog only; rite content is client-side |
 
@@ -292,6 +297,7 @@ All mutating routes (except auth register/login) require JWT via `protect` middl
 - `GET /api/iching/history` — recent I Ching journal entries
 - `POST /api/geomancy/save` — geomancy chart → journal
 - `POST /api/runes/save` — rune cast → journal
+- `POST /api/shamanism/save` — cleromancy / pendulum → journal
 
 #### Builders and notes
 
@@ -302,7 +308,7 @@ All mutating routes (except auth register/login) require JWT via `protect` middl
 - `POST /api/talisman/designs` / `GET /api/talisman/designs` / `PUT /api/talisman/designs/:id`
 - `POST /api/planetary/charts` / `GET /api/planetary/charts` / `PUT /api/planetary/charts/:id`
 - `POST /api/opus/vessels` / `GET /api/opus/vessels` / `PUT /api/opus/vessels/:id`
-- `POST /api/practice/vessels` / `GET /api/practice/vessels` / `PUT /api/practice/vessels/:id` — subtle-body practice intent (`config`: intent, neidanStageId, chakraId, riteId)
+- `POST /api/practice/vessels` / `GET /api/practice/vessels` / `PUT /api/practice/vessels/:id` — practice intent (`config.system`: `shamanism` or subtle-body fields)
 - `POST /api/enochian/notes` / `GET /api/enochian/notes`
 
 #### Other

@@ -33,6 +33,9 @@ export type JournalEntityKind =
   | 'chakra'
   | 'meridian'
   | 'dantian'
+  | 'world'
+  | 'ally'
+  | 'direction'
   | 'other';
 
 export interface IJournalEntity {
@@ -98,6 +101,9 @@ const ENTITY_KINDS: JournalEntityKind[] = [
   'chakra',
   'meridian',
   'dantian',
+  'world',
+  'ally',
+  'direction',
   'other',
 ];
 

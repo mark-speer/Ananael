@@ -13,6 +13,7 @@ import { GOETIA_SPIRITS } from '../data/arsGoetia';
 import { searchChakras } from '../data/chakras';
 import { searchMeridians } from '../data/meridians';
 import { DANTIANS } from '../data/subtleBodyMaps';
+import { searchAllies, searchDirections, searchWorlds } from '../data/shamanism';
 import { searchCorrespondences } from './correspondences';
 
 export type JournalEntryType =
@@ -48,6 +49,9 @@ export type JournalEntityKind =
   | 'chakra'
   | 'meridian'
   | 'dantian'
+  | 'world'
+  | 'ally'
+  | 'direction'
   | 'other';
 
 export interface JournalEntity {
@@ -162,6 +166,18 @@ export function suggestJournalEntities(query: string, limit = 12): JournalEntity
     ) {
       add({ kind: 'dantian', id: d.id, label: d.name });
     }
+  }
+  for (const w of searchWorlds(q)) {
+    if (results.length >= limit) break;
+    add({ kind: 'world', id: w.id, label: w.name });
+  }
+  for (const a of searchAllies(q)) {
+    if (results.length >= limit) break;
+    add({ kind: 'ally', id: a.id, label: a.name });
+  }
+  for (const dir of searchDirections(q)) {
+    if (results.length >= limit) break;
+    add({ kind: 'direction', id: dir.id, label: dir.name });
   }
 
   const search = searchCorrespondences(q, null);

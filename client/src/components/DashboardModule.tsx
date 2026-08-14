@@ -24,6 +24,9 @@ import type { OpusStageId } from '../data/alchemy';
 import type { TemplateId } from '../data/ritualTools';
 import type { LiturgyMode } from '../lib/ritualRunner';
 import { isRitualRunnerPayload } from '../lib/ritualRunner';
+import { isShamanicJourneyPayload } from '../lib/shamanismJourney';
+import { suggestedWorldFromSky } from '../lib/shamanism';
+import { getWorld } from '../data/shamanism';
 import { suggestEasternRite } from '../lib/subtleBodyCounsel';
 import type { ModuleId } from './Sidebar';
 import TarotCard, { type DealtCard } from './TarotCard';
@@ -53,6 +56,14 @@ export interface DashboardNavigateOptions {
   liturgyMode?: LiturgyMode;
   subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan' | 'practice';
   subtleBodyFocus?: string;
+  shamanismPane?:
+    | 'worlds'
+    | 'directions'
+    | 'allies'
+    | 'journey'
+    | 'cast'
+    | 'practice';
+  shamanismFocus?: string;
 };
 
 interface DashboardModuleProps {
@@ -594,6 +605,23 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               </button>
             </p>
           )}
+          {dayCounsel.shamanismTheme && (
+            <p className="mt-3 rounded-md border border-ananael-violet/30 bg-ananael-violet/10 px-2.5 py-2 text-xs text-zinc-200">
+              <span className="text-[11px] uppercase tracking-wider text-ananael-violet">
+                Journey ·{' '}
+              </span>
+              {dayCounsel.shamanismTheme}{' '}
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigate('shamanism', { shamanismPane: 'journey' })
+                }
+                className="text-ananael-gold hover:underline"
+              >
+                Journey
+              </button>
+            </p>
+          )}
           {nextHighlight && (
             <p className="mt-3 text-xs text-ananael-violet">
               Next: {nextHighlight.label} ·{' '}
@@ -818,6 +846,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto">
               {workings.map((entry) => {
                 const runner = isRitualRunnerPayload(entry.payload);
+                const journey = isShamanicJourneyPayload(entry.payload);
                 return (
                   <li key={entry._id}>
                     <div className="flex items-center gap-2 rounded-md border border-ananael-border/50 bg-ananael-bg px-3 py-2">
@@ -828,6 +857,13 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                             onNavigate('liturgy', {
                               liturgyMode: 'run',
                               riteId: entry.payload!.riteId as string,
+                              runEntryId: entry._id,
+                            });
+                            return;
+                          }
+                          if (journey) {
+                            onNavigate('shamanism', {
+                              shamanismPane: 'journey',
                               runEntryId: entry._id,
                             });
                             return;
@@ -846,10 +882,10 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                               : 'border-zinc-600 text-zinc-400'
                           }`}
                         >
-                          {runner ? 'Resume' : entry.status}
+                          {runner || journey ? 'Resume' : entry.status}
                         </span>
                       </button>
-                      {runner && (
+                      {(runner || journey) && (
                         <button
                           type="button"
                           onClick={() => openJournal('working', entry._id)}
@@ -919,6 +955,63 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 })
               }
               tone="bronze"
+            />
+          </div>
+        </section>
+
+        {/* Shamanism */}
+        <section className={tileClassName()}>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="font-display text-lg text-ananael-gold">
+                Shamanism
+              </h2>
+              <p className="mt-0.5 text-xs text-ananael-muted">
+                Three worlds, journey, lots
+              </p>
+            </div>
+            <TileLink
+              label="Open chamber"
+              onClick={() => onNavigate('shamanism')}
+              tone="violet"
+            />
+          </div>
+          <p className="mt-3 text-sm text-zinc-300">
+            {(() => {
+              const worldId = suggestedWorldFromSky({
+                hourRuler: chart?.currentHour?.planet ?? sky.hourRuler,
+                dayRuler: sky.dayRuler,
+                moonPhase: sky.moonPhase,
+                hourSegment: chart?.currentHour?.segment,
+              });
+              const world = getWorld(worldId);
+              return `Suggested world: ${world?.name ?? 'Middle World'} — study weather, not a command.`;
+            })()}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <TileLink
+              label="Journey"
+              onClick={() =>
+                onNavigate('shamanism', { shamanismPane: 'journey' })
+              }
+              tone="gold"
+            />
+            <TileLink
+              label="Worlds"
+              onClick={() =>
+                onNavigate('shamanism', { shamanismPane: 'worlds' })
+              }
+              tone="bronze"
+            />
+            <TileLink
+              label="Quarters rite"
+              onClick={() =>
+                onNavigate('liturgy', {
+                  riteId: 'shamanic-quarters',
+                  liturgyMode: 'browse',
+                })
+              }
+              tone="violet"
             />
           </div>
         </section>
