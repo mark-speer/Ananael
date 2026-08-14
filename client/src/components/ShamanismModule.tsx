@@ -67,7 +67,6 @@ type VesselRow = {
  * Study outlines only; not a substitute for lineage instruction.
  */
 export default function ShamanismModule({
-  onNavigate,
   initialPane = 'worlds',
   initialFocus,
   initialRunEntryId,
@@ -309,7 +308,6 @@ export default function ShamanismModule({
     if (!session) return;
     drumRef.current.stop();
     setDrumOn(false);
-    const now = new Date();
     const notes = [
       intention.trim(),
       session.encounterNotes.trim()

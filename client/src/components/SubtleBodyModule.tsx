@@ -224,6 +224,7 @@ export default function SubtleBodyModule({
       )}
 
       {pane === 'maps' && (
+        <div className="space-y-6">
         <section className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
           <h2 className="font-display text-lg text-ananael-gold">
             Chakra ↔ Sephirah (comparative)
@@ -307,6 +308,7 @@ export default function SubtleBodyModule({
             </table>
           </div>
         </section>
+        </div>
       )}
 
       {pane === 'neidan' && (
