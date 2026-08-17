@@ -2,7 +2,7 @@
 
 Codebase structure, conventions, and extension patterns for contributors and maintainers.
 
-For deployment and local dev, see [README.md](../README.md). For phased feature scope and done-when criteria, see [ROADMAP.md](../ROADMAP.md). For a potential future share/lodge layer (not started), see [SOCIAL-ROADMAP.md](SOCIAL-ROADMAP.md).
+For deployment and local dev, see [README.md](../README.md). For phased feature scope and done-when criteria, see [ROADMAP.md](../ROADMAP.md). For bundled plates, see [ART-CREDITS.md](ART-CREDITS.md). For a potential future share/lodge layer (not started), see [SOCIAL-ROADMAP.md](SOCIAL-ROADMAP.md).
 
 ---
 
@@ -64,7 +64,7 @@ flowchart TB
 | `data/` | Static typed corpora (correspondences, tarot, liturgy, chakras, etc.) |
 | `lib/` | Computation, search, API helpers, cross-module wiring |
 | `context/` | `AuthContext.tsx` — JWT session, location, natal profile |
-| `public/assets/` | Tarot deck, Goetia seals, other static art |
+| `public/assets/` | Tarot deck, Goetia Mathers plates + generated SVG fallbacks |
 
 ### `server/src/`
 
@@ -195,7 +195,7 @@ Structural map of all 16 sidebar modules. Phase history and done-when criteria: 
 | Correspondences | `correspondences` | `CorrespondencesModule.tsx` | `correspondences` | `correspondences` | Client-only |
 | Athanor | `opus` | `AlchemyModule.tsx` | `alchemy` | `alchemy`, `alchemicalGlyphPaths` | `/api/opus/vessels` → `OpusVessel` |
 | Ritual Space Planner | `ritual` | `RitualSpaceModule.tsx` | `ritualTools` | `svgExport` | `/api/ritual/layouts` → `RitualLayout` |
-| Solomonic Circles | `solomonic` | `SolomonicCircleModule.tsx` | `solomonicCircles`, `arsGoetia` | `solomonicGeometry`, `goetiaSealArt` | `/api/solomonic/circles` → `SolomonicCircle` |
+| Solomonic Circles | `solomonic` | `SolomonicCircleModule.tsx` | `solomonicCircles`, `arsGoetia`, `goetiaSealPlates` | `solomonicGeometry`, `goetiaSealArt` | `/api/solomonic/circles` → `SolomonicCircle` |
 | Talisman Atelier | `talisman` | `TalismanModule.tsx` | — | `kamea`, `sigil`, `ofuda`, `sutras` (data), `svgExport` | `/api/talisman/designs` → `TalismanDesign` (`kamea` \| `sigil` \| `sutra`) |
 | Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
@@ -239,8 +239,9 @@ Default home module (`dashboard`). Composes sky conditions, quick divination, jo
 
 - Tailwind CSS with `ananael-*` theme tokens (dark esoteric palette).
 - Components named `*Module.tsx`, one per sidebar `ModuleId`.
-- Shared search chrome and SVG export utilities in `lib/svgExport.ts`.
+- Shared search chrome and SVG export utilities in `lib/svgExport.ts` (`inlineExternalImages` for PNG/SVG seal inlining).
 - Divination SVG glyphs in `lib/glyphs/` (I Ching / Geomancy / Runes / world-tree / direction wheel / lots), rendered via `components/glyphs/` — same generator pattern as `goetiaSealArt.ts`.
+- Goetia seals: Mathers 1904 plates (`{sealRef}.png`) with generated SVG fallback; ingest script `client/scripts/ingest-goetia-plates.py`.
 
 ---
 
@@ -339,6 +340,7 @@ Follow this checklist (mirrors the Subtle Body addition, ROADMAP Phases 32–34)
 |-----|----------|
 | [README.md](../README.md) | Pitch, stack, Docker Compose, Portainer, local dev |
 | [ROADMAP.md](../ROADMAP.md) | Phased feature plan, done-when criteria |
+| [ART-CREDITS.md](ART-CREDITS.md) | Bundled public-domain plates (Goetia, Tarot) |
 | [SOCIAL-ROADMAP.md](SOCIAL-ROADMAP.md) | Potential future share/lodge layer (not started) |
 | [`client/src/App.tsx`](../client/src/App.tsx) | Module routing and navigation state |
 | [`client/src/components/Sidebar.tsx`](../client/src/components/Sidebar.tsx) | Module registry |

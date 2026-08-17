@@ -40,6 +40,57 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+function guessImageMime(href: string, contentType: string | null): string {
+  const header = contentType?.split(';')[0]?.trim();
+  if (header && header.startsWith('image/')) return header;
+  const path = href.split('?')[0]?.toLowerCase() ?? '';
+  if (path.endsWith('.png')) return 'image/png';
+  if (path.endsWith('.jpg') || path.endsWith('.jpeg')) return 'image/jpeg';
+  if (path.endsWith('.webp')) return 'image/webp';
+  if (path.endsWith('.gif')) return 'image/gif';
+  if (path.endsWith('.svg')) return 'image/svg+xml';
+  return 'application/octet-stream';
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+/**
+ * Inline external SVG `<image>` hrefs as data URLs (PNG or SVG) so PNG export
+ * rasterizes same-origin after clone.
+ */
+export async function inlineExternalImages(
+  svg: SVGSVGElement
+): Promise<void> {
+  const images = Array.from(svg.querySelectorAll('image'));
+  await Promise.all(
+    images.map(async (el) => {
+      const href =
+        el.getAttribute('href') ||
+        el.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+      if (!href || href.startsWith('data:')) return;
+      try {
+        const res = await fetch(href);
+        if (!res.ok) return;
+        const buf = await res.arrayBuffer();
+        const mime = guessImageMime(href, res.headers.get('content-type'));
+        const dataUrl = `data:${mime};base64,${arrayBufferToBase64(buf)}`;
+        el.setAttribute('href', dataUrl);
+        el.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
+      } catch {
+        /* leave href; image may omit from export */
+      }
+    })
+  );
+}
+
 export interface ExportSvgAsPngOptions {
   svg: SVGSVGElement;
   filenameBase: string;

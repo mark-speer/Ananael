@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import { GOETIA_SPIRITS } from '../src/data/arsGoetia';
 import { goetiaSealSvgDocument } from '../src/lib/goetiaSealArt';
 
+/** Writes generated SVG fallbacks only — does not delete Mathers `{sealRef}.png` plates. */
+
 const here = dirname(fileURLToPath(import.meta.url));
 const dir = join(here, '..', 'public', 'assets', 'Images', 'Goetia');
 mkdirSync(dir, { recursive: true });

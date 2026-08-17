@@ -1,10 +1,12 @@
 /**
- * Simplified public-domain–style Goetia seal line art.
- * Deterministic geometry keyed by spirit number — not plate-accurate Mathers scans.
- * Asset files under public/assets/Images/Goetia/{sealRef}.svg use the same markup.
+ * Goetia seal assets.
+ * Phase 21 — generated gold line-art SVG fallback (`{sealRef}.svg`).
+ * Phase 41 — Mathers 1904 Commons plates, gold-tinted (`{sealRef}.png`).
+ * See docs/ART-CREDITS.md.
  */
 
 import type { GoetiaSpirit } from '../data/arsGoetia';
+import { plateSourceForNumber, spiritNumberFromSealRef } from '../data/goetiaSealPlates';
 
 const VIEW = 200;
 const CX = 100;
@@ -118,6 +120,26 @@ export function goetiaSealInnerMarkup(spirit: GoetiaSpirit): string {
   <text x="${CX}" y="${CY + 4}" text-anchor="middle" fill="${stroke}" font-family="Cinzel, Georgia, serif" font-size="11">${spirit.number}</text>`;
 }
 
-export function goetiaSealAssetPath(sealRef: string): string {
+export function goetiaSealGeneratedPath(sealRef: string): string {
   return `/assets/Images/Goetia/${sealRef}.svg`;
+}
+
+export function goetiaSealPlatePath(sealRef: string): string {
+  return `/assets/Images/Goetia/${sealRef}.png`;
+}
+
+/** Live seal href: Mathers plate PNG unless preferGenerated. */
+export function goetiaSealAssetPath(sealRef: string): string {
+  const n = spiritNumberFromSealRef(sealRef);
+  const src = n != null ? plateSourceForNumber(n) : undefined;
+  if (src?.preferGenerated) return goetiaSealGeneratedPath(sealRef);
+  return goetiaSealPlatePath(sealRef);
+}
+
+/** Generated SVG fallback when the plate 404s. */
+export function goetiaSealFallbackPath(sealRef: string): string | undefined {
+  const n = spiritNumberFromSealRef(sealRef);
+  const src = n != null ? plateSourceForNumber(n) : undefined;
+  if (src?.preferGenerated) return undefined;
+  return goetiaSealGeneratedPath(sealRef);
 }

@@ -80,7 +80,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'solomonic',
     title: 'Solomonic Circles',
     description:
-      'Build Goetia, Heptameron, and generic magician’s circles with Triangle of Art, Ars Goetia spirit selection, and seal artwork in the Triangle slot for classical Solomonic work.',
+      'Build Goetia, Heptameron, and generic magician’s circles with Triangle of Art, Ars Goetia spirit selection, and Mathers 1904 seal plates in the Triangle slot for classical Solomonic work.',
   },
   {
     id: 'talisman',

@@ -35,8 +35,11 @@ import {
   type Weekday,
 } from '../data/solomonicCircles';
 import { apiFetch } from '../lib/api';
-import { goetiaSealAssetPath } from '../lib/goetiaSealArt';
-import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
+import {
+  goetiaSealAssetPath,
+  goetiaSealFallbackPath,
+} from '../lib/goetiaSealArt';
+import { downloadJson, exportSvgAsPng, inlineExternalImages } from '../lib/svgExport';
 import CircleGlyph from './CircleGlyph';
 import CircleLayoutModal from './CircleLayoutModal';
 import {
@@ -88,6 +91,7 @@ export default function SolomonicCircleModule() {
   const [spiritFilter, setSpiritFilter] = useState('');
   const [layoutModalOpen, setLayoutModalOpen] = useState(false);
   const [sealArtFailed, setSealArtFailed] = useState(false);
+  const [sealHref, setSealHref] = useState<string | null>(null);
   const [exportTransparentBg, setExportTransparentBg] = useState(false);
 
   const layout = buildCircleLayout(config);
@@ -130,18 +134,33 @@ export default function SolomonicCircleModule() {
     const spirit = config.spiritId ? getSpiritById(config.spiritId) : undefined;
     if (!spirit) {
       setSealArtFailed(false);
+      setSealHref(null);
       return;
     }
     setSealArtFailed(false);
+    const primary = goetiaSealAssetPath(spirit.sealRef);
+    const fallback = goetiaSealFallbackPath(spirit.sealRef);
+    setSealHref(primary);
     let cancelled = false;
-    const img = new Image();
-    img.onload = () => {
-      if (!cancelled) setSealArtFailed(false);
+    const trySrc = (src: string, next?: string) => {
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        setSealHref(src);
+        setSealArtFailed(false);
+      };
+      img.onerror = () => {
+        if (cancelled) return;
+        if (next) {
+          trySrc(next);
+          return;
+        }
+        setSealArtFailed(true);
+        setSealHref(null);
+      };
+      img.src = src;
     };
-    img.onerror = () => {
-      if (!cancelled) setSealArtFailed(true);
-    };
-    img.src = goetiaSealAssetPath(spirit.sealRef);
+    trySrc(primary, fallback);
     return () => {
       cancelled = true;
     };
@@ -335,26 +354,7 @@ export default function SolomonicCircleModule() {
           clone.insertBefore(bg, clone.firstChild);
         }
 
-        // Inline external seal <image> hrefs so PNG rasterization stays same-origin.
-        const images = Array.from(clone.querySelectorAll('image'));
-        await Promise.all(
-          images.map(async (el) => {
-            const href =
-              el.getAttribute('href') ||
-              el.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
-            if (!href || href.startsWith('data:')) return;
-            try {
-              const res = await fetch(href);
-              if (!res.ok) return;
-              const text = await res.text();
-              const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
-              el.setAttribute('href', dataUrl);
-              el.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
-            } catch {
-              /* leave href; seal may omit from export */
-            }
-          })
-        );
+        await inlineExternalImages(clone);
       },
     });
   };
@@ -938,10 +938,10 @@ export default function SolomonicCircleModule() {
                       stroke="#7c5cbf"
                       strokeWidth={1.5}
                     />
-                    {!sealArtFailed ? (
+                    {!sealArtFailed && sealHref ? (
                       <>
                         <image
-                          href={goetiaSealAssetPath(selectedSpirit.sealRef)}
+                          href={sealHref}
                           x={triangle.center.x - sealSize * 0.42}
                           y={triangle.center.y - sealSize * 0.42}
                           width={sealSize * 0.84}

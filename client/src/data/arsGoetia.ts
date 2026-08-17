@@ -1,7 +1,8 @@
 /**
  * Ars Goetia spirit catalog (Lesser Key of Solomon, Crowley's numbering).
  * Phase 6 — conjuration layout: number, name, rank, seal reference.
- * Phase 21 — sealRef keys SVG art at /assets/Images/Goetia/{sealRef}.svg
+ * Phase 21 — sealRef keys generated SVG at /assets/Images/Goetia/{sealRef}.svg
+ * Phase 41 — Mathers plates at /assets/Images/Goetia/{sealRef}.png (SVG fallback)
  */
 
 export type GoetiaRank =
@@ -18,7 +19,7 @@ export interface GoetiaSpirit {
   number: number;
   name: string;
   rank: GoetiaRank;
-  /** Stable key for seal asset: /assets/Images/Goetia/{sealRef}.svg */
+  /** Stable key for seal asset: `{sealRef}.png` plate or `{sealRef}.svg` fallback. */
   sealRef: string;
 }
 

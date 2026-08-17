@@ -1,6 +1,6 @@
 # Ananael Roadmap
 
-For codebase structure, module wiring, and contributor conventions, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). For a potential future share/lodge layer (not started), see [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md).
+For codebase structure, module wiring, and contributor conventions, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). For bundled third-party plates, see [docs/ART-CREDITS.md](docs/ART-CREDITS.md). For a potential future share/lodge layer (not started), see [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md).
 
 Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 
@@ -25,7 +25,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | I Ching              | Active  | 3 / 40 (in Divination) |
 | Tree of Life         | Active  | 4a / 24      |
 | Ritual Space Planner | Active  | 4b           |
-| Solomonic Circles    | Active  | 5–6 / 21     |
+| Solomonic Circles    | Active  | 5–6 / 21 / 41 |
 | Magical Journal      | Active  | 7            |
 | Magical OS Dashboard | Active  | 8 / 24 / 30  |
 | Divination portal    | Active  | 9–11         |
@@ -39,7 +39,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Hermetic Alchemy hooks | Active | 18 (cross-module) |
 | Athanor              | Active  | 19 / 23          |
 | Docs sync            | Active  | 20           |
-| Goetia seal artwork  | Active  | 21           |
+| Goetia seal artwork  | Active  | 21 / 41      |
 | Timing chart bookmarks | Active  | 22         |
 | Athanor deepen       | Active  | 23           |
 | Cross-module polish  | Active  | 24           |
@@ -54,6 +54,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Neidan Athanor bridge | Active | 38          |
 | Mantra script tools  | Active  | 39           |
 | Divination SVG glyphs | Active | 40           |
+| Goetia Mathers plates | Active | 41           |
 | Shamanism corpus     | Active  | 45           |
 | Shamanism bridge     | Active  | 46           |
 | Shamanism module     | Active  | 47           |
@@ -552,16 +553,44 @@ Replace CSS/Unicode glyphs for I Ching, Geomancy, and Runes with shared themeabl
 
 ---
 
+## Phase 41 — Mathers 1904 Goetia plates — Shipped
+
+Replace generated seal stand-ins with gold-tinted Mathers plates where Commons quality is usable. Generated SVGs remain fallback.
+
+- Commons map in `client/src/data/goetiaSealPlates.ts`; ingest `client/scripts/ingest-goetia-plates.py`
+- Originals under `client/public/assets/Images/Goetia/mathers-1904/`; live `{sealRef}.png` gold-on-transparent
+- Dual variants use `seal01`; 29 Astaroth and 69 Decarabia use PD alternates (no numbered file in that series)
+- `goetiaSealAssetPath` prefers PNG; SVG fallback on 404; labeled frame if both missing
+- PNG export inlines raster or SVG via `inlineExternalImages` (correct MIME)
+- Credits: [docs/ART-CREDITS.md](docs/ART-CREDITS.md)
+
+**Done when:** Seal On shows Mathers plates (gold-on-dark) for covered spirits; PNG/JSON export and save/reload work; 72 spirits accounted for in the coverage report; generated SVG fallback remains.
+
+---
+
 ## Later art phases (Planned)
 
-Not started. Prefer PD / CC0 plates or generated SVG; keep Ananael gold/violet language.
+Not started. Prefer PD / CC0 plates or generated SVG; keep Ananael gold/violet language. Sequence after Phase 41:
 
-| Phase | Focus | Status |
-|-------|--------|--------|
-| 41 | Optional Mathers 1904 Goetia seal plates (Commons) where quality beats generated line art | Planned |
-| 42 | Athanor Emblem pane: curated *Atalanta Fugiens* / Mutus Liber PD plates mapped to opus stages | Planned |
-| 43 | Subtle Body / Tree: SVG atlas diagrams (generate or CC0 Commons) | Planned |
-| 44 | Splash / Magical OS atmosphere (sparing engraving crops; brand hierarchy intact) | Planned |
+### Phase 42 — Athanor Emblem plates — Planned
+
+[EmblemPane](client/src/components/AlchemyModule.tsx) is text cards (`STAGE_EMBLEMS` in [alchemy.ts](client/src/data/alchemy.ts)). Curate PD *Atalanta Fugiens* / Mutus Liber plates onto the four `OpusStageId`s (`nigredo` / `albedo` / `citrinitas` / `rubedo`) and optionally the eight thematic emblems. Keep titles/gloss; add plate thumbs. Sources: Science History Institute PD Mark + Commons. Same gold-tint / credits pattern as Phase 41.
+
+**Done when:** each opus stage (and optionally each thematic emblem) shows a credited plate; text cards remain; no schema change required.
+
+### Phase 43 — Subtle Body / Tree atlas — Planned
+
+Chakra pane already has a simple spine SVG; meridians are a list; Tree is interactive geometry in [TreeOfLifeModule.tsx](client/src/components/TreeOfLifeModule.tsx). Enrich diagrams (generated SVG or CC0 Commons) without breaking click/export. Prefer generate-to-theme over mismatched plate scans.
+
+**Done when:** chakra/meridian/Tree study views use themed atlas diagrams; Tree PNG/JSON export still works.
+
+### Phase 44 — Splash / Magical OS atmosphere — Planned
+
+Both are CSS gradients + tiles today ([SplashPage.tsx](client/src/components/SplashPage.tsx), [DashboardModule.tsx](client/src/components/DashboardModule.tsx)). Sparing engraving crops only; brand hierarchy (Cinzel/gold/violet) stays primary. No new hero-image cards.
+
+**Done when:** splash and Magical OS have light atmosphere art without replacing the tile launcher or brand chrome.
+
+Suggested PD hunt for 42/44: *Atalanta Fugiens* emblems, Mutus Liber plates, spare alchemical engravings — same Commons/PD rule as 41.
 
 ---
 
