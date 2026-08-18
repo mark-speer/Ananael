@@ -1,6 +1,6 @@
 # Ananael
 
-A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic. Fifteen sidebar modules cover divination, celestial timing, correspondences, ritual practice, and more — mostly client-side calculation tools with Express/MongoDB for auth and user data.
+A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magic. Fourteen sidebar modules cover divination, celestial timing, correspondences, ritual practice, and more — mostly client-side calculation tools with Express/MongoDB for auth and user data.
 
 ## Documentation
 

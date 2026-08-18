@@ -6,7 +6,7 @@ export const SPLASH_MISSION = {
   headline: 'Tools for the work, gathered in one sanctum.',
   support:
     'Ananael is the Inner Sanctum: a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, alchemy, ritual design, subtle-body work, shamanic journey structure, and a journal for your workings.',
-  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; explore chakras, meridians, and neidan with comparative maps to the Western schema; walk a three-worlds shamanism chamber with journey drum and cleromancy lots; craft kamea and sigils; plan altar layouts and Solomonic circles; browse a Ritual Library with Yoga, Taoist, Buddhist, and Shamanic study outlines plus guided Ritual Runner sessions; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
+  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; explore chakras, meridians, and neidan with comparative maps to the Western schema; walk a three-worlds shamanism chamber with journey drum and cleromancy lots; craft altar layouts, Solomonic circles, kamea, and sigils in Atelier; browse a Ritual Library with Yoga, Taoist, Buddhist, and Shamanic study outlines plus guided Ritual Runner sessions; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
 } as const;
 
 export interface SplashFeature {
@@ -68,25 +68,13 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'opus',
     title: 'Athanor',
     description:
-      'Hermetic alchemy chamber: opus stages (nigredo to rubedo), a vessel planner with saved designs and metal/principle counsel, Emerald Tablet and Hermetica study cards, active opus workings from the Journal, and deep-links into Almanac, Correspondences, and Talisman.',
+      'Hermetic alchemy chamber: opus stages (nigredo to rubedo), a vessel planner with saved designs and metal/principle counsel, Emerald Tablet and Hermetica study cards, active opus workings from the Journal, and deep-links into Almanac, Correspondences, and Atelier.',
   },
   {
-    id: 'ritual',
-    title: 'Ritual Space Planner',
+    id: 'atelier',
+    title: 'Atelier',
     description:
-      'Design altar and temple layouts on a grid—LBRP and altar templates, ritual tools, PNG and JSON export, and saved layouts for recurring ceremonies.',
-  },
-  {
-    id: 'solomonic',
-    title: 'Solomonic Circles',
-    description:
-      'Build Goetia, Heptameron, and generic magician’s circles with Triangle of Art, Ars Goetia spirit selection, and Mathers 1904 seal plates in the Triangle slot for classical Solomonic work.',
-  },
-  {
-    id: 'talisman',
-    title: 'Talisman Atelier',
-    description:
-      'Planetary kamea (magic squares), sigil craft, and sutra ofuda talismans—trace names on the square, build chaos-style stroke sigils, or compose protective Japanese ofuda with optional Sanskrit columns, then export PNG/JSON or save designs to your account.',
+      'One workshop for Ritual Space (altar/grid layouts), Circles (Goetia, Heptameron, and generic magician’s circles with Triangle of Art and Mathers seal plates), and Talismans (planetary kamea, chaos sigils, and sutra ofuda)—PNG/JSON export, signed-in save.',
   },
   {
     id: 'enochian',

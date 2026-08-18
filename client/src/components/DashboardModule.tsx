@@ -48,6 +48,7 @@ export interface DashboardNavigateOptions {
     | 'almanac'
     | 'natal';
   ritualTemplate?: TemplateId;
+  atelierTab?: 'ritual' | 'solomonic' | 'talisman';
   opusPane?: 'stages' | 'vessel' | 'emblem';
   stageId?: OpusStageId;
   metal?: string;
@@ -1179,12 +1180,12 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               tone="bronze"
             />
             <TileLink
-              label="Solomonic Circles"
+              label="Circles"
               onClick={() => onNavigate('solomonic')}
               tone="bronze"
             />
             <TileLink
-              label="Talisman"
+              label="Talismans"
               onClick={() => onNavigate('talisman')}
               tone="bronze"
             />

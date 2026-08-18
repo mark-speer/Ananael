@@ -24,14 +24,14 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Script Translator    | Active  | 2c           |
 | I Ching              | Active  | 3 / 40 (in Divination) |
 | Tree of Life         | Active  | 4a / 24      |
-| Ritual Space Planner | Active  | 4b           |
-| Solomonic Circles    | Active  | 5–6 / 21 / 41 |
+| Ritual Space Planner | Active  | 4b (in Atelier) |
+| Solomonic Circles    | Active  | 5–6 / 21 / 41 (in Atelier) |
 | Magical Journal      | Active  | 7            |
 | Magical OS Dashboard | Active  | 8 / 24 / 30  |
 | Divination portal    | Active  | 9–11         |
 | Geomancy             | Active  | 10 / 40 (tab) |
 | Runes                | Active  | 11 / 40 (tab) |
-| Talisman Atelier     | Active  | 12           |
+| Talismans            | Active  | 12 (in Atelier) |
 | Elections            | Active  | 13 (timing)  |
 | Enochian             | Active  | 14           |
 | Ritual Library       | Active  | 15–16 / 18 / 25 |
@@ -59,6 +59,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Shamanism bridge     | Active  | 46           |
 | Shamanism module     | Active  | 47           |
 | Shamanism OS polish  | Active  | 48           |
+| Atelier portal       | Active  | 49           |
 
 ---
 
@@ -646,10 +647,18 @@ Sidebar module `shamanism` labeled **Shamanism**. Full chamber (Soon badge off).
 
 ---
 
+## Phase 49 — Atelier portal — Shipped
+
+Single sidebar **Atelier** module with tabs wrapping Ritual Space, Solomonic Circles, and Talismans (legacy `ritual` / `solomonic` / `talisman` ModuleIds redirect). Magical OS / Ritual Library / Athanor deep-link via `atelierTab` plus existing `ritualTemplate` / `gematriaPrefill`. Inner Talismans modes remain Squares / Sigils / Sutras.
+
+**Done when:** all three canvases work from Atelier tabs; deep-links open the correct tab; persistence APIs unchanged.
+
+---
+
 ## Cross-cutting rules
 
 - Flip module `status` from `soon` → `active` in the sidebar only when that module’s **Done when** criteria are met
 - Prefer client-side calculation for deterministic tools; Express for auth-bound persistence only
 - Preserve existing gold/violet occult visual language
 - Keep Docker Compose / single-port SPA serving unchanged
-- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–48)
+- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–49)

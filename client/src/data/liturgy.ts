@@ -657,7 +657,7 @@ export const LITURGY_RITES: LiturgyRite[] = [
       },
       {
         title: 'Close',
-        body: 'Thank the day ruler. Store or wear the token. Log metal, stage, and counsel in the Magical Journal; optionally open Talisman Atelier for the matching kamea.',
+        body: 'Thank the day ruler. Store or wear the token. Log metal, stage, and counsel in the Magical Journal; optionally open Talismans in Atelier for the matching kamea.',
       },
     ],
   },

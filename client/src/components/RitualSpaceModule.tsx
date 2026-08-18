@@ -42,6 +42,8 @@ interface SavedLayout {
 type PlaceTool = RitualToolType | null;
 
 interface RitualSpaceModuleProps {
+  /** When true, hide the standalone page header (used inside Atelier portal). */
+  embedded?: boolean;
   /** When set (e.g. from Ritual Library), apply this template on mount. */
   initialTemplate?: TemplateId;
 }
@@ -50,6 +52,7 @@ interface RitualSpaceModuleProps {
  * Ritual Space Planner — SVG grid altar layout with templates, export, and save.
  */
 export default function RitualSpaceModule({
+  embedded = false,
   initialTemplate,
 }: RitualSpaceModuleProps) {
   const { isAuthenticated } = useAuth();
@@ -341,15 +344,17 @@ export default function RitualSpaceModule({
 
   return (
     <div className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="font-display text-3xl text-ananael-gold">
-          Ritual Space Planner
-        </h1>
-        <p className="max-w-2xl text-sm text-ananael-muted">
-          Arrange altar tools on a grid, apply LBRP or altar-cross templates, and
-          export PNG or JSON. Sign in to save layouts to your profile.
-        </p>
-      </header>
+      {!embedded && (
+        <header className="space-y-2">
+          <h1 className="font-display text-3xl text-ananael-gold">
+            Ritual Space Planner
+          </h1>
+          <p className="max-w-2xl text-sm text-ananael-muted">
+            Arrange altar tools on a grid, apply LBRP or altar-cross templates, and
+            export PNG or JSON. Sign in to save layouts to your profile.
+          </p>
+        </header>
+      )}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">

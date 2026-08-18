@@ -9,6 +9,7 @@ export type ModuleId =
   | 'gematria'
   | 'tree'
   | 'translator'
+  | 'atelier'
   | 'ritual'
   | 'solomonic'
   | 'correspondences'
@@ -19,6 +20,13 @@ export type ModuleId =
   | 'opus'
   | 'subtleBody'
   | 'shamanism';
+
+/** Collapse legacy aliases to the sidebar module they live under. */
+export function canonicalModuleId(id: ModuleId): ModuleId {
+  if (id === 'tarot' || id === 'iching') return 'divination';
+  if (id === 'ritual' || id === 'solomonic' || id === 'talisman') return 'atelier';
+  return id;
+}
 
 export interface ModuleDef {
   id: ModuleId;
@@ -37,9 +45,7 @@ export const MODULES: ModuleDef[] = [
   { id: 'tree', label: 'Tree of Life' },
   { id: 'correspondences', label: 'Correspondences' },
   { id: 'opus', label: 'Athanor' },
-  { id: 'ritual', label: 'Ritual Space Planner' },
-  { id: 'solomonic', label: 'Solomonic Circles' },
-  { id: 'talisman', label: 'Talisman Atelier' },
+  { id: 'atelier', label: 'Atelier' },
   { id: 'enochian', label: 'Enochian' },
   { id: 'liturgy', label: 'Ritual Library' },
   { id: 'subtleBody', label: 'Subtle Body' },
@@ -62,6 +68,7 @@ export const MODULE_SELECT_GROUPS: {
       { id: 'journal', label: 'Journal' },
       { id: 'planetary', label: 'Timing' },
       { id: 'liturgy', label: 'Library' },
+      { id: 'atelier', label: 'Atelier' },
       { id: 'subtleBody', label: 'Body' },
       { id: 'shamanism', label: 'Shamanism' },
     ],
@@ -77,14 +84,6 @@ export const MODULE_SELECT_GROUPS: {
       { id: 'opus', label: 'Athanor' },
     ],
   },
-  {
-    label: 'Builders',
-    modules: [
-      { id: 'ritual', label: 'Ritual Space' },
-      { id: 'solomonic', label: 'Solomonic' },
-      { id: 'talisman', label: 'Talisman' },
-    ],
-  },
 ];
 
 interface SidebarProps {
@@ -97,10 +96,7 @@ interface SidebarProps {
  * Active modules are clickable; optional Soon badge via comingSoon.
  */
 export default function Sidebar({ activeModule, onSelect }: SidebarProps) {
-  const highlightId =
-    activeModule === 'tarot' || activeModule === 'iching'
-      ? 'divination'
-      : activeModule;
+  const highlightId = canonicalModuleId(activeModule);
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-ananael-border/60 bg-ananael-surface/90 backdrop-blur-sm">

@@ -42,6 +42,8 @@ type Tab = 'squares' | 'sigils' | 'sutras';
 type SigilMode = 'planetary' | 'chaos';
 
 interface Props {
+  /** When true, hide the standalone page header (used inside Atelier portal). */
+  embedded?: boolean;
   onNavigate?: (module: ModuleId, opts?: AppNavigateOptions) => void;
   initialName?: string;
 }
@@ -65,6 +67,7 @@ const VIOLET_BUTTON =
   'rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-2 text-sm font-medium text-zinc-100 transition hover:bg-ananael-violet/20';
 
 export default function TalismanModule({
+  embedded = false,
   onNavigate,
   initialName = '',
 }: Props) {
@@ -312,16 +315,16 @@ export default function TalismanModule({
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="font-display text-3xl text-ananael-gold">
-          Talisman Atelier
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          Build planetary magic squares, trace personal sigils, and craft sutra
-          ofuda talismans. Export your work as PNG or JSON, or sign in to keep
-          it in your profile.
-        </p>
-      </header>
+      {!embedded && (
+        <header>
+          <h1 className="font-display text-3xl text-ananael-gold">Talismans</h1>
+          <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
+            Build planetary magic squares, trace personal sigils, and craft sutra
+            ofuda talismans. Export your work as PNG or JSON, or sign in to keep
+            it in your profile.
+          </p>
+        </header>
+      )}
 
       <div className="flex gap-1 rounded-lg border border-ananael-border/60 bg-ananael-surface p-1">
         {([

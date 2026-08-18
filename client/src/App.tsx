@@ -3,6 +3,9 @@ import AccountMenu from './components/AccountMenu';
 import AlchemyModule, {
   type OpusPaneId,
 } from './components/AlchemyModule';
+import AtelierModule, {
+  type AtelierTab,
+} from './components/AtelierModule';
 import CelestialTimingModule from './components/CelestialTimingModule';
 import CorrespondencesModule from './components/CorrespondencesModule';
 import DashboardModule from './components/DashboardModule';
@@ -13,19 +16,17 @@ import EnochianModule from './components/EnochianModule';
 import GematriaModule from './components/GematriaModule';
 import JournalModule from './components/JournalModule';
 import LiturgyModule from './components/LiturgyModule';
-import RitualSpaceModule from './components/RitualSpaceModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, {
+  canonicalModuleId,
   MODULE_SELECT_GROUPS,
   type ModuleId,
 } from './components/Sidebar';
 import SplashPage from './components/SplashPage';
-import SolomonicCircleModule from './components/SolomonicCircleModule';
 import SubtleBodyModule from './components/SubtleBodyModule';
 import ShamanismModule from './components/ShamanismModule';
 import type { SubtleBodyPane } from './lib/subtleBody';
 import type { ShamanismPane } from './lib/shamanism';
-import TalismanModule from './components/TalismanModule';
 import TreeOfLifeModule, {
   type TreeNavigateOptions,
 } from './components/TreeOfLifeModule';
@@ -40,6 +41,7 @@ export type AppNavigateOptions = TreeNavigateOptions & {
   filter?: JournalEntryType | 'all';
   entryId?: string;
   divinationTab?: DivinationTab;
+  atelierTab?: AtelierTab;
   planetaryPanel?:
     | 'hours'
     | 'planets'
@@ -58,10 +60,16 @@ export type AppNavigateOptions = TreeNavigateOptions & {
 function resolveModule(module: ModuleId): {
   module: ModuleId;
   divinationTab?: DivinationTab;
+  atelierTab?: AtelierTab;
 } {
   if (module === 'tarot') return { module: 'divination', divinationTab: 'tarot' };
   if (module === 'iching')
     return { module: 'divination', divinationTab: 'iching' };
+  if (module === 'ritual') return { module: 'atelier', atelierTab: 'ritual' };
+  if (module === 'solomonic')
+    return { module: 'atelier', atelierTab: 'solomonic' };
+  if (module === 'talisman')
+    return { module: 'atelier', atelierTab: 'talisman' };
   return { module };
 }
 
@@ -84,6 +92,7 @@ export default function App() {
   >('all');
   const [journalEntryId, setJournalEntryId] = useState<string | undefined>();
   const [divinationTab, setDivinationTab] = useState<DivinationTab>('tarot');
+  const [atelierTab, setAtelierTab] = useState<AtelierTab>('ritual');
   const [planetaryPanel, setPlanetaryPanel] = useState<
     'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac' | 'natal'
   >('hours');
@@ -148,14 +157,18 @@ export default function App() {
     if (target === 'planetary') {
       setPlanetaryPanel(opts?.planetaryPanel ?? 'hours');
     }
-    if (target === 'ritual') {
+    if (target === 'atelier') {
+      setAtelierTab(
+        opts?.atelierTab ?? resolved.atelierTab ?? 'ritual'
+      );
       setRitualTemplate(opts?.ritualTemplate);
+      if (opts?.gematriaPrefill !== undefined) {
+        setTalismanPrefill(opts.gematriaPrefill);
+      } else {
+        setTalismanPrefill(undefined);
+      }
     } else {
       setRitualTemplate(undefined);
-    }
-    if (target === 'talisman' && opts?.gematriaPrefill !== undefined) {
-      setTalismanPrefill(opts.gematriaPrefill);
-    } else if (target !== 'talisman') {
       setTalismanPrefill(undefined);
     }
     if (target === 'opus') {
@@ -259,14 +272,15 @@ export default function App() {
             initialQuery={correspondencesQuery}
           />
         );
+      case 'atelier':
       case 'ritual':
-        return <RitualSpaceModule initialTemplate={ritualTemplate} />;
       case 'solomonic':
-        return <SolomonicCircleModule />;
       case 'talisman':
         return (
-          <TalismanModule
-            initialName={talismanPrefill}
+          <AtelierModule
+            initialTab={atelierTab}
+            initialTemplate={ritualTemplate}
+            initialTalismanName={talismanPrefill}
             onNavigate={navigateToModule}
           />
         );
@@ -328,11 +342,7 @@ export default function App() {
             <label className="block text-xs text-ananael-muted">
               <span className="sr-only">Module</span>
               <select
-                value={
-                  activeModule === 'tarot' || activeModule === 'iching'
-                    ? 'divination'
-                    : activeModule
-                }
+                value={canonicalModuleId(activeModule)}
                 onChange={(e) =>
                   navigateToModule(e.target.value as ModuleId)
                 }

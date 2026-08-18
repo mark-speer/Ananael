@@ -60,7 +60,7 @@ flowchart TB
 |------|---------|
 | `main.tsx` | React entry; wraps `App` in `AuthProvider` |
 | `App.tsx` | Shell: sidebar, module routing, cross-module navigation state |
-| `components/` | One `*Module.tsx` per sidebar feature (~19 components) |
+| `components/` | One `*Module.tsx` per sidebar feature (~20 components) |
 | `data/` | Static typed corpora (correspondences, tarot, liturgy, chakras, etc.) |
 | `lib/` | Computation, search, API helpers, cross-module wiring |
 | `context/` | `AuthContext.tsx` — JWT session, location, natal profile |
@@ -128,8 +128,9 @@ flowchart TB
 | `filter`, `entryId` | Journal |
 | `divinationTab` | Divination (tarot / iching / geomancy / runes) |
 | `planetaryPanel` | Celestial Timing (hours / planets / zodiac / elections / almanac / natal) |
-| `ritualTemplate` | Ritual Space Planner |
-| `talismanPrefill` | Talisman Atelier |
+| `atelierTab` | Atelier (ritual / solomonic / talisman) |
+| `ritualTemplate` | Atelier → Ritual Space |
+| `talismanPrefill` | Atelier → Talismans (`gematriaPrefill`) |
 | `opusPane`, `stageId`, `metal` | Athanor |
 | `riteId`, `runEntryId`, `liturgyMode` | Ritual Library |
 | `subtleBodyPane`, `subtleBodyFocus` | Subtle Body |
@@ -140,7 +141,7 @@ Modules receive `onNavigate` and `initial*` props to honor deep links from Magic
 
 ### Legacy aliases
 
-`tarot` and `iching` `ModuleId` values resolve to `divination` with the correct tab preselected.
+`tarot` and `iching` `ModuleId` values resolve to `divination` with the correct tab preselected. `ritual`, `solomonic`, and `talisman` resolve to `atelier` with the matching tab.
 
 ### Composite shells
 
@@ -149,6 +150,7 @@ Some sidebar entries host sub-features:
 | Shell | Sub-features |
 |-------|--------------|
 | **Divination** | Tarot, I Ching, Geomancy, Runes (tabs) |
+| **Atelier** | Ritual Space, Circles, Talismans (tabs) |
 | **Celestial Timing** | Hours, Planets, Zodiac, Elections, Almanac, Natal (panels) |
 | **Athanor** | Stages, Vessel, Emblem (panes) |
 | **Subtle Body** | Chakras, Meridians, Maps, Neidan, Practice (panes) |
@@ -181,7 +183,7 @@ Need to persist user work?
 
 ## Module inventory
 
-Structural map of all 16 sidebar modules. Phase history and done-when criteria: [ROADMAP.md](../ROADMAP.md).
+Structural map of all 14 sidebar modules. Phase history and done-when criteria: [ROADMAP.md](../ROADMAP.md).
 
 | Module | `ModuleId` | Component(s) | Data | Lib | API / persistence |
 |--------|------------|--------------|------|-----|-------------------|
@@ -194,9 +196,7 @@ Structural map of all 16 sidebar modules. Phase history and done-when criteria: 
 | Tree of Life | `tree` | `TreeOfLifeModule.tsx` | `treeOfLife` | `svgExport` | `/api/tree/notes` → `TreeNote` |
 | Correspondences | `correspondences` | `CorrespondencesModule.tsx` | `correspondences` | `correspondences` | Client-only |
 | Athanor | `opus` | `AlchemyModule.tsx` | `alchemy` | `alchemy`, `alchemicalGlyphPaths` | `/api/opus/vessels` → `OpusVessel` |
-| Ritual Space Planner | `ritual` | `RitualSpaceModule.tsx` | `ritualTools` | `svgExport` | `/api/ritual/layouts` → `RitualLayout` |
-| Solomonic Circles | `solomonic` | `SolomonicCircleModule.tsx` | `solomonicCircles`, `arsGoetia`, `goetiaSealPlates` | `solomonicGeometry`, `goetiaSealArt` | `/api/solomonic/circles` → `SolomonicCircle` |
-| Talisman Atelier | `talisman` | `TalismanModule.tsx` | — | `kamea`, `sigil`, `ofuda`, `sutras` (data), `svgExport` | `/api/talisman/designs` → `TalismanDesign` (`kamea` \| `sigil` \| `sutra`) |
+| Atelier | `atelier` | `AtelierModule.tsx`, `RitualSpaceModule`, `SolomonicCircleModule`, `TalismanModule` | `ritualTools`, `solomonicCircles`, `arsGoetia`, `goetiaSealPlates`, `sutras` | `solomonicGeometry`, `goetiaSealArt`, `kamea`, `sigil`, `ofuda`, `svgExport` | `/api/ritual/layouts` → `RitualLayout`; `/api/solomonic/circles` → `SolomonicCircle`; `/api/talisman/designs` → `TalismanDesign` (`kamea` \| `sigil` \| `sutra`) |
 | Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
 | Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |

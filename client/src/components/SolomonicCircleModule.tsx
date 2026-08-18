@@ -69,11 +69,18 @@ interface SavedCircle {
   notes?: string;
 }
 
+interface SolomonicCircleModuleProps {
+  /** When true, hide the standalone page header (used inside Atelier portal). */
+  embedded?: boolean;
+}
+
 /**
  * Solomonic Circles — Phase 5 circle builder + Phase 6 Goetia conjuration.
  * Parametric SVG from tradition presets, spirit picker, Triangle of Art + seal.
  */
-export default function SolomonicCircleModule() {
+export default function SolomonicCircleModule({
+  embedded = false,
+}: SolomonicCircleModuleProps) {
   const { isAuthenticated } = useAuth();
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -500,18 +507,20 @@ export default function SolomonicCircleModule() {
 
   return (
     <div className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="font-display text-3xl text-ananael-gold">
-          Solomonic Circles
-        </h1>
-        <p className="max-w-2xl text-sm text-ananael-muted">
-          Build a magician&apos;s protective circle from templates or tradition
-          presets. Apply full divine-name rings and sacred names on the cardinal
-          hexagrams, optionally coil the boundaries as serpents, and for Goetia
-          conjuration pick a spirit for the Triangle of Art and seal. Export PNG
-          or JSON; sign in to save.
-        </p>
-      </header>
+      {!embedded && (
+        <header className="space-y-2">
+          <h1 className="font-display text-3xl text-ananael-gold">
+            Solomonic Circles
+          </h1>
+          <p className="max-w-2xl text-sm text-ananael-muted">
+            Build a magician&apos;s protective circle from templates or tradition
+            presets. Apply full divine-name rings and sacred names on the cardinal
+            hexagrams, optionally coil the boundaries as serpents, and for Goetia
+            conjuration pick a spirit for the Triangle of Art and seal. Export PNG
+            or JSON; sign in to save.
+          </p>
+        </header>
+      )}
 
       {/* Templates */}
       <div className="flex flex-wrap items-center gap-2">

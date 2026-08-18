@@ -139,7 +139,7 @@ export default function SplashPage({ onEnterGuest }: SplashPageProps) {
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-ananael-muted sm:text-base">
             Every tool lives in the same Inner Sanctum—from Magical OS to
-            Solomonic Circles—so study, timing, and ritual design stay connected.
+            Atelier—so study, timing, and ritual design stay connected.
           </p>
 
           <ul className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
