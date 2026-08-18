@@ -167,7 +167,7 @@ export default function SkyDisc({
   snapshot,
   hours,
   onClick,
-  className = 'h-44 w-44',
+  className = 'h-64 w-64',
 }: SkyDiscProps) {
   const rawId = useId().replace(/:/g, '');
   const gradId = `sky-disc-grad-${rawId}`;

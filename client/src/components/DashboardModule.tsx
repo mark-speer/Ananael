@@ -532,7 +532,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               onClick={() =>
                 onNavigate('planetary', { planetaryPanel: 'planets' })
               }
-              className="mx-auto h-44 w-44 shrink-0"
+              className="mx-auto h-64 w-64 shrink-0 lg:h-72 lg:w-72"
             />
           </div>
         </section>
