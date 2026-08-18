@@ -187,7 +187,7 @@ Structural map of all 14 sidebar modules. Phase history and done-when criteria: 
 
 | Module | `ModuleId` | Component(s) | Data | Lib | API / persistence |
 |--------|------------|--------------|------|-----|-------------------|
-| Magical OS | `dashboard` | `DashboardModule.tsx` | `splashFeatures.ts` | `almanac`, `journal`, `journalSky`, `natalPersonalization` | Auth profile (`/api/auth/location`, `/api/auth/natal`) |
+| Magical OS | `dashboard` | `DashboardModule.tsx`, `SkyDisc.tsx` | `splashFeatures.ts` | `almanac`, `journal`, `journalSky`, `natalPersonalization`, `celestialEphemeris` | Auth profile (`/api/auth/location`, `/api/auth/natal`) |
 | Divination | `divination` | `DivinationModule.tsx`, `TarotModule`, `IChingModule`, `GeomancyModule`, `RunesModule`, `glyphs/*` | `tarotDeck`, `tarotDeckArt`, `tarotCombos`, `iching`, `ichingCorrespondences`, `geomancy`, `runes` | `iching`, `geomancy`, `runes`, `tarotSummary`, `glyphs/` | Journal saves (`/api/tarot`, `/api/iching`, `/api/geomancy`, `/api/runes`) |
 | Magical Journal | `journal` | `JournalModule.tsx` | — | `journal`, `journalSky` | `/api/journal/entries` |
 | Gematria | `gematria` | `GematriaModule.tsx` | `data/gematria/` | `gematria` | `/api/gematria/save` → `GematriaQuery` |
@@ -233,7 +233,7 @@ Divination saves (`/api/tarot/save`, `/api/iching/save`, etc.) write `JournalEnt
 
 ### Magical OS
 
-Default home module (`dashboard`). Composes sky conditions, quick divination, journal summaries, and tile deep-links into every other module via `onNavigate`.
+Default home module (`dashboard`). Composes sky conditions (Sky clock metrics plus a live `SkyDisc` horizon view), quick divination, journal summaries, and tile deep-links into every other module via `onNavigate`.
 
 ### UI conventions
 

@@ -4,6 +4,7 @@ import { shuffleDeck, TAROT_DECK } from '../data/tarotDeck';
 import { loadDeckStyle } from '../data/tarotDeckArt';
 import { apiFetch } from '../lib/api';
 import { buildDayCounsel, nextMonthHighlight } from '../lib/almanac';
+import { buildSkySnapshot } from '../lib/celestialEphemeris';
 import { buildJournalSky } from '../lib/journalSky';
 import type { JournalEntry, JournalEntryType } from '../lib/journal';
 import {
@@ -29,6 +30,7 @@ import { suggestedWorldFromSky } from '../lib/shamanism';
 import { getWorld } from '../data/shamanism';
 import { suggestEasternRite } from '../lib/subtleBodyCounsel';
 import type { ModuleId } from './Sidebar';
+import SkyDisc from './SkyDisc';
 import TarotCard, { type DealtCard } from './TarotCard';
 
 const REVERSAL_CHANCE = 0.2;
@@ -150,6 +152,10 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
 
   const loc = location;
   const sky = buildJournalSky(now, loc?.lat, loc?.lon);
+  const skySnap = useMemo(
+    () => buildSkySnapshot(now, loc?.lat, loc?.lon),
+    [now, loc?.lat, loc?.lon]
+  );
   let chart: PlanetaryHoursChart | null = null;
   if (loc) {
     chart = buildPlanetaryHours(now, loc.lat, loc.lon, now);
@@ -391,132 +397,144 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             </div>
           </div>
 
-          <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <div>
-              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
-                Moon
-              </dt>
-              <dd>
-                <button
-                  type="button"
-                  className={skyMetricBtn}
-                  onClick={() =>
-                    onNavigate('planetary', { planetaryPanel: 'zodiac' })
-                  }
-                >
-                  {sky.moonPhase ?? '—'}
-                  {sky.moonIllum != null && (
-                    <span className="ml-1 text-sm text-ananael-muted">
-                      ({Math.round(sky.moonIllum * 100)}%)
-                    </span>
-                  )}
-                </button>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
-                Day ruler
-              </dt>
-              <dd>
-                <button
-                  type="button"
-                  className={skyMetricBtn}
-                  onClick={() =>
-                    onNavigate('planetary', { planetaryPanel: 'planets' })
-                  }
-                >
-                  {sky.dayRuler ?? '—'}
-                </button>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
-                Hour ruler
-              </dt>
-              <dd>
-                <button
-                  type="button"
-                  className={skyMetricBtn}
-                  onClick={() =>
-                    onNavigate('planetary', { planetaryPanel: 'hours' })
-                  }
-                >
-                  {chart?.currentHour
-                    ? `${chart.currentHour.planet} (${chart.currentHour.segment} ${chart.currentHour.hourOfSegment})`
-                    : sky.hourRuler ?? 'Set location'}
-                </button>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
-                Until next hour
-              </dt>
-              <dd>
-                <button
-                  type="button"
-                  className={skyMetricBtn}
-                  onClick={() =>
-                    onNavigate('planetary', { planetaryPanel: 'hours' })
-                  }
-                >
-                  {hourRemainingMs != null && chart?.currentHour
-                    ? `${formatRemaining(hourRemainingMs)} · ends ${formatTime(chart.currentHour.end)}`
-                    : '—'}
-                </button>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
-                Sun
-              </dt>
-              <dd>
-                <button
-                  type="button"
-                  className={skyMetricBtn}
-                  onClick={() =>
-                    onNavigate('planetary', { planetaryPanel: 'zodiac' })
-                  }
-                >
-                  {sky.sunSign ?? '—'}
-                </button>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
-                Day pillar
-              </dt>
-              <dd>
-                <button
-                  type="button"
-                  className={skyMetricBtn}
-                  onClick={() =>
-                    onNavigate('planetary', { planetaryPanel: 'zodiac' })
-                  }
-                >
-                  {sky.chineseDay ?? '—'}
-                </button>
-              </dd>
-            </div>
-          </dl>
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="min-w-0 flex-1">
+              <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Moon
+                  </dt>
+                  <dd>
+                    <button
+                      type="button"
+                      className={skyMetricBtn}
+                      onClick={() =>
+                        onNavigate('planetary', { planetaryPanel: 'zodiac' })
+                      }
+                    >
+                      {sky.moonPhase ?? '—'}
+                      {sky.moonIllum != null && (
+                        <span className="ml-1 text-sm text-ananael-muted">
+                          ({Math.round(sky.moonIllum * 100)}%)
+                        </span>
+                      )}
+                    </button>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Day ruler
+                  </dt>
+                  <dd>
+                    <button
+                      type="button"
+                      className={skyMetricBtn}
+                      onClick={() =>
+                        onNavigate('planetary', { planetaryPanel: 'planets' })
+                      }
+                    >
+                      {sky.dayRuler ?? '—'}
+                    </button>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Hour ruler
+                  </dt>
+                  <dd>
+                    <button
+                      type="button"
+                      className={skyMetricBtn}
+                      onClick={() =>
+                        onNavigate('planetary', { planetaryPanel: 'hours' })
+                      }
+                    >
+                      {chart?.currentHour
+                        ? `${chart.currentHour.planet} (${chart.currentHour.segment} ${chart.currentHour.hourOfSegment})`
+                        : sky.hourRuler ?? 'Set location'}
+                    </button>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Until next hour
+                  </dt>
+                  <dd>
+                    <button
+                      type="button"
+                      className={skyMetricBtn}
+                      onClick={() =>
+                        onNavigate('planetary', { planetaryPanel: 'hours' })
+                      }
+                    >
+                      {hourRemainingMs != null && chart?.currentHour
+                        ? `${formatRemaining(hourRemainingMs)} · ends ${formatTime(chart.currentHour.end)}`
+                        : '—'}
+                    </button>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Sun
+                  </dt>
+                  <dd>
+                    <button
+                      type="button"
+                      className={skyMetricBtn}
+                      onClick={() =>
+                        onNavigate('planetary', { planetaryPanel: 'zodiac' })
+                      }
+                    >
+                      {sky.sunSign ?? '—'}
+                    </button>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Day pillar
+                  </dt>
+                  <dd>
+                    <button
+                      type="button"
+                      className={skyMetricBtn}
+                      onClick={() =>
+                        onNavigate('planetary', { planetaryPanel: 'zodiac' })
+                      }
+                    >
+                      {sky.chineseDay ?? '—'}
+                    </button>
+                  </dd>
+                </div>
+              </dl>
 
-          {!loc && (
-            <p className="mt-3 text-xs text-ananael-muted">
-              Set a location (here or in Celestial Timing) for the current
-              planetary hour
-              {isAuthenticated
-                ? ' — it is saved to your account.'
-                : '. Sign in to sync location across devices.'}
-            </p>
-          )}
-          {geoStatus && (
-            <p className="mt-2 text-xs text-zinc-500">{geoStatus}</p>
-          )}
-          {loc && (
-            <p className="mt-3 text-[11px] text-ananael-muted">
-              Using {loc.lat.toFixed(4)}, {loc.lon.toFixed(4)}
-              {isAuthenticated ? ' (account)' : ' (this device)'}
-            </p>
-          )}
+              {!loc && (
+                <p className="mt-3 text-xs text-ananael-muted">
+                  Set a location (here or in Celestial Timing) for the current
+                  planetary hour
+                  {isAuthenticated
+                    ? ' — it is saved to your account.'
+                    : '. Sign in to sync location across devices.'}
+                </p>
+              )}
+              {geoStatus && (
+                <p className="mt-2 text-xs text-zinc-500">{geoStatus}</p>
+              )}
+              {loc && (
+                <p className="mt-3 text-[11px] text-ananael-muted">
+                  Using {loc.lat.toFixed(4)}, {loc.lon.toFixed(4)}
+                  {isAuthenticated ? ' (account)' : ' (this device)'}
+                </p>
+              )}
+            </div>
+            <SkyDisc
+              snapshot={skySnap}
+              hours={chart}
+              onClick={() =>
+                onNavigate('planetary', { planetaryPanel: 'planets' })
+              }
+              className="mx-auto h-44 w-44 shrink-0"
+            />
+          </div>
         </section>
 
         {/* Magical Almanac */}
