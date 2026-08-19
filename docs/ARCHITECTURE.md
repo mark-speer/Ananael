@@ -199,7 +199,7 @@ Structural map of all 14 sidebar modules. Phase history and done-when criteria: 
 | Atelier | `atelier` | `AtelierModule.tsx`, `RitualSpaceModule`, `SolomonicCircleModule`, `TalismanModule` | `ritualTools`, `solomonicCircles`, `arsGoetia`, `goetiaSealPlates`, `sutras` | `solomonicGeometry`, `goetiaSealArt`, `kamea`, `sigil`, `ofuda`, `svgExport` | `/api/ritual/layouts` → `RitualLayout`; `/api/solomonic/circles` → `SolomonicCircle`; `/api/talisman/designs` → `TalismanDesign` (`kamea` \| `sigil` \| `sutra`) |
 | Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
-| Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `mudras`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |
+| Subtle Body | `subtleBody` | `SubtleBodyModule.tsx`, `glyphs/MudraSvg` | `chakras`, `meridians`, `mudras`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel`, `glyphs/mudraGlyph` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |
 | Shamanism | `shamanism` | `ShamanismModule.tsx`, `glyphs/WorldTreeSvg`, `DirectionWheelSvg`, `LotSvg` | `shamanism/worlds`, `directions`, `allies`, `lots` | `shamanism`, `shamanismJourney`, `shamanismCast`, `shamanismDrum`, `glyphs/worldTreeGlyph` | Journal journey (`payload.system: 'shamanic-journey'`); `/api/shamanism/save` → journal; `/api/practice/vessels` with `config.system: 'shamanism'` |
 
 ---
@@ -240,7 +240,7 @@ Default home module (`dashboard`). Composes sky conditions (Sky clock metrics pl
 - Tailwind CSS with `ananael-*` theme tokens (dark esoteric palette).
 - Components named `*Module.tsx`, one per sidebar `ModuleId`.
 - Shared search chrome and SVG export utilities in `lib/svgExport.ts` (`inlineExternalImages` for PNG/SVG seal inlining).
-- Divination SVG glyphs in `lib/glyphs/` (I Ching / Geomancy / Runes / world-tree / direction wheel / lots), rendered via `components/glyphs/` — same generator pattern as `goetiaSealArt.ts`.
+- Divination SVG glyphs in `lib/glyphs/` (I Ching / Geomancy / Runes / world-tree / direction wheel / lots / mudras), rendered via `components/glyphs/` — same generator pattern as `goetiaSealArt.ts`.
 - Goetia seals: Mathers 1904 plates (`{sealRef}.png`) with generated SVG fallback; ingest script `client/scripts/ingest-goetia-plates.py`.
 
 ---

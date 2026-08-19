@@ -5,8 +5,10 @@ import { getChakra, type Chakra } from '../data/chakras';
 import type { Meridian } from '../data/meridians';
 import {
   MUDRA_HANDS_LABELS,
+  MUDRA_IDS,
   MUDRA_TRADITION_LABELS,
   type Mudra,
+  type MudraId,
 } from '../data/mudras';
 import { LITURGY_RITES } from '../data/liturgy';
 import { getComparativeMap } from '../data/subtleBodyMaps';
@@ -29,6 +31,7 @@ import {
 } from '../lib/subtleBody';
 import type { JournalEntryType } from '../lib/journal';
 import type { ModuleId } from './Sidebar';
+import MudraSvg from './glyphs/MudraSvg';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
 
 export interface SubtleBodyNavigateOptions extends TreeNavigateOptions {
@@ -285,15 +288,20 @@ export default function SubtleBodyModule({
                     type="button"
                     onClick={() => setFocusId(m.id)}
                     className={[
-                      'flex w-full flex-col rounded-md px-3 py-2.5 text-left transition',
+                      'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition',
                       selectedMudra?.id === m.id
                         ? 'bg-ananael-violet/20 text-ananael-gold'
                         : 'text-zinc-300 hover:bg-ananael-panel',
                     ].join(' ')}
                   >
-                    <span className="text-sm font-medium">{m.name}</span>
-                    <span className="text-xs text-ananael-muted">
-                      {MUDRA_TRADITION_LABELS[m.tradition]} · {m.sanskrit}
+                    {isMudraId(m.id) && (
+                      <MudraSvg mudraId={m.id} className="h-12 w-14 shrink-0" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium">{m.name}</span>
+                      <span className="block text-xs text-ananael-muted">
+                        {MUDRA_TRADITION_LABELS[m.tradition]} · {m.sanskrit}
+                      </span>
                     </span>
                   </button>
                 </li>
@@ -763,6 +771,10 @@ function mudraMatchesTradition(
   return mudra.tradition === 'buddhist' || mudra.tradition === 'shared';
 }
 
+function isMudraId(id: string): id is MudraId {
+  return (MUDRA_IDS as readonly string[]).includes(id);
+}
+
 function ChakraSpineDiagram({
   chakras,
   selectedId,
@@ -1000,6 +1012,14 @@ function MudraDetail({
         <h2 className="font-display text-2xl text-ananael-gold">{mudra.name}</h2>
         <p className="text-sm text-ananael-muted">{mudra.sanskrit}</p>
       </div>
+      {isMudraId(mudra.id) && (
+        <div className="flex flex-col items-center rounded-lg border border-ananael-border/40 bg-ananael-bg/80 px-3 py-3">
+          <MudraSvg mudraId={mudra.id} className="h-44 w-52" title={mudra.name} />
+          <p className="mt-1 text-[10px] uppercase tracking-wider text-ananael-muted">
+            Study schematic — not photographic instruction
+          </p>
+        </div>
+      )}
       <dl className="grid gap-3 sm:grid-cols-2">
         <div>
           <dt className="text-xs uppercase tracking-wider text-ananael-muted">

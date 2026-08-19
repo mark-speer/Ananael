@@ -16,8 +16,10 @@ import type { Chakra } from '../data/chakras';
 import type { Meridian } from '../data/meridians';
 import {
   MUDRA_HANDS_LABELS,
+  MUDRA_IDS,
   MUDRA_TRADITION_LABELS,
   type Mudra,
+  type MudraId,
 } from '../data/mudras';
 import { getComparativeMap, getChakraForSephirah } from '../data/subtleBodyMaps';
 import {
@@ -31,6 +33,7 @@ import {
 } from '../lib/correspondences';
 import type { PlanetId } from '../lib/planetaryHours';
 import type { ModuleId } from './Sidebar';
+import MudraSvg from './glyphs/MudraSvg';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
 
 const PLANET_IDS = new Set<string>([
@@ -650,6 +653,15 @@ function MudraDetailPanel({
         <h2 className="mt-1 font-display text-xl text-ananael-gold">{mudra.name}</h2>
         <p className="text-sm text-ananael-muted">{mudra.sanskrit}</p>
       </div>
+      {(MUDRA_IDS as readonly string[]).includes(mudra.id) && (
+        <div className="flex flex-col items-center rounded-lg border border-ananael-border/40 bg-ananael-bg/80 px-3 py-3">
+          <MudraSvg
+            mudraId={mudra.id as MudraId}
+            className="h-40 w-48"
+            title={mudra.name}
+          />
+        </div>
+      )}
       <dl className="grid gap-3 sm:grid-cols-2">
         <div>
           <dt className="text-xs uppercase tracking-wider text-ananael-muted">

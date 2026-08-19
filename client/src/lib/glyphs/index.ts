@@ -33,3 +33,8 @@ export {
   directionWheelSvgDocument,
 } from './directionWheelGlyph';
 export { LOT_VIEW, lotInnerMarkup, lotSvgDocument } from './lotGlyph';
+export {
+  MUDRA_VIEW,
+  mudraInnerMarkup,
+  mudraSvgDocument,
+} from './mudraGlyph';
