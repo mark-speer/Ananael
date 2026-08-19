@@ -28,6 +28,7 @@ import { isRitualRunnerPayload } from '../lib/ritualRunner';
 import { isShamanicJourneyPayload } from '../lib/shamanismJourney';
 import { suggestedWorldFromSky } from '../lib/shamanism';
 import { getWorld } from '../data/shamanism';
+import type { SubtleBodyPane } from '../lib/subtleBody';
 import { suggestEasternRite } from '../lib/subtleBodyCounsel';
 import type { ModuleId } from './Sidebar';
 import SkyDisc from './SkyDisc';
@@ -57,7 +58,7 @@ export interface DashboardNavigateOptions {
   riteId?: string;
   runEntryId?: string;
   liturgyMode?: LiturgyMode;
-  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan' | 'practice';
+  subtleBodyPane?: SubtleBodyPane;
   subtleBodyFocus?: string;
   shamanismPane?:
     | 'worlds'

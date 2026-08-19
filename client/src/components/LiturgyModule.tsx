@@ -19,6 +19,7 @@ import {
   type LiturgyMode,
   type RitualRunnerSession,
 } from '../lib/ritualRunner';
+import type { SubtleBodyPane } from '../lib/subtleBody';
 import type { ModuleId } from './Sidebar';
 import RitualRunnerPanel from './RitualRunnerPanel';
 
@@ -36,7 +37,7 @@ export interface LiturgyNavigateOptions {
   runEntryId?: string;
   liturgyMode?: LiturgyMode;
   correspondencesQuery?: string;
-  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan';
+  subtleBodyPane?: SubtleBodyPane;
   subtleBodyFocus?: string;
 }
 
@@ -417,7 +418,9 @@ export default function LiturgyModule({
                   </span>
                 ))}
               </div>
-              {(rite.relatedChakras?.length || rite.relatedMeridians?.length) ? (
+              {(rite.relatedChakras?.length ||
+                rite.relatedMeridians?.length ||
+                rite.relatedMudras?.length) ? (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {rite.relatedChakras?.map((id) => (
                     <button
@@ -445,6 +448,21 @@ export default function LiturgyModule({
                       className="rounded border border-ananael-gold/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-ananael-gold hover:bg-ananael-gold/10"
                     >
                       meridian: {id}
+                    </button>
+                  ))}
+                  {rite.relatedMudras?.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() =>
+                        onNavigate?.('subtleBody', {
+                          subtleBodyPane: 'mudras',
+                          subtleBodyFocus: id,
+                        })
+                      }
+                      className="rounded border border-ananael-gold/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-ananael-gold hover:bg-ananael-gold/10"
+                    >
+                      mudra: {id}
                     </button>
                   ))}
                 </div>

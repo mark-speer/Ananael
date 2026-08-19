@@ -28,6 +28,7 @@ export interface LiturgyRite {
   sketch?: boolean;
   relatedChakras?: string[];
   relatedMeridians?: string[];
+  relatedMudras?: string[];
   relatedWorlds?: string[];
   relatedAllies?: string[];
 }
@@ -730,6 +731,7 @@ export const LITURGY_RITES: LiturgyRite[] = [
     tags: ['pranayama', 'balance', 'daily'],
     relatedChakras: ['ajna', 'anahata'],
     relatedMeridians: ['lung', 'triple-burner'],
+    relatedMudras: ['vishnu'],
     tools: ['upright seat', 'right hand for nostril closure (Vishnu mudra as taught)'],
     purpose:
       'Equilibrate the lunar and solar breath currents (ida and pingala) through alternating nostril pranayama.',

@@ -14,6 +14,11 @@ import {
 import { getCardById } from '../data/tarotDeck';
 import type { Chakra } from '../data/chakras';
 import type { Meridian } from '../data/meridians';
+import {
+  MUDRA_HANDS_LABELS,
+  MUDRA_TRADITION_LABELS,
+  type Mudra,
+} from '../data/mudras';
 import { getComparativeMap, getChakraForSephirah } from '../data/subtleBodyMaps';
 import {
   metalForPlanet,
@@ -57,6 +62,7 @@ export default function CorrespondencesModule({
   const [selectedMeridianId, setSelectedMeridianId] = useState<string | null>(
     null
   );
+  const [selectedMudraId, setSelectedMudraId] = useState<string | null>(null);
   const [selectedShamanicId, setSelectedShamanicId] = useState<string | null>(
     null
   );
@@ -67,6 +73,7 @@ export default function CorrespondencesModule({
       setSelectedKey(null);
       setSelectedChakraId(null);
       setSelectedMeridianId(null);
+      setSelectedMudraId(null);
       setSelectedShamanicId(null);
     }
   }, [initialQuery]);
@@ -86,14 +93,26 @@ export default function CorrespondencesModule({
     setSelectedKey(null);
     setSelectedChakraId(null);
     setSelectedMeridianId(null);
+    setSelectedMudraId(null);
     setSelectedShamanicId(null);
   };
 
   const showSubtlePrimary =
     facet === 'chakra' ||
     facet === 'meridian' ||
-    (result.chakras.length > 0 && result.meridians.length === 0 && !result.matches.length) ||
-    (result.meridians.length > 0 && result.chakras.length === 0 && !result.matches.length);
+    facet === 'mudra' ||
+    (result.chakras.length > 0 &&
+      result.meridians.length === 0 &&
+      result.mudras.length === 0 &&
+      !result.matches.length) ||
+    (result.meridians.length > 0 &&
+      result.chakras.length === 0 &&
+      result.mudras.length === 0 &&
+      !result.matches.length) ||
+    (result.mudras.length > 0 &&
+      result.chakras.length === 0 &&
+      result.meridians.length === 0 &&
+      !result.matches.length);
 
   const selectedChakra =
     result.chakras.find((c) => c.id === selectedChakraId) ??
@@ -102,6 +121,10 @@ export default function CorrespondencesModule({
   const selectedMeridian =
     result.meridians.find((m) => m.id === selectedMeridianId) ??
     result.meridians[0] ??
+    null;
+  const selectedMudra =
+    result.mudras.find((m) => m.id === selectedMudraId) ??
+    result.mudras[0] ??
     null;
   const selectedWorld =
     result.worlds.find((w) => w.id === selectedShamanicId) ??
@@ -210,6 +233,7 @@ export default function CorrespondencesModule({
                 onSelect: () => {
                   setSelectedChakraId(c.id);
                   setSelectedMeridianId(null);
+                  setSelectedMudraId(null);
                   setSelectedKey(null);
                 },
               }))}
@@ -226,6 +250,26 @@ export default function CorrespondencesModule({
                 onSelect: () => {
                   setSelectedMeridianId(m.id);
                   setSelectedChakraId(null);
+                  setSelectedMudraId(null);
+                  setSelectedKey(null);
+                  setSelectedShamanicId(null);
+                },
+              }))}
+            />
+          )}
+          {(facet === 'mudra' ||
+            (!facet && result.mudras.length > 0 && query.trim())) && (
+            <SubtleBodyList
+              label={`${result.mudras.length} mudra${result.mudras.length === 1 ? '' : 's'}`}
+              items={result.mudras.map((m) => ({
+                id: m.id,
+                title: m.name,
+                subtitle: `${MUDRA_TRADITION_LABELS[m.tradition]} · ${m.sanskrit}`,
+                active: selectedMudra?.id === m.id,
+                onSelect: () => {
+                  setSelectedMudraId(m.id);
+                  setSelectedChakraId(null);
+                  setSelectedMeridianId(null);
                   setSelectedKey(null);
                   setSelectedShamanicId(null);
                 },
@@ -244,6 +288,7 @@ export default function CorrespondencesModule({
                   setSelectedShamanicId(w.id);
                   setSelectedChakraId(null);
                   setSelectedMeridianId(null);
+                  setSelectedMudraId(null);
                   setSelectedKey(null);
                 },
               }))}
@@ -261,6 +306,7 @@ export default function CorrespondencesModule({
                   setSelectedShamanicId(a.id);
                   setSelectedChakraId(null);
                   setSelectedMeridianId(null);
+                  setSelectedMudraId(null);
                   setSelectedKey(null);
                 },
               }))}
@@ -278,6 +324,7 @@ export default function CorrespondencesModule({
                   setSelectedShamanicId(d.id);
                   setSelectedChakraId(null);
                   setSelectedMeridianId(null);
+                  setSelectedMudraId(null);
                   setSelectedKey(null);
                 },
               }))}
@@ -288,12 +335,18 @@ export default function CorrespondencesModule({
               <p className="text-xs uppercase tracking-wider text-ananael-muted">
                 {result.matches.length} key
                 {result.matches.length === 1 ? '' : 's'}
-                {facet && facet !== 'chakra' && facet !== 'meridian'
+                {facet &&
+                facet !== 'chakra' &&
+                facet !== 'meridian' &&
+                facet !== 'mudra'
                   ? ` · ${FACET_LABELS[facet]}`
                   : ''}
               </p>
               <ul className="max-h-[50vh] space-y-1 overflow-y-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-2 sm:max-h-[32rem]">
-                {result.matches.length === 0 && !result.chakras.length && !result.meridians.length && (
+                {result.matches.length === 0 &&
+                  !result.chakras.length &&
+                  !result.meridians.length &&
+                  !result.mudras.length && (
                   <li className="px-3 py-4 text-sm text-ananael-muted">
                     No correspondences match this search.
                   </li>
@@ -308,6 +361,7 @@ export default function CorrespondencesModule({
                           setSelectedKey(key.key);
                           setSelectedChakraId(null);
                           setSelectedMeridianId(null);
+                          setSelectedMudraId(null);
                         }}
                         className={[
                           'flex w-full items-start gap-3 rounded-md px-3 py-2.5 text-left transition',
@@ -343,6 +397,9 @@ export default function CorrespondencesModule({
           ) : selectedMeridian &&
             (facet === 'meridian' || selectedMeridianId || showSubtlePrimary) ? (
             <MeridianDetailPanel meridian={selectedMeridian} onNavigate={onNavigate} />
+          ) : selectedMudra &&
+            (facet === 'mudra' || selectedMudraId || showSubtlePrimary) ? (
+            <MudraDetailPanel mudra={selectedMudra} onNavigate={onNavigate} />
           ) : selectedWorld && (facet === 'world' || selectedShamanicId === selectedWorld.id) ? (
             <SimpleEntityPanel
               eyebrow="World"
@@ -574,6 +631,61 @@ function ChakraDetailPanel({
             Open Tree of Life
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function MudraDetailPanel({
+  mudra,
+  onNavigate,
+}: {
+  mudra: Mudra;
+  onNavigate: (module: ModuleId, opts?: TreeNavigateOptions) => void;
+}) {
+  return (
+    <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
+      <div>
+        <p className="text-xs uppercase tracking-wider text-ananael-muted">Mudra</p>
+        <h2 className="mt-1 font-display text-xl text-ananael-gold">{mudra.name}</h2>
+        <p className="text-sm text-ananael-muted">{mudra.sanskrit}</p>
+      </div>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+            Tradition
+          </dt>
+          <dd className="text-sm text-zinc-200">
+            {MUDRA_TRADITION_LABELS[mudra.tradition]}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">Hands</dt>
+          <dd className="text-sm text-zinc-200">{MUDRA_HANDS_LABELS[mudra.hands]}</dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+            Formation
+          </dt>
+          <dd className="text-sm text-zinc-200">{mudra.formation}</dd>
+        </div>
+      </dl>
+      {mudra.notes && (
+        <p className="text-xs text-ananael-muted">{mudra.notes}</p>
+      )}
+      <div className="flex flex-wrap gap-2 border-t border-ananael-border/40 pt-4">
+        <button
+          type="button"
+          onClick={() =>
+            onNavigate('subtleBody', {
+              subtleBodyPane: 'mudras',
+              subtleBodyFocus: mudra.id,
+            })
+          }
+          className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
+        >
+          Open Subtle Body
+        </button>
       </div>
     </div>
   );

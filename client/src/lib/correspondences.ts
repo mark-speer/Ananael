@@ -24,6 +24,7 @@ import {
 } from '../data/ichingCorrespondences';
 import { searchChakras, type Chakra } from '../data/chakras';
 import { searchMeridians, type Meridian } from '../data/meridians';
+import { searchMudras, type Mudra } from '../data/mudras';
 import {
   getComparativeMap,
   getChakraForSephirah,
@@ -67,6 +68,7 @@ export interface CorrespondenceSearchResult {
   matches: CorrespondenceKey[];
   chakras: Chakra[];
   meridians: Meridian[];
+  mudras: Mudra[];
   dantians: Dantian[];
   worlds: ShamanicWorld[];
   allies: ShamanicAlly[];
@@ -225,6 +227,8 @@ function facetFieldValues(
     }
     case 'dantian':
       return ['dantian', 'lower dantian', 'middle dantian', 'upper dantian', '丹田'];
+    case 'mudra':
+      return [];
     case 'world':
       return worldsForFacet(key.key).flatMap((w) => [w.name, w.id, ...w.keywords]);
     case 'ally':
@@ -573,6 +577,33 @@ function buildMeridianCluster(meridian: Meridian): EntityCluster {
   };
 }
 
+function buildMudraCluster(mudra: Mudra): EntityCluster {
+  const highlights: { label: string; value: string }[] = [
+    { label: 'Sanskrit', value: mudra.sanskrit },
+    { label: 'Tradition', value: mudra.tradition },
+    { label: 'Hands', value: mudra.hands },
+    { label: 'Formation', value: mudra.formation },
+  ];
+  if (mudra.keywords.length) {
+    highlights.push({ label: 'Keywords', value: mudra.keywords.join(' · ') });
+  }
+  const rites = LITURGY_RITES.filter((r) =>
+    r.relatedMudras?.includes(mudra.id)
+  ).map((r) => r.title);
+  if (rites.length) {
+    highlights.push({
+      label: 'Related rites',
+      value: rites.slice(0, 2).join(', '),
+    });
+  }
+  return {
+    label: mudra.name,
+    facet: 'mudra',
+    highlights,
+    subtleBodyId: mudra.id,
+  };
+}
+
 function resolveCluster(
   rawQuery: string,
   matches: CorrespondenceKey[],
@@ -611,6 +642,21 @@ function resolveCluster(
   const meridianPartial = searchMeridians(rawQuery);
   if (meridianPartial.length === 1) {
     return buildMeridianCluster(meridianPartial[0]!);
+  }
+
+  for (const m of searchMudras(rawQuery)) {
+    if (
+      normalize(m.name) === q ||
+      normalize(m.id) === q ||
+      normalize(m.sanskrit) === q ||
+      (m.alsoKnownAs ?? []).some((a) => normalize(a) === q)
+    ) {
+      return buildMudraCluster(m);
+    }
+  }
+  const mudraPartial = searchMudras(rawQuery);
+  if (mudraPartial.length === 1) {
+    return buildMudraCluster(mudraPartial[0]!);
   }
 
   for (const d of searchDantians(rawQuery)) {
@@ -809,21 +855,40 @@ export function searchCorrespondences(
     facet === 'world' || facet === 'ally' || facet === 'direction';
 
   const chakras =
-    shamanicFacet || facet === 'meridian' || facet === 'dantian'
+    shamanicFacet ||
+    facet === 'meridian' ||
+    facet === 'dantian' ||
+    facet === 'mudra'
       ? []
       : facet === 'chakra' || !facet
         ? searchChakras(query)
         : [];
 
   const meridians =
-    shamanicFacet || facet === 'chakra' || facet === 'dantian'
+    shamanicFacet ||
+    facet === 'chakra' ||
+    facet === 'dantian' ||
+    facet === 'mudra'
       ? []
       : facet === 'meridian' || !facet
         ? searchMeridians(query)
         : [];
 
+  const mudras =
+    shamanicFacet ||
+    facet === 'chakra' ||
+    facet === 'meridian' ||
+    facet === 'dantian'
+      ? []
+      : facet === 'mudra' || !facet
+        ? searchMudras(query)
+        : [];
+
   const dantians =
-    shamanicFacet || facet === 'chakra' || facet === 'meridian'
+    shamanicFacet ||
+    facet === 'chakra' ||
+    facet === 'meridian' ||
+    facet === 'mudra'
       ? []
       : facet === 'dantian' || !facet
         ? searchDantians(query)
@@ -834,7 +899,10 @@ export function searchCorrespondences(
   const directions =
     facet === 'direction' || !facet ? searchDirections(query) : [];
 
-  const matches = CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q));
+  const matches =
+    facet === 'mudra'
+      ? []
+      : CORRESPONDENCE_KEYS.filter((k) => keyMatchesFacet(k, facet, q));
   const cluster = q ? resolveCluster(query, matches) : undefined;
 
   return {
@@ -844,6 +912,7 @@ export function searchCorrespondences(
     matches,
     chakras,
     meridians,
+    mudras,
     dantians,
     worlds,
     allies,

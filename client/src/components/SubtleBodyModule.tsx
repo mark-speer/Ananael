@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
-import type { Chakra } from '../data/chakras';
+import { getChakra, type Chakra } from '../data/chakras';
 import type { Meridian } from '../data/meridians';
+import {
+  MUDRA_HANDS_LABELS,
+  MUDRA_TRADITION_LABELS,
+  type Mudra,
+} from '../data/mudras';
 import { LITURGY_RITES } from '../data/liturgy';
 import { getComparativeMap } from '../data/subtleBodyMaps';
 import { WORLDS } from '../data/shamanism';
@@ -14,8 +19,10 @@ import {
   formatPeakHour,
   getOpusStageForNeidan,
   meridianDisplayOrder,
+  mudraDisplayOrder,
   relatedRitesForChakra,
   relatedRitesForMeridian,
+  relatedRitesForMudra,
   relatedRitesForNeidanStage,
   searchSubtleBody,
   type SubtleBodyPane,
@@ -47,7 +54,7 @@ const CHAKRA_Y: Record<string, number> = {
 };
 
 /**
- * Subtle Body — chakra atlas, meridian reference, comparative maps, neidan study.
+ * Subtle Body — chakra atlas, meridian reference, mudras, comparative maps, neidan study.
  */
 export default function SubtleBodyModule({
   onNavigate,
@@ -57,6 +64,9 @@ export default function SubtleBodyModule({
   const { isAuthenticated } = useAuth();
   const [pane, setPane] = useState<SubtleBodyPane>(initialPane);
   const [query, setQuery] = useState('');
+  const [mudraTradition, setMudraTradition] = useState<'all' | 'yoga' | 'buddhist'>(
+    'all'
+  );
   const [focusId, setFocusId] = useState<string | null>(initialFocus ?? null);
   const [vesselName, setVesselName] = useState('Untitled practice');
   const [intent, setIntent] = useState('');
@@ -103,8 +113,12 @@ export default function SubtleBodyModule({
     if (initialFocus) setFocusId(initialFocus);
   }, [initialFocus]);
 
-  const { chakras, meridians } = useMemo(
-    () => searchSubtleBody(query, pane === 'maps' || pane === 'neidan' ? null : pane),
+  const { chakras, meridians, mudras } = useMemo(
+    () =>
+      searchSubtleBody(
+        query,
+        pane === 'maps' || pane === 'neidan' ? null : pane
+      ),
     [query, pane]
   );
 
@@ -116,6 +130,11 @@ export default function SubtleBodyModule({
         ? meridians
         : meridianDisplayOrder()
       : [];
+  const displayMudras = useMemo(() => {
+    if (pane !== 'mudras') return [];
+    const list = mudras.length ? mudras : mudraDisplayOrder();
+    return list.filter((m) => mudraMatchesTradition(m, mudraTradition));
+  }, [pane, mudras, mudraTradition]);
 
   const selectedChakra =
     displayChakras.find((c) => c.id === focusId) ?? displayChakras[0] ?? null;
@@ -123,15 +142,17 @@ export default function SubtleBodyModule({
     displayMeridians.find((m) => m.id === focusId) ??
     displayMeridians[0] ??
     null;
+  const selectedMudra =
+    displayMudras.find((m) => m.id === focusId) ?? displayMudras[0] ?? null;
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="font-display text-3xl text-ananael-gold">Subtle Body</h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          Chakra atlas, meridian reference, comparative maps to the Tree of Life
-          and I Ching, and neidan study outlines. For practice, launch rites
-          from the Ritual Library.
+          Chakra atlas, meridian reference, hasta and Buddhist mudras,
+          comparative maps to the Tree of Life and I Ching, and neidan study
+          outlines. For practice, launch rites from the Ritual Library.
         </p>
       </header>
 
@@ -144,6 +165,7 @@ export default function SubtleBodyModule({
               setPane(p.id);
               setFocusId(null);
               setQuery('');
+              setMudraTradition('all');
             }}
             className={[
               'rounded-md border px-3 py-1.5 text-xs font-medium transition',
@@ -157,7 +179,7 @@ export default function SubtleBodyModule({
         ))}
       </div>
 
-      {(pane === 'chakras' || pane === 'meridians') && (
+      {(pane === 'chakras' || pane === 'meridians' || pane === 'mudras') && (
         <input
           type="search"
           value={query}
@@ -165,7 +187,9 @@ export default function SubtleBodyModule({
           placeholder={
             pane === 'chakras'
               ? 'Search chakras…'
-              : 'Search meridians…'
+              : pane === 'meridians'
+                ? 'Search meridians…'
+                : 'Search mudras…'
           }
           className="w-full max-w-md rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
         />
@@ -220,6 +244,67 @@ export default function SubtleBodyModule({
           ) : (
             <EmptyDetail />
           )}
+        </div>
+      )}
+
+      {pane === 'mudras' && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['all', 'All'],
+                ['yoga', 'Yoga'],
+                ['buddhist', 'Buddhist'],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setMudraTradition(id)}
+                className={[
+                  'rounded-md border px-3 py-1.5 text-xs font-medium transition',
+                  mudraTradition === id
+                    ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
+                    : 'border-ananael-border/60 text-ananael-muted hover:border-ananael-violet/50',
+                ].join(' ')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-ananael-muted">
+            Study atlas of yoga hasta seals and Buddhist iconographic gestures.
+            Traditions disagree on names and uses; formation lines are glosses,
+            not instruction.
+          </p>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+            <ul className="max-h-[60vh] space-y-1 overflow-y-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-2">
+              {displayMudras.map((m) => (
+                <li key={m.id}>
+                  <button
+                    type="button"
+                    onClick={() => setFocusId(m.id)}
+                    className={[
+                      'flex w-full flex-col rounded-md px-3 py-2.5 text-left transition',
+                      selectedMudra?.id === m.id
+                        ? 'bg-ananael-violet/20 text-ananael-gold'
+                        : 'text-zinc-300 hover:bg-ananael-panel',
+                    ].join(' ')}
+                  >
+                    <span className="text-sm font-medium">{m.name}</span>
+                    <span className="text-xs text-ananael-muted">
+                      {MUDRA_TRADITION_LABELS[m.tradition]} · {m.sanskrit}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {selectedMudra ? (
+              <MudraDetail mudra={selectedMudra} onNavigate={onNavigate} />
+            ) : (
+              <EmptyDetail />
+            )}
+          </div>
         </div>
       )}
 
@@ -667,6 +752,17 @@ function EmptyDetail() {
   );
 }
 
+function mudraMatchesTradition(
+  mudra: Mudra,
+  filter: 'all' | 'yoga' | 'buddhist'
+): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'yoga') {
+    return mudra.tradition === 'yoga' || mudra.tradition === 'shared';
+  }
+  return mudra.tradition === 'buddhist' || mudra.tradition === 'shared';
+}
+
 function ChakraSpineDiagram({
   chakras,
   selectedId,
@@ -879,6 +975,101 @@ function MeridianDetail({
           className="rounded-md border border-ananael-gold/50 px-3 py-1.5 text-xs text-ananael-gold hover:bg-ananael-gold/10"
         >
           Celestial Timing
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MudraDetail({
+  mudra,
+  onNavigate,
+}: {
+  mudra: Mudra;
+  onNavigate?: (module: ModuleId, opts?: SubtleBodyNavigateOptions) => void;
+}) {
+  const rites = relatedRitesForMudra(mudra.id);
+  const chakras = (mudra.relatedChakraIds ?? [])
+    .map((id) => getChakra(id))
+    .filter((c): c is Chakra => Boolean(c));
+
+  return (
+    <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-5">
+      <div>
+        <p className="text-xs uppercase tracking-wider text-ananael-muted">Mudra</p>
+        <h2 className="font-display text-2xl text-ananael-gold">{mudra.name}</h2>
+        <p className="text-sm text-ananael-muted">{mudra.sanskrit}</p>
+      </div>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+            Tradition
+          </dt>
+          <dd className="text-sm text-zinc-200">
+            {MUDRA_TRADITION_LABELS[mudra.tradition]}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">Hands</dt>
+          <dd className="text-sm text-zinc-200">{MUDRA_HANDS_LABELS[mudra.hands]}</dd>
+        </div>
+        <div className="sm:col-span-2">
+          <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+            Formation
+          </dt>
+          <dd className="text-sm text-zinc-200">{mudra.formation}</dd>
+        </div>
+        {mudra.alsoKnownAs && mudra.alsoKnownAs.length > 0 && (
+          <div className="sm:col-span-2">
+            <dt className="text-xs uppercase tracking-wider text-ananael-muted">
+              Also known as
+            </dt>
+            <dd className="text-sm text-zinc-200">{mudra.alsoKnownAs.join(' · ')}</dd>
+          </div>
+        )}
+      </dl>
+      <p className="text-xs text-ananael-muted">{mudra.keywords.join(' · ')}</p>
+      {mudra.notes && (
+        <p className="text-xs text-ananael-muted">{mudra.notes}</p>
+      )}
+      <div className="flex flex-wrap gap-2 border-t border-ananael-border/40 pt-4">
+        {chakras.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() =>
+              onNavigate?.('subtleBody', {
+                subtleBodyPane: 'chakras',
+                subtleBodyFocus: c.id,
+              })
+            }
+            className="rounded-md border border-ananael-border/60 px-3 py-1.5 text-xs text-zinc-200 hover:bg-ananael-panel"
+          >
+            {c.name}
+          </button>
+        ))}
+        {rites.map((r) => (
+          <button
+            key={r.id}
+            type="button"
+            onClick={() =>
+              onNavigate?.('liturgy', { riteId: r.id, liturgyMode: 'run' })
+            }
+            className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 hover:bg-ananael-violet/20"
+          >
+            Run {r.title}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() =>
+            onNavigate?.('correspondences', {
+              correspondencesQuery: mudra.id,
+            })
+          }
+          className="rounded-md border border-ananael-gold/50 px-3 py-1.5 text-xs text-ananael-gold hover:bg-ananael-gold/10"
+        >
+          Correspondences
         </button>
       </div>
     </div>

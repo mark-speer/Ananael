@@ -23,6 +23,7 @@ import { apiFetch } from '../lib/api';
 import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import type { ModuleId } from './Sidebar';
 import type { LiturgyMode } from '../lib/ritualRunner';
+import type { SubtleBodyPane } from '../lib/subtleBody';
 import type { ScriptId } from '../lib/transliterate';
 
 export interface TreeNavigateOptions {
@@ -39,7 +40,7 @@ export interface TreeNavigateOptions {
     | 'natal';
   riteId?: string;
   liturgyMode?: LiturgyMode;
-  subtleBodyPane?: 'chakras' | 'meridians' | 'maps' | 'neidan' | 'practice';
+  subtleBodyPane?: SubtleBodyPane;
   subtleBodyFocus?: string;
   shamanismPane?:
     | 'worlds'

@@ -153,7 +153,7 @@ Some sidebar entries host sub-features:
 | **Atelier** | Ritual Space, Circles, Talismans (tabs) |
 | **Celestial Timing** | Hours, Planets, Zodiac, Elections, Almanac, Natal (panels) |
 | **Athanor** | Stages, Vessel, Emblem (panes) |
-| **Subtle Body** | Chakras, Meridians, Maps, Neidan, Practice (panes) |
+| **Subtle Body** | Chakras, Meridians, Mudras, Maps, Neidan, Practice (panes) |
 | **Shamanism** | Worlds, Directions, Allies, Journey, Cast, Practice (panes) |
 | **Ritual Library** | Browse + Ritual Runner (`RitualRunnerPanel.tsx`) |
 
@@ -199,7 +199,7 @@ Structural map of all 14 sidebar modules. Phase history and done-when criteria: 
 | Atelier | `atelier` | `AtelierModule.tsx`, `RitualSpaceModule`, `SolomonicCircleModule`, `TalismanModule` | `ritualTools`, `solomonicCircles`, `arsGoetia`, `goetiaSealPlates`, `sutras` | `solomonicGeometry`, `goetiaSealArt`, `kamea`, `sigil`, `ofuda`, `svgExport` | `/api/ritual/layouts` → `RitualLayout`; `/api/solomonic/circles` → `SolomonicCircle`; `/api/talisman/designs` → `TalismanDesign` (`kamea` \| `sigil` \| `sutra`) |
 | Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
-| Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |
+| Subtle Body | `subtleBody` | `SubtleBodyModule.tsx` | `chakras`, `meridians`, `mudras`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |
 | Shamanism | `shamanism` | `ShamanismModule.tsx`, `glyphs/WorldTreeSvg`, `DirectionWheelSvg`, `LotSvg` | `shamanism/worlds`, `directions`, `allies`, `lots` | `shamanism`, `shamanismJourney`, `shamanismCast`, `shamanismDrum`, `glyphs/worldTreeGlyph` | Journal journey (`payload.system: 'shamanic-journey'`); `/api/shamanism/save` → journal; `/api/practice/vessels` with `config.system: 'shamanism'` |
 
 ---
@@ -229,7 +229,7 @@ Divination saves (`/api/tarot/save`, `/api/iching/save`, etc.) write `JournalEnt
 
 ### Correspondences bridge
 
-[`client/src/lib/correspondences.ts`](../client/src/lib/correspondences.ts) is the cross-module encyclopedia layer. It consumes `data/correspondences.ts` and links outward to chakras, I Ching trigrams, liturgy rites, tree nodes, alchemy metals, shamanic worlds/allies/directions, and more. When adding a new corpus, wire search facets and deep-link targets here.
+[`client/src/lib/correspondences.ts`](../client/src/lib/correspondences.ts) is the cross-module encyclopedia layer. It consumes `data/correspondences.ts` and links outward to chakras, meridians, mudras, I Ching trigrams, liturgy rites, tree nodes, alchemy metals, shamanic worlds/allies/directions, and more. When adding a new corpus, wire search facets and deep-link targets here.
 
 ### Magical OS
 
