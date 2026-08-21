@@ -346,7 +346,7 @@ export default function RitualSpaceModule({
     <div className="space-y-6">
       {!embedded && (
         <header className="space-y-2">
-          <h1 className="font-display text-3xl text-ananael-gold">
+          <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">
             Ritual Space Planner
           </h1>
           <p className="max-w-2xl text-sm text-ananael-muted">
@@ -370,7 +370,7 @@ export default function RitualSpaceModule({
               setSelectedId(null);
             }}
             className={[
-              'rounded-md border px-3 py-1.5 text-xs font-medium transition',
+              'rounded-md border min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium transition',
               placeTool === t
                 ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
                 : 'border-ananael-border/70 text-zinc-300 hover:border-ananael-violet/50 hover:text-ananael-gold',
@@ -383,7 +383,7 @@ export default function RitualSpaceModule({
           type="button"
           onClick={() => setPlaceTool(null)}
           className={[
-            'rounded-md border px-3 py-1.5 text-xs font-medium transition',
+            'rounded-md border min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium transition',
             placeTool === null
               ? 'border-ananael-violet/60 bg-ananael-violet/15 text-zinc-100'
               : 'border-ananael-border/70 text-zinc-400 hover:text-zinc-200',
@@ -402,7 +402,7 @@ export default function RitualSpaceModule({
             key={id}
             type="button"
             onClick={() => applyTpl(id)}
-            className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-ananael-gold/40 hover:text-ananael-gold"
+            className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-zinc-300 transition hover:border-ananael-gold/40 hover:text-ananael-gold"
           >
             {TEMPLATE_LABELS[id]}
           </button>
@@ -411,14 +411,14 @@ export default function RitualSpaceModule({
         <button
           type="button"
           onClick={() => setShowCompass((v) => !v)}
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Compass {showCompass ? 'On' : 'Off'}
         </button>
         <button
           type="button"
           onClick={() => setShowCircle((v) => !v)}
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Circle {showCircle ? 'On' : 'Off'}
         </button>
@@ -426,14 +426,14 @@ export default function RitualSpaceModule({
           type="button"
           disabled={!selectedId}
           onClick={deleteSelected}
-          className="rounded-md border border-red-900/50 px-3 py-1.5 text-xs text-red-300/90 transition hover:bg-red-950/40 disabled:opacity-40"
+          className="rounded-md border border-red-900/50 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-red-300/90 transition hover:bg-red-950/40 disabled:opacity-40"
         >
           Delete
         </button>
         <button
           type="button"
           onClick={clearCanvas}
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-400 transition hover:text-zinc-200"
+          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-400 transition hover:text-zinc-200"
         >
           Clear
         </button>
@@ -441,7 +441,7 @@ export default function RitualSpaceModule({
           <button
             type="button"
             onClick={cycleQuarter}
-            className="rounded-md border border-ananael-violet/50 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-ananael-violet/20"
+            className="rounded-md border border-ananael-violet/50 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-200 transition hover:bg-ananael-violet/20"
           >
             Cycle quarter ({selected.label ?? 'N'})
           </button>
@@ -577,14 +577,14 @@ export default function RitualSpaceModule({
               <button
                 type="button"
                 onClick={() => void exportPng()}
-                className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
+                className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
               >
                 Export PNG
               </button>
               <button
                 type="button"
                 onClick={exportJson}
-                className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
+                className="rounded-md border border-ananael-violet/50 bg-ananael-violet/10 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-zinc-100 transition hover:bg-ananael-violet/20"
               >
                 Export JSON
               </button>

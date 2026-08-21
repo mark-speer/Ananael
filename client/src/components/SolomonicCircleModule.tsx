@@ -509,7 +509,7 @@ export default function SolomonicCircleModule({
     <div className="space-y-6">
       {!embedded && (
         <header className="space-y-2">
-          <h1 className="font-display text-3xl text-ananael-gold">
+          <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">
             Solomonic Circles
           </h1>
           <p className="max-w-2xl text-sm text-ananael-muted">
@@ -532,7 +532,7 @@ export default function SolomonicCircleModule({
             key={id}
             type="button"
             onClick={() => onTemplateApply(id)}
-            className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-ananael-gold/40 hover:text-ananael-gold"
+            className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-zinc-300 transition hover:border-ananael-gold/40 hover:text-ananael-gold"
           >
             {CIRCLE_TEMPLATE_LABELS[id]}
           </button>
@@ -550,7 +550,7 @@ export default function SolomonicCircleModule({
             type="button"
             onClick={() => onTraditionChange(id)}
             className={[
-              'rounded-md border px-3 py-1.5 text-xs font-medium transition',
+              'rounded-md border min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium transition',
               config.tradition === id
                 ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
                 : 'border-ananael-border/70 text-zinc-300 hover:border-ananael-violet/50 hover:text-ananael-gold',
@@ -565,7 +565,7 @@ export default function SolomonicCircleModule({
         <button
           type="button"
           onClick={() => setLayoutModalOpen(true)}
-          className="max-w-full rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+          className="max-w-full rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Weekday & Glyphs
           <span className="ml-1.5 inline-block max-w-[12rem] truncate align-bottom text-ananael-muted sm:max-w-[16rem]">
@@ -577,7 +577,7 @@ export default function SolomonicCircleModule({
         <button
           type="button"
           onClick={() => updateConfig({ showCompass: !config.showCompass })}
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Compass {config.showCompass ? 'On' : 'Off'}
         </button>
@@ -586,7 +586,7 @@ export default function SolomonicCircleModule({
           onClick={() =>
             updateConfig({ showInnerSquare: !config.showInnerSquare })
           }
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Inner square {config.showInnerSquare ? 'On' : 'Off'}
         </button>
@@ -597,7 +597,7 @@ export default function SolomonicCircleModule({
               config.boundaryStyle === 'serpent' ? 'circle' : 'serpent';
             updateConfig({ boundaryStyle: next });
           }}
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Boundary:{' '}
           {BOUNDARY_STYLE_LABELS[layout.boundaryStyle ?? 'circle']}
@@ -625,7 +625,7 @@ export default function SolomonicCircleModule({
                 );
                 markDirty();
               }}
-              className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+              className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
             >
               Names: {config.useHebrew ? 'Hebrew' : 'Latin'}
             </button>
@@ -635,7 +635,7 @@ export default function SolomonicCircleModule({
               onClick={() =>
                 updateConfig({ showTriangle: !config.showTriangle })
               }
-              className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold disabled:opacity-40"
+              className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold disabled:opacity-40"
             >
               Triangle {config.showTriangle ? 'On' : 'Off'}
             </button>
@@ -643,7 +643,7 @@ export default function SolomonicCircleModule({
               type="button"
               disabled={!config.spiritId || !config.showTriangle}
               onClick={() => updateConfig({ showSeal: !config.showSeal })}
-              className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold disabled:opacity-40"
+              className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold disabled:opacity-40"
             >
               Seal {config.showSeal ? 'On' : 'Off'}
             </button>
@@ -694,7 +694,7 @@ export default function SolomonicCircleModule({
         <button
           type="button"
           onClick={newCircle}
-          className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-400 transition hover:text-zinc-200"
+          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-400 transition hover:text-zinc-200"
         >
           New
         </button>
@@ -1110,14 +1110,14 @@ export default function SolomonicCircleModule({
             <button
               type="button"
               onClick={() => void exportPng()}
-              className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 px-3 py-1.5 text-xs font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
+              className="rounded-md border border-ananael-gold/50 bg-ananael-gold/10 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-ananael-gold transition hover:bg-ananael-gold/20"
             >
               Export PNG
             </button>
             <button
               type="button"
               onClick={exportJson}
-              className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300 transition hover:text-ananael-gold"
+              className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
             >
               Export JSON
             </button>
@@ -1126,7 +1126,7 @@ export default function SolomonicCircleModule({
                 type="button"
                 disabled={saving}
                 onClick={() => void saveCircle()}
-                className="rounded-md border border-ananael-violet/50 bg-ananael-violet/15 px-3 py-1.5 text-xs font-medium text-zinc-100 transition hover:bg-ananael-violet/25 disabled:opacity-50"
+                className="rounded-md border border-ananael-violet/50 bg-ananael-violet/15 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-zinc-100 transition hover:bg-ananael-violet/25 disabled:opacity-50"
               >
                 {saving ? 'Saving…' : savedId ? 'Update' : 'Save'}
               </button>

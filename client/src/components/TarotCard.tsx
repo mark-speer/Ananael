@@ -45,9 +45,9 @@ export default function TarotCard({
       ? getTarotCardImageUrl(card.id)
       : undefined;
   const compact = size === 'compact';
-  const cardHeight = compact ? 'h-[170px]' : 'h-[220px]';
+  const cardHeight = compact ? 'h-[140px] sm:h-[170px]' : 'h-[220px]';
   const cardWidth = compact
-    ? 'w-[110px]'
+    ? 'w-[88px] sm:w-[110px]'
     : 'w-[120px] sm:w-[140px] md:w-[160px]';
 
   const faces = (
@@ -142,7 +142,7 @@ export default function TarotCard({
     : `Reveal card for ${position}`;
 
   /**
-   * Crossing cards: hit target matches the visible horizontal band (170×110).
+   * Crossing cards: hit target matches the visible horizontal band.
    * Rotating the button itself left a tall untransformed hit box that covered Present.
    */
   const shell = crossing ? (
@@ -150,10 +150,10 @@ export default function TarotCard({
       type="button"
       onClick={onFlip}
       aria-label={ariaLabel}
-      className="relative h-[110px] w-[170px] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-ananael-gold"
+      className="relative h-[88px] w-[140px] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-ananael-gold sm:h-[110px] sm:w-[170px]"
     >
       <div
-        className={`pointer-events-none absolute left-1/2 top-1/2 ${cardHeight} w-[110px] -translate-x-1/2 -translate-y-1/2 rotate-90`}
+        className={`pointer-events-none absolute left-1/2 top-1/2 ${cardHeight} w-[88px] -translate-x-1/2 -translate-y-1/2 rotate-90 sm:w-[110px]`}
       >
         <div className="perspective h-full w-full">{faces}</div>
       </div>
@@ -172,7 +172,7 @@ export default function TarotCard({
     </button>
   );
 
-  const outerWidth = crossing ? 'w-[170px]' : cardWidth;
+  const outerWidth = crossing ? 'w-[140px] sm:w-[170px]' : cardWidth;
 
   return (
     <div className={['flex flex-col items-center gap-2', outerWidth].join(' ')}>

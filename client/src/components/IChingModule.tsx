@@ -205,7 +205,7 @@ export default function IChingModule({
     <div className="space-y-8">
       {!embedded && (
         <header>
-          <h1 className="font-display text-3xl text-ananael-gold">I Ching</h1>
+          <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">I Ching</h1>
           <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
             Cast with three coins or yarrow stalk probabilities. Changing lines
             yield a relating hexagram. Guests may cast freely; sign in to

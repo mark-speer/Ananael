@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import AccountMenu from './components/AccountMenu';
 import AlchemyModule, {
   type OpusPaneId,
@@ -17,11 +17,7 @@ import GematriaModule from './components/GematriaModule';
 import JournalModule from './components/JournalModule';
 import LiturgyModule from './components/LiturgyModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
-import Sidebar, {
-  canonicalModuleId,
-  MODULE_SELECT_GROUPS,
-  type ModuleId,
-} from './components/Sidebar';
+import Sidebar, { type ModuleId } from './components/Sidebar';
 import SplashPage from './components/SplashPage';
 import SubtleBodyModule from './components/SubtleBodyModule';
 import ShamanismModule from './components/ShamanismModule';
@@ -118,6 +114,10 @@ export default function App() {
   const [translatorPrefill, setTranslatorPrefill] = useState<string | undefined>();
   const [translatorSource, setTranslatorSource] = useState<ScriptId | undefined>();
   const [translatorTarget, setTranslatorTarget] = useState<ScriptId | undefined>();
+  const [navOpen, setNavOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const drawerTitleId = useId();
 
   useEffect(() => {
     if (wasAuthenticated.current && !isAuthenticated) {
@@ -125,6 +125,61 @@ export default function App() {
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = () => {
+      if (mq.matches) setNavOpen(false);
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!navOpen) return;
+
+    const panel = drawerRef.current;
+    const focusables = () =>
+      panel
+        ? Array.from(
+            panel.querySelectorAll<HTMLElement>(
+              'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            )
+          )
+        : [];
+
+    const first = focusables()[0];
+    first?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setNavOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const firstItem = items[0];
+      const lastItem = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === firstItem) {
+        e.preventDefault();
+        lastItem.focus();
+      } else if (!e.shiftKey && document.activeElement === lastItem) {
+        e.preventDefault();
+        firstItem.focus();
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+      menuButtonRef.current?.focus();
+    };
+  }, [navOpen]);
 
   const navigateToModule = (module: ModuleId, opts?: AppNavigateOptions) => {
     const resolved = resolveModule(module);
@@ -212,6 +267,7 @@ export default function App() {
       setTranslatorTarget(undefined);
     }
     setActiveModule(target);
+    setNavOpen(false);
   };
 
   if (isLoading) {
@@ -332,33 +388,62 @@ export default function App() {
         <Sidebar activeModule={activeModule} onSelect={navigateToModule} />
       </div>
 
+      {navOpen && (
+        <div className="fixed inset-0 z-40 overflow-hidden md:hidden">
+          <button
+            type="button"
+            aria-label="Close menu"
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setNavOpen(false)}
+          />
+          <div
+            ref={drawerRef}
+            id="mobile-nav-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={drawerTitleId}
+            className="relative h-full w-64"
+          >
+            <h2 id={drawerTitleId} className="sr-only">
+              Modules
+            </h2>
+            <Sidebar
+              variant="drawer"
+              activeModule={activeModule}
+              onSelect={navigateToModule}
+              onClose={() => setNavOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <div className="border-b border-ananael-border/60 bg-ananael-surface px-4 py-3 md:hidden">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-display text-lg text-ananael-gold">Ananael</p>
-              <AccountMenu className="max-w-[9rem] shrink-0" />
-            </div>
-            <label className="block text-xs text-ananael-muted">
-              <span className="sr-only">Module</span>
-              <select
-                value={canonicalModuleId(activeModule)}
-                onChange={(e) =>
-                  navigateToModule(e.target.value as ModuleId)
-                }
-                className="w-full rounded-md border border-ananael-border bg-ananael-bg px-2 py-1.5 text-sm text-zinc-200 outline-none focus:border-ananael-violet"
+        <div className="sticky top-0 z-30 border-b border-ananael-border/60 bg-ananael-surface px-4 py-3 md:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <button
+                ref={menuButtonRef}
+                type="button"
+                aria-label="Open menu"
+                aria-expanded={navOpen}
+                aria-controls="mobile-nav-drawer"
+                onClick={() => setNavOpen(true)}
+                className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-ananael-gold transition hover:bg-ananael-panel"
               >
-                {MODULE_SELECT_GROUPS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.modules.map((mod) => (
-                      <option key={mod.id} value={mod.id}>
-                        {mod.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  aria-hidden
+                >
+                  <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+              </button>
+              <p className="font-display text-lg text-ananael-gold">Ananael</p>
+            </div>
+            <AccountMenu className="max-w-[9rem] shrink-0" />
           </div>
         </div>
 

@@ -532,7 +532,7 @@ export default function CelestialTimingModule({
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-display text-3xl text-ananael-gold">
+        <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">
           Celestial Timing
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
@@ -751,14 +751,14 @@ export default function CelestialTimingModule({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-ananael-border/40 pb-2">
+      <div className="flex flex-nowrap gap-2 overflow-x-auto border-b border-ananael-border/40 pb-2">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setPanel(t.id)}
             className={[
-              'rounded-md px-3 py-1.5 text-sm transition',
+              'min-h-10 shrink-0 rounded-md px-3 py-1.5 text-sm transition',
               panel === t.id
                 ? 'bg-ananael-violet/25 text-ananael-gold'
                 : 'text-ananael-muted hover:text-zinc-200',

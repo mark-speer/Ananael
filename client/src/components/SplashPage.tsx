@@ -53,7 +53,7 @@ export default function SplashPage({ onEnterGuest }: SplashPageProps) {
             <p className="font-display text-sm uppercase tracking-[0.35em] text-ananael-gold/80">
               Inner Sanctum
             </p>
-            <h1 className="mt-3 font-display text-5xl leading-tight text-ananael-gold sm:text-6xl lg:text-7xl">
+            <h1 className="mt-3 font-display text-4xl leading-tight text-ananael-gold sm:text-6xl lg:text-7xl">
               Ananael
             </h1>
             <p className="mt-6 max-w-md font-display text-xl text-zinc-100 sm:text-2xl">

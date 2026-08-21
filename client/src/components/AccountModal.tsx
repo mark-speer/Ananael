@@ -50,7 +50,7 @@ export default function AccountModal({ open, onClose }: AccountModalProps) {
         aria-modal="true"
         aria-labelledby="account-modal-title"
         tabIndex={-1}
-        className="relative z-10 w-full max-w-md rounded-lg border border-ananael-border bg-ananael-panel p-5 shadow-lg outline-none"
+        className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-ananael-border bg-ananael-panel p-5 shadow-lg outline-none"
       >
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2

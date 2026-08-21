@@ -80,7 +80,7 @@ export default function EnochianModule({ onNavigate }: EnochianModuleProps) {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-display text-3xl text-ananael-gold">Enochian</h1>
+        <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Enochian</h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Browse elemental tablet samples and read the Calls. Study excerpts for
           practice—deep-link letters into Gematria or Correspondences.

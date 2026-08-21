@@ -145,7 +145,7 @@ export default function CorrespondencesModule({
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-3xl text-ananael-gold">
+        <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">
           Correspondence Encyclopedia
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">

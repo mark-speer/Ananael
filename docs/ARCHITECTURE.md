@@ -110,8 +110,7 @@ flowchart TB
 ### Registration
 
 1. Add `ModuleId` union member in [`client/src/components/Sidebar.tsx`](../client/src/components/Sidebar.tsx).
-2. Add entry to `MODULES` array (sidebar label).
-3. Add to `MODULE_SELECT_GROUPS` for mobile `<select>`.
+2. Add entry to `MODULES` with `label`, `group` (`Home` / `Practice` / `Study`), and optional `shortLabel` for the mobile drawer.
 
 ### Rendering
 
@@ -323,7 +322,7 @@ All mutating routes (except auth register/login) require JWT via `protect` middl
 
 Follow this checklist (mirrors the Subtle Body addition, ROADMAP Phases 32–34):
 
-1. **Register** — Add `ModuleId`, `MODULES` entry, and `MODULE_SELECT_GROUPS` entry in [`Sidebar.tsx`](../client/src/components/Sidebar.tsx).
+1. **Register** — Add `ModuleId` and a `MODULES` entry (`label`, `group`, optional `shortLabel`) in [`Sidebar.tsx`](../client/src/components/Sidebar.tsx). Desktop rail stays a flat list; the mobile drawer groups by `group`.
 2. **Component** — Create `client/src/components/MyModule.tsx`. Accept `onNavigate?: (module, opts?) => void` and any `initial*` props for deep links.
 3. **Wire App** — Import in [`App.tsx`](../client/src/App.tsx); extend `AppNavigateOptions` if needed; add state + handler in `navigateToModule()`; add `case` in `renderModule()`.
 4. **Data & logic** — Add `client/src/data/myModule.ts` (corpus) and/or `client/src/lib/myModule.ts` (search, computation).

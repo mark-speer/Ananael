@@ -151,7 +151,7 @@ export default function SubtleBodyModule({
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-3xl text-ananael-gold">Subtle Body</h1>
+        <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Subtle Body</h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Chakra atlas, meridian reference, hasta and Buddhist mudras,
           comparative maps to the Tree of Life and I Ching, and neidan study

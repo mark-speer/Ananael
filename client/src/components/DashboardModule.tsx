@@ -348,7 +348,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     <div className="space-y-8">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl text-ananael-gold">Magical OS</h1>
+          <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Magical OS</h1>
           <p className="mt-1 text-sm text-ananael-muted">
             Sanctum overview — sky conditions, quick tools, and paths into every
             module.
@@ -533,7 +533,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
               onClick={() =>
                 onNavigate('planetary', { planetaryPanel: 'planets' })
               }
-              className="mx-auto h-64 w-64 shrink-0 lg:h-72 lg:w-72"
+              className="mx-auto h-56 w-56 shrink-0 sm:h-64 sm:w-64 lg:h-72 lg:w-72"
             />
           </div>
         </section>

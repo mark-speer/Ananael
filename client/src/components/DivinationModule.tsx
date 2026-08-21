@@ -40,7 +40,7 @@ export default function DivinationModule({
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-display text-3xl text-ananael-gold">Divination</h1>
+        <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Divination</h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Cast Tarot, I Ching, Geomancy, or Runes in one place. Guests may cast
           freely; sign in to archive readings in the Magical Journal.
@@ -60,7 +60,7 @@ export default function DivinationModule({
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={[
-              'rounded-md border px-4 py-2 text-sm transition',
+              'min-h-10 rounded-md border px-4 py-2 text-sm transition',
               tab === t.id
                 ? 'border-ananael-violet bg-ananael-violet/20 text-ananael-gold shadow-glow'
                 : 'border-ananael-border bg-ananael-panel text-zinc-300 hover:border-ananael-gold/40 hover:text-ananael-gold',

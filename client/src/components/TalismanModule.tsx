@@ -317,7 +317,7 @@ export default function TalismanModule({
     <div className="space-y-6">
       {!embedded && (
         <header>
-          <h1 className="font-display text-3xl text-ananael-gold">Talismans</h1>
+          <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Talismans</h1>
           <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
             Build planetary magic squares, trace personal sigils, and craft sutra
             ofuda talismans. Export your work as PNG or JSON, or sign in to keep
@@ -337,7 +337,7 @@ export default function TalismanModule({
             type="button"
             onClick={() => setTab(id)}
             className={[
-              'rounded-md px-3 py-1.5 text-sm transition',
+              'min-h-10 flex-1 rounded-md px-3 py-1.5 text-sm transition',
               tab === id
                 ? 'bg-ananael-violet/25 text-ananael-gold'
                 : 'text-ananael-muted hover:text-zinc-200',
@@ -389,7 +389,7 @@ export default function TalismanModule({
                       value={bonjiIast}
                       onChange={(e) => setBonjiIast(e.target.value)}
                       maxLength={120}
-                      className={`${CONTROL} min-w-[220px]`}
+                      className={`${CONTROL} w-full min-w-0 sm:min-w-[220px]`}
                     />
                   </Field>
                 )}
@@ -423,7 +423,7 @@ export default function TalismanModule({
                 </select>
               </Field>
             )}
-            <label className="min-w-[220px] flex-1 text-sm text-ananael-muted">
+            <label className="min-w-0 flex-1 text-sm text-ananael-muted sm:min-w-[220px]">
               {tab === 'sutras' ? 'Dedication or intent' : 'Name or intent'}
               <input
                 value={name}

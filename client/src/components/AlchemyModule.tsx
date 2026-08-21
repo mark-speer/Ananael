@@ -366,7 +366,7 @@ export default function AlchemyModule({
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-display text-3xl text-ananael-gold">Athanor</h1>
+        <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Athanor</h1>
         <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
           Hermetic alchemy for the oratory: opus stages, a vessel planner, and
           emblem study. Not laboratory chemistry — timings, correspondences, and

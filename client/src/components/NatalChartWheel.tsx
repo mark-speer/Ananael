@@ -111,9 +111,7 @@ export default function NatalChartWheel({ chart }: NatalChartWheelProps) {
         <svg
           ref={svgRef}
           viewBox="0 0 400 400"
-          width="400"
-          height="400"
-          className="mx-auto max-w-full"
+          className="mx-auto h-auto w-full max-w-[400px]"
           role="img"
           aria-label="Natal chart wheel"
         >

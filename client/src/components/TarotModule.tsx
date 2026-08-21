@@ -226,7 +226,7 @@ export default function TarotModule({
     <div className="space-y-8">
       {!embedded && (
         <header>
-          <h1 className="font-display text-3xl text-ananael-gold">
+          <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">
             Virtual Tarot
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
@@ -636,7 +636,7 @@ function CelticCrossBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
                   Challenge
                 </p>
               </div>
-              <div className="relative flex h-[180px] w-[170px] items-center justify-center">
+              <div className="relative flex h-[150px] w-[140px] items-center justify-center sm:h-[180px] sm:w-[170px]">
                 {present && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <TarotCard
