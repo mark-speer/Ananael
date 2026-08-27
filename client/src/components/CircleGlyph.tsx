@@ -46,7 +46,7 @@ function GlyphPointTexts({
   );
 }
 
-const STROKE = '#c9a227';
+const DEFAULT_STROKE = '#c9a227';
 
 function polygonSides(kind: GlyphSpec['kind']): number | null {
   switch (kind) {
@@ -70,6 +70,7 @@ interface CircleGlyphProps {
   cx: number;
   cy: number;
   radius: number;
+  stroke?: string;
   strokeWidth?: number;
   labelFontSize?: number;
   labelOutward?: number;
@@ -83,6 +84,7 @@ export default function CircleGlyph({
   cx,
   cy,
   radius,
+  stroke = DEFAULT_STROKE,
   strokeWidth = 1.25,
   labelFontSize = 13,
   labelOutward = 14,
@@ -92,7 +94,7 @@ export default function CircleGlyph({
   const rot = spec.rotationDeg;
   const strokeProps = {
     fill: 'none' as const,
-    stroke: STROKE,
+    stroke,
     strokeWidth,
     opacity: 0.9,
   };

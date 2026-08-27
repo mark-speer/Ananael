@@ -91,6 +91,9 @@ interface SavedDesign {
 const SIZE = 300;
 const CENTER = SIZE / 2;
 const DEFAULT_SIGIL_COLOR = '#c9a227';
+const DEFAULT_RING_COLOR = '#c9a227';
+const DEFAULT_GLYPH_COLOR = '#c9a227';
+const DEFAULT_BG_COLOR = '#0c0a12';
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 const DEFAULT_SUTRA_ID = SUTRA_PRESETS[0]!.id;
 const MIN_RING_RADIUS = 40;
@@ -115,9 +118,27 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function readColor(value: unknown, fallback: string): string {
+  return typeof value === 'string' && HEX_COLOR.test(value)
+    ? value
+    : fallback;
+}
+
 function normalizeAngle(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return ((Math.round(value) % 360) + 360) % 360;
+}
+
+/**
+ * Largest center distance keeping a glyph (and its vertex letters, which sit
+ * outside the glyph radius) inside the 300×300 viewBox.
+ */
+function maxGlyphDistance(spec: GlyphSpec, size: number): number {
+  const labelOutward =
+    glyphHasVertexLetters(spec.kind) && spec.letters
+      ? Math.max(7, size * 0.5)
+      : 0;
+  return Math.max(0, MAX_RING_RADIUS - size - labelOutward);
 }
 
 function sanitizeRings(raw: unknown): SigilRing[] {
@@ -146,14 +167,14 @@ function sanitizeGlyphPlacements(raw: unknown): SigilGlyph[] {
     if (spec.kind === 'none') return [];
     const angleDeg =
       typeof g.angleDeg === 'number' ? normalizeAngle(g.angleDeg) : 0;
-    const radius =
-      typeof g.radius === 'number' && Number.isFinite(g.radius)
-        ? clamp(Math.round(g.radius), 0, MAX_RING_RADIUS)
-        : 130;
     const size =
       typeof g.size === 'number' && Number.isFinite(g.size)
         ? clamp(Math.round(g.size), MIN_GLYPH_SIZE, MAX_GLYPH_SIZE)
         : 16;
+    const radius =
+      typeof g.radius === 'number' && Number.isFinite(g.radius)
+        ? clamp(Math.round(g.radius), 0, maxGlyphDistance(spec, size))
+        : Math.min(130, maxGlyphDistance(spec, size));
     return [{ id: uid('glyph'), spec, angleDeg, radius, size }];
   });
 }
@@ -197,7 +218,9 @@ export default function TalismanModule({
   const [hideGridOnExport, setHideGridOnExport] = useState(false);
   const [exportTransparentBg, setExportTransparentBg] = useState(false);
   const [sigilColor, setSigilColor] = useState(DEFAULT_SIGIL_COLOR);
-  const [sigilColorDraft, setSigilColorDraft] = useState(DEFAULT_SIGIL_COLOR);
+  const [ringColor, setRingColor] = useState(DEFAULT_RING_COLOR);
+  const [glyphColor, setGlyphColor] = useState(DEFAULT_GLYPH_COLOR);
+  const [bgColor, setBgColor] = useState(DEFAULT_BG_COLOR);
 
   const sutraPreset = useMemo(
     () => getSutraPreset(sutraId) ?? SUTRA_PRESETS[0]!,
@@ -275,6 +298,9 @@ export default function TalismanModule({
         mode: sigilMode,
         name,
         sigilColor,
+        ringColor,
+        glyphColor,
+        bgColor,
         showNumbers,
         rings: rings.map(({ radius, opacity }) => ({ radius, opacity })),
         glyphs: glyphs.map(({ spec, angleDeg, radius, size }) => ({
@@ -327,7 +353,7 @@ export default function TalismanModule({
           id: uid('glyph'),
           spec: glyphSpec('pentagram'),
           angleDeg: (prev.length * 30) % 360,
-          radius: 130,
+          radius: Math.min(130, maxGlyphDistance(glyphSpec('pentagram'), 16)),
           size: 16,
         },
       ];
@@ -336,7 +362,14 @@ export default function TalismanModule({
 
   const updateGlyph = (id: string, patch: Partial<Omit<SigilGlyph, 'id'>>) => {
     setGlyphs((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, ...patch } : g))
+      prev.map((g) => {
+        if (g.id !== id) return g;
+        const next = { ...g, ...patch };
+        return {
+          ...next,
+          radius: clamp(next.radius, 0, maxGlyphDistance(next.spec, next.size)),
+        };
+      })
     );
   };
 
@@ -386,7 +419,11 @@ export default function TalismanModule({
         fallbackName: 'talisman',
         width: isOfuda ? 900 : 1200,
         height: isOfuda ? 1950 : 1200,
-        background: exportTransparentBg ? null : '#0c0a12',
+        background: exportTransparentBg
+          ? null
+          : isOfuda
+            ? '#0c0a12'
+            : bgColor,
         prepareClone: prepareExportClone,
       });
     })().catch(() => {
@@ -452,16 +489,10 @@ export default function TalismanModule({
     ) {
       setPlanet(cfg.planet as KameaPlanet);
     }
-    if (
-      typeof cfg.sigilColor === 'string' &&
-      HEX_COLOR.test(cfg.sigilColor)
-    ) {
-      setSigilColor(cfg.sigilColor);
-      setSigilColorDraft(cfg.sigilColor);
-    } else {
-      setSigilColor(DEFAULT_SIGIL_COLOR);
-      setSigilColorDraft(DEFAULT_SIGIL_COLOR);
-    }
+    setSigilColor(readColor(cfg.sigilColor, DEFAULT_SIGIL_COLOR));
+    setRingColor(readColor(cfg.ringColor, DEFAULT_RING_COLOR));
+    setGlyphColor(readColor(cfg.glyphColor, DEFAULT_GLYPH_COLOR));
+    setBgColor(readColor(cfg.bgColor, DEFAULT_BG_COLOR));
     if (design.kind === 'kamea') {
       // Legacy Squares-tab design: open in the merged sigil editor.
       setTab('sigils');
@@ -657,33 +688,18 @@ export default function TalismanModule({
               </label>
             )}
             {tab !== 'sutras' && (
-              <Field label="Sigil color">
-                <span className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={sigilColor}
-                    onChange={(e) => {
-                      setSigilColor(e.target.value);
-                      setSigilColorDraft(e.target.value);
-                    }}
-                    aria-label="Sigil color"
-                    className="h-10 w-12 cursor-pointer rounded-md border border-ananael-border bg-ananael-bg p-0.5"
-                  />
-                  <input
-                    value={sigilColorDraft}
-                    onChange={(e) => {
-                      const next = e.target.value.trim();
-                      setSigilColorDraft(next);
-                      if (HEX_COLOR.test(next)) setSigilColor(next);
-                    }}
-                    onBlur={() => setSigilColorDraft(sigilColor)}
-                    maxLength={7}
-                    spellCheck={false}
-                    aria-label="Sigil color hex"
-                    className={`${CONTROL} w-[7.5rem] font-mono`}
-                  />
-                </span>
-              </Field>
+              <>
+                <ColorField
+                  label="Sigil color"
+                  value={sigilColor}
+                  onChange={setSigilColor}
+                />
+                <ColorField
+                  label="Background"
+                  value={bgColor}
+                  onChange={setBgColor}
+                />
+              </>
             )}
           </div>
 
@@ -702,21 +718,48 @@ export default function TalismanModule({
             </button>
           )}
 
+          <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-6">
+            {tab === 'sutras' ? (
+              <OfudaPreview ref={svgRef} layout={ofudaLayout} />
+            ) : (
+              <Preview
+                ref={svgRef}
+                grid={grid}
+                points={points}
+                showNumbers={showNumbers}
+                showGrid={showGridInPreview}
+                sigilColor={sigilColor}
+                ringColor={ringColor}
+                glyphColor={glyphColor}
+                bgColor={bgColor}
+                rings={rings}
+                glyphs={glyphs}
+              />
+            )}
+          </div>
+
           {tab === 'sigils' && (
             <div className="grid gap-4 xl:grid-cols-2">
               <section className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-wider text-ananael-muted">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <p className="pb-2 text-xs uppercase tracking-wider text-ananael-muted">
                     Rings
                   </p>
-                  <button
-                    type="button"
-                    onClick={addRing}
-                    disabled={rings.length >= MAX_RINGS}
-                    className={`${GOLD_BUTTON} px-2 py-1 text-xs disabled:opacity-50`}
-                  >
-                    Add ring
-                  </button>
+                  <span className="flex flex-wrap items-end gap-3">
+                    <ColorField
+                      label="Ring color"
+                      value={ringColor}
+                      onChange={setRingColor}
+                    />
+                    <button
+                      type="button"
+                      onClick={addRing}
+                      disabled={rings.length >= MAX_RINGS}
+                      className={`${GOLD_BUTTON} mb-1.5 px-2 py-1 text-xs disabled:opacity-50`}
+                    >
+                      Add ring
+                    </button>
+                  </span>
                 </div>
                 {rings.length === 0 ? (
                   <p className="text-xs text-ananael-muted">
@@ -779,18 +822,25 @@ export default function TalismanModule({
                 )}
               </section>
               <section className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-wider text-ananael-muted">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <p className="pb-2 text-xs uppercase tracking-wider text-ananael-muted">
                     Glyphs
                   </p>
-                  <button
-                    type="button"
-                    onClick={addGlyph}
-                    disabled={glyphs.length >= MAX_GLYPHS}
-                    className={`${GOLD_BUTTON} px-2 py-1 text-xs disabled:opacity-50`}
-                  >
-                    Add glyph
-                  </button>
+                  <span className="flex flex-wrap items-end gap-3">
+                    <ColorField
+                      label="Glyph color"
+                      value={glyphColor}
+                      onChange={setGlyphColor}
+                    />
+                    <button
+                      type="button"
+                      onClick={addGlyph}
+                      disabled={glyphs.length >= MAX_GLYPHS}
+                      className={`${GOLD_BUTTON} mb-1.5 px-2 py-1 text-xs disabled:opacity-50`}
+                    >
+                      Add glyph
+                    </button>
+                  </span>
                 </div>
                 {glyphs.length === 0 ? (
                   <p className="text-xs text-ananael-muted">
@@ -907,7 +957,7 @@ export default function TalismanModule({
                           <input
                             type="range"
                             min={0}
-                            max={MAX_RING_RADIUS}
+                            max={maxGlyphDistance(g.spec, g.size)}
                             value={g.radius}
                             onChange={(e) =>
                               updateGlyph(g.id, {
@@ -961,22 +1011,6 @@ export default function TalismanModule({
             </div>
           )}
 
-          <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-6">
-            {tab === 'sutras' ? (
-              <OfudaPreview ref={svgRef} layout={ofudaLayout} />
-            ) : (
-              <Preview
-                ref={svgRef}
-                grid={grid}
-                points={points}
-                showNumbers={showNumbers}
-                showGrid={showGridInPreview}
-                sigilColor={sigilColor}
-                rings={rings}
-                glyphs={glyphs}
-              />
-            )}
-          </div>
           <p className="text-xs leading-relaxed text-ananael-muted">
             {tab === 'sutras'
               ? `${sutraPreset.notes} Historical Shingon bonji used Siddham script; Devanagari here aligns with Script Translator for study.`
@@ -1272,6 +1306,9 @@ interface SigilArtProps {
   showNumbers: boolean;
   showGrid: boolean;
   sigilColor: string;
+  ringColor: string;
+  glyphColor: string;
+  bgColor: string;
   rings: SigilRing[];
   glyphs: SigilGlyph[];
 }
@@ -1286,6 +1323,9 @@ function SigilArt({
   showNumbers,
   showGrid,
   sigilColor,
+  ringColor,
+  glyphColor,
+  bgColor,
   rings,
   glyphs,
 }: SigilArtProps) {
@@ -1359,7 +1399,7 @@ function SigilArt({
             cx={points[0].x}
             cy={points[0].y}
             r={6}
-            fill="#0c0a12"
+            fill={bgColor}
             stroke={sigilColor}
             strokeWidth={3}
           />
@@ -1373,7 +1413,7 @@ function SigilArt({
           cy={CENTER}
           r={ringItem.radius}
           fill="none"
-          stroke="#c9a227"
+          stroke={ringColor}
           strokeWidth={1.5}
           opacity={ringItem.opacity}
         />
@@ -1387,6 +1427,7 @@ function SigilArt({
             cx={pos.x}
             cy={pos.y}
             radius={g.size}
+            stroke={glyphColor}
             strokeWidth={1.4}
             labelFontSize={Math.max(7, g.size * 0.45)}
             labelOutward={Math.max(7, g.size * 0.5)}
@@ -1407,7 +1448,7 @@ const Preview = forwardRef<SVGSVGElement, SigilArtProps>(
         role="img"
         aria-label="Talisman preview"
       >
-        <rect data-talisman-bg width={SIZE} height={SIZE} fill="#0c0a12" />
+        <rect data-talisman-bg width={SIZE} height={SIZE} fill={props.bgColor} />
         <SigilArt {...props} />
       </svg>
     );
@@ -1458,10 +1499,10 @@ function DesignThumbnail({ design }: { design: SavedDesign }) {
     : typeof cfg.name === 'string'
       ? cfg.name
       : '';
-  const sigilColor =
-    typeof cfg.sigilColor === 'string' && HEX_COLOR.test(cfg.sigilColor)
-      ? cfg.sigilColor
-      : DEFAULT_SIGIL_COLOR;
+  const sigilColor = readColor(cfg.sigilColor, DEFAULT_SIGIL_COLOR);
+  const ringColor = readColor(cfg.ringColor, DEFAULT_RING_COLOR);
+  const glyphColor = readColor(cfg.glyphColor, DEFAULT_GLYPH_COLOR);
+  const bgColor = readColor(cfg.bgColor, DEFAULT_BG_COLOR);
   const showNumbers = isKamea
     ? true
     : typeof cfg.showNumbers === 'boolean'
@@ -1482,17 +1523,65 @@ function DesignThumbnail({ design }: { design: SavedDesign }) {
       role="img"
       aria-label={`${design.name} preview`}
     >
-      <rect width={SIZE} height={SIZE} fill="#0c0a12" />
+      <rect width={SIZE} height={SIZE} fill={bgColor} />
       <SigilArt
         grid={grid}
         points={points}
         showNumbers={showNumbers}
         showGrid={mode === 'planetary'}
         sigilColor={sigilColor}
+        ringColor={ringColor}
+        glyphColor={glyphColor}
+        bgColor={bgColor}
         rings={rings}
         glyphs={glyphs}
       />
     </svg>
+  );
+}
+
+/** Native color input paired with a validated hex text field. */
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (hex: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+  return (
+    <Field label={label}>
+      <span className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setDraft(e.target.value);
+          }}
+          aria-label={label}
+          className="h-10 w-12 cursor-pointer rounded-md border border-ananael-border bg-ananael-bg p-0.5"
+        />
+        <input
+          value={draft}
+          onChange={(e) => {
+            const next = e.target.value.trim();
+            setDraft(next);
+            if (HEX_COLOR.test(next)) onChange(next);
+          }}
+          onBlur={() => setDraft(value)}
+          maxLength={7}
+          spellCheck={false}
+          aria-label={`${label} hex`}
+          className={`${CONTROL} w-[7.5rem] font-mono`}
+        />
+      </span>
+    </Field>
   );
 }
 
