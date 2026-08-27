@@ -34,12 +34,43 @@ import {
   kameaSigilPath,
   pointsToPolyline,
 } from '../lib/sigil';
+import {
+  CENTER_GLYPH_GROUPS,
+  CENTER_GLYPH_LABELS,
+  glyphHasVertexLetters,
+  glyphSpec,
+  sanitizeGlyphSpec,
+  type CenterGlyph,
+  type GlyphSpec,
+} from '../data/solomonicCircles';
+import { polarToCartesian } from '../lib/solomonicGeometry';
+import CircleGlyph from './CircleGlyph';
 import { downloadJson, exportSvg, exportSvgAsPng } from '../lib/svgExport';
 import { transliterate } from '../lib/transliterate';
 import type { ModuleId } from './Sidebar';
 
-type Tab = 'squares' | 'sigils' | 'sutras';
+type Tab = 'sigils' | 'sutras';
 type SigilMode = 'planetary' | 'chaos';
+
+/** Decorative circle drawn around the sigil. */
+interface SigilRing {
+  id: string;
+  /** Radius in SVG px within the 300×300 viewBox. */
+  radius: number;
+  opacity: number;
+}
+
+/** A Solomonic glyph placed at a compass bearing around the sigil. */
+interface SigilGlyph {
+  id: string;
+  spec: GlyphSpec;
+  /** Compass degrees: 0 = 12 o'clock (North), clockwise. */
+  angleDeg: number;
+  /** Distance from center in SVG px. */
+  radius: number;
+  /** Glyph radius in SVG px. */
+  size: number;
+}
 
 interface Props {
   /** When true, hide the standalone page header (used inside Atelier portal). */
@@ -58,9 +89,74 @@ interface SavedDesign {
 }
 
 const SIZE = 300;
+const CENTER = SIZE / 2;
 const DEFAULT_SIGIL_COLOR = '#c9a227';
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 const DEFAULT_SUTRA_ID = SUTRA_PRESETS[0]!.id;
+const MIN_RING_RADIUS = 40;
+const MAX_RING_RADIUS = 148;
+const MAX_RINGS = 8;
+const MIN_GLYPH_SIZE = 8;
+const MAX_GLYPH_SIZE = 48;
+const MAX_GLYPHS = 16;
+const DEFAULT_RING_OPACITY = 0.85;
+
+/** Clock-position presets: 12 o'clock = 0°, 3 = 90°, 6 = 180°, 9 = 270°. */
+const CLOCK_POSITIONS = Array.from({ length: 12 }, (_, i) => ({
+  label: `${i === 0 ? 12 : i} o'clock`,
+  angle: i * 30,
+}));
+
+function uid(prefix: string): string {
+  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeAngle(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return ((Math.round(value) % 360) + 360) % 360;
+}
+
+function sanitizeRings(raw: unknown): SigilRing[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.slice(0, MAX_RINGS).flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const r = item as Record<string, unknown>;
+    const radius =
+      typeof r.radius === 'number' && Number.isFinite(r.radius)
+        ? clamp(Math.round(r.radius), MIN_RING_RADIUS, MAX_RING_RADIUS)
+        : MAX_RING_RADIUS;
+    const opacity =
+      typeof r.opacity === 'number' && Number.isFinite(r.opacity)
+        ? clamp(r.opacity, 0.05, 1)
+        : DEFAULT_RING_OPACITY;
+    return [{ id: uid('ring'), radius, opacity }];
+  });
+}
+
+function sanitizeGlyphPlacements(raw: unknown): SigilGlyph[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.slice(0, MAX_GLYPHS).flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const g = item as Record<string, unknown>;
+    const spec = sanitizeGlyphSpec(g.spec);
+    if (spec.kind === 'none') return [];
+    const angleDeg =
+      typeof g.angleDeg === 'number' ? normalizeAngle(g.angleDeg) : 0;
+    const radius =
+      typeof g.radius === 'number' && Number.isFinite(g.radius)
+        ? clamp(Math.round(g.radius), 0, MAX_RING_RADIUS)
+        : 130;
+    const size =
+      typeof g.size === 'number' && Number.isFinite(g.size)
+        ? clamp(Math.round(g.size), MIN_GLYPH_SIZE, MAX_GLYPH_SIZE)
+        : 16;
+    return [{ id: uid('glyph'), spec, angleDeg, radius, size }];
+  });
+}
 const CONTROL =
   'rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet';
 const GOLD_BUTTON =
@@ -75,11 +171,13 @@ export default function TalismanModule({
 }: Props) {
   const { isAuthenticated } = useAuth();
   const svgRef = useRef<SVGSVGElement>(null);
-  const [tab, setTab] = useState<Tab>('squares');
+  const [tab, setTab] = useState<Tab>('sigils');
   const [planet, setPlanet] = useState<KameaPlanet>('Saturn');
   const [sigilMode, setSigilMode] = useState<SigilMode>('planetary');
   const [name, setName] = useState(initialName);
-  const [overlay, setOverlay] = useState(Boolean(initialName));
+  const [showNumbers, setShowNumbers] = useState(true);
+  const [rings, setRings] = useState<SigilRing[]>([]);
+  const [glyphs, setGlyphs] = useState<SigilGlyph[]>([]);
   const [sutraId, setSutraId] = useState(DEFAULT_SUTRA_ID);
   const [sealText, setSealText] = useState(
     () => getSutraPreset(DEFAULT_SUTRA_ID)?.sealDefault ?? '護符'
@@ -109,7 +207,6 @@ export default function TalismanModule({
   useEffect(() => {
     if (!initialName) return;
     setName(initialName);
-    setOverlay(true);
   }, [initialName]);
 
   const handleSutraChange = (id: string) => {
@@ -123,16 +220,11 @@ export default function TalismanModule({
 
   const grid = useMemo(() => getKamea(planet), [planet]);
   const points = useMemo(() => {
-    if (tab === 'squares') {
-      return overlay ? kameaSigilPath(planet, name, SIZE) : [];
-    }
-    if (tab === 'sigils') {
-      return sigilMode === 'planetary'
-        ? kameaSigilPath(planet, name, SIZE)
-        : chaosSigilPoints(name, SIZE, SIZE);
-    }
-    return [];
-  }, [tab, overlay, sigilMode, planet, name]);
+    if (tab !== 'sigils') return [];
+    return sigilMode === 'planetary'
+      ? kameaSigilPath(planet, name, SIZE)
+      : chaosSigilPoints(name, SIZE, SIZE);
+  }, [tab, sigilMode, planet, name]);
 
   const bonjiDevanagari = useMemo(() => {
     if (!showBonji || !bonjiIast.trim()) return '';
@@ -174,20 +266,24 @@ export default function TalismanModule({
     void loadHistory();
   }, [loadHistory]);
 
-  const kind: SavedDesign['kind'] =
-    tab === 'squares' ? 'kamea' : tab === 'sigils' ? 'sigil' : 'sutra';
+  const kind: SavedDesign['kind'] = tab === 'sigils' ? 'sigil' : 'sutra';
 
   const config = () => {
-    if (kind === 'kamea') {
+    if (kind === 'sigil') {
       return {
         planet,
-        overlay,
-        overlayName: overlay ? name : '',
+        mode: sigilMode,
+        name,
         sigilColor,
+        showNumbers,
+        rings: rings.map(({ radius, opacity }) => ({ radius, opacity })),
+        glyphs: glyphs.map(({ spec, angleDeg, radius, size }) => ({
+          spec,
+          angleDeg,
+          radius,
+          size,
+        })),
       };
-    }
-    if (kind === 'sigil') {
-      return { planet, mode: sigilMode, name, sigilColor };
     }
     return {
       sutraId,
@@ -196,6 +292,56 @@ export default function TalismanModule({
       bonjiIast,
       dedication: name,
     };
+  };
+
+  const addRing = () => {
+    setRings((prev) => {
+      if (prev.length >= MAX_RINGS) return prev;
+      const innermost = prev.length
+        ? Math.min(...prev.map((r) => r.radius))
+        : MAX_RING_RADIUS + 14;
+      const radius = clamp(innermost - 14, MIN_RING_RADIUS, MAX_RING_RADIUS);
+      return [
+        ...prev,
+        { id: uid('ring'), radius, opacity: DEFAULT_RING_OPACITY },
+      ];
+    });
+  };
+
+  const updateRing = (id: string, patch: Partial<Omit<SigilRing, 'id'>>) => {
+    setRings((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, ...patch } : r))
+    );
+  };
+
+  const removeRing = (id: string) => {
+    setRings((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const addGlyph = () => {
+    setGlyphs((prev) => {
+      if (prev.length >= MAX_GLYPHS) return prev;
+      return [
+        ...prev,
+        {
+          id: uid('glyph'),
+          spec: glyphSpec('pentagram'),
+          angleDeg: (prev.length * 30) % 360,
+          radius: 130,
+          size: 16,
+        },
+      ];
+    });
+  };
+
+  const updateGlyph = (id: string, patch: Partial<Omit<SigilGlyph, 'id'>>) => {
+    setGlyphs((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, ...patch } : g))
+    );
+  };
+
+  const removeGlyph = (id: string) => {
+    setGlyphs((prev) => prev.filter((g) => g.id !== id));
   };
 
   const exportJson = () => {
@@ -261,7 +407,7 @@ export default function TalismanModule({
     });
   };
 
-  const showGridInPreview = tab === 'squares' || sigilMode === 'planetary';
+  const showGridInPreview = tab === 'sigils' && sigilMode === 'planetary';
 
   const save = async () => {
     if (!isAuthenticated || !designName.trim()) return;
@@ -317,15 +463,22 @@ export default function TalismanModule({
       setSigilColorDraft(DEFAULT_SIGIL_COLOR);
     }
     if (design.kind === 'kamea') {
-      setTab('squares');
-      const loadedName =
-        typeof cfg.overlayName === 'string' ? cfg.overlayName : '';
-      setName(loadedName);
-      setOverlay(typeof cfg.overlay === 'boolean' ? cfg.overlay : Boolean(loadedName));
+      // Legacy Squares-tab design: open in the merged sigil editor.
+      setTab('sigils');
+      setSigilMode('planetary');
+      setName(typeof cfg.overlayName === 'string' ? cfg.overlayName : '');
+      setShowNumbers(true);
+      setRings([]);
+      setGlyphs([]);
     } else if (design.kind === 'sigil') {
       setTab('sigils');
       setName(typeof cfg.name === 'string' ? cfg.name : '');
       setSigilMode(cfg.mode === 'chaos' ? 'chaos' : 'planetary');
+      setShowNumbers(
+        typeof cfg.showNumbers === 'boolean' ? cfg.showNumbers : true
+      );
+      setRings(sanitizeRings(cfg.rings));
+      setGlyphs(sanitizeGlyphPlacements(cfg.glyphs));
     } else {
       setTab('sutras');
       if (typeof cfg.sutraId === 'string' && getSutraPreset(cfg.sutraId)) {
@@ -354,6 +507,26 @@ export default function TalismanModule({
     setStatus(null);
   };
 
+  const deleteDesign = async (design: SavedDesign) => {
+    if (
+      !window.confirm(`Delete "${design.name}"? This cannot be undone.`)
+    ) {
+      return;
+    }
+    try {
+      const res = await apiFetch(`/api/talisman/designs/${design._id}`, {
+        method: 'DELETE',
+      });
+      const data = (await res.json()) as { message?: string };
+      if (!res.ok) throw new Error(data.message || 'Delete failed');
+      if (savedId === design._id) setSavedId(null);
+      setStatus('Design deleted.');
+      await loadHistory();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Delete failed');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {!embedded && (
@@ -369,7 +542,6 @@ export default function TalismanModule({
 
       <div className="flex gap-1 rounded-lg border border-ananael-border/60 bg-ananael-surface p-1">
         {([
-          ['squares', 'Squares'],
           ['sigils', 'Sigils'],
           ['sutras', 'Sutras'],
         ] as const).map(([id, label]) => (
@@ -436,7 +608,7 @@ export default function TalismanModule({
                 )}
               </>
             )}
-            {(tab === 'squares' || sigilMode === 'planetary') && tab !== 'sutras' && (
+            {tab === 'sigils' && sigilMode === 'planetary' && (
               <Field label="Planet">
                 <select
                   value={planet}
@@ -473,15 +645,15 @@ export default function TalismanModule({
                 className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet"
               />
             </label>
-            {tab === 'squares' && (
+            {tab === 'sigils' && sigilMode === 'planetary' && (
               <label className="flex items-center gap-2 pb-2 text-sm text-zinc-300">
                 <input
                   type="checkbox"
-                  checked={overlay}
-                  onChange={(e) => setOverlay(e.target.checked)}
+                  checked={showNumbers}
+                  onChange={(e) => setShowNumbers(e.target.checked)}
                   className="accent-ananael-violet"
                 />
-                Overlay sigil
+                Show numbers
               </label>
             )}
             {tab !== 'sutras' && (
@@ -530,6 +702,265 @@ export default function TalismanModule({
             </button>
           )}
 
+          {tab === 'sigils' && (
+            <div className="grid gap-4 xl:grid-cols-2">
+              <section className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-wider text-ananael-muted">
+                    Rings
+                  </p>
+                  <button
+                    type="button"
+                    onClick={addRing}
+                    disabled={rings.length >= MAX_RINGS}
+                    className={`${GOLD_BUTTON} px-2 py-1 text-xs disabled:opacity-50`}
+                  >
+                    Add ring
+                  </button>
+                </div>
+                {rings.length === 0 ? (
+                  <p className="text-xs text-ananael-muted">
+                    Add concentric circles around the sigil; the sigil scales
+                    to fit inside the innermost ring.
+                  </p>
+                ) : (
+                  rings.map((ringItem, i) => (
+                    <div
+                      key={ringItem.id}
+                      className="flex flex-wrap items-center gap-3 rounded-lg border border-ananael-border/60 bg-ananael-panel px-3 py-2 text-xs text-zinc-300"
+                    >
+                      <span className="w-6 text-ananael-muted">#{i + 1}</span>
+                      <label className="flex min-w-[150px] flex-1 items-center gap-2">
+                        Radius
+                        <input
+                          type="range"
+                          min={MIN_RING_RADIUS}
+                          max={MAX_RING_RADIUS}
+                          value={ringItem.radius}
+                          onChange={(e) =>
+                            updateRing(ringItem.id, {
+                              radius: Number(e.target.value),
+                            })
+                          }
+                          className="flex-1 accent-ananael-gold"
+                        />
+                        <span className="w-8 text-right">
+                          {ringItem.radius}
+                        </span>
+                      </label>
+                      <label className="flex min-w-[130px] flex-1 items-center gap-2">
+                        Opacity
+                        <input
+                          type="range"
+                          min={0.1}
+                          max={1}
+                          step={0.05}
+                          value={ringItem.opacity}
+                          onChange={(e) =>
+                            updateRing(ringItem.id, {
+                              opacity: Number(e.target.value),
+                            })
+                          }
+                          className="flex-1 accent-ananael-gold"
+                        />
+                        <span className="w-8 text-right">
+                          {Math.round(ringItem.opacity * 100)}%
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => removeRing(ringItem.id)}
+                        className="rounded-md border border-ananael-border px-2 py-1 text-xs text-zinc-400 hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </section>
+              <section className="space-y-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-wider text-ananael-muted">
+                    Glyphs
+                  </p>
+                  <button
+                    type="button"
+                    onClick={addGlyph}
+                    disabled={glyphs.length >= MAX_GLYPHS}
+                    className={`${GOLD_BUTTON} px-2 py-1 text-xs disabled:opacity-50`}
+                  >
+                    Add glyph
+                  </button>
+                </div>
+                {glyphs.length === 0 ? (
+                  <p className="text-xs text-ananael-muted">
+                    Place stars, polygons, and alchemical marks from the
+                    Solomonic circle library at any degree or clock position.
+                  </p>
+                ) : (
+                  glyphs.map((g) => (
+                    <div
+                      key={g.id}
+                      className="space-y-2 rounded-lg border border-ananael-border/60 bg-ananael-panel px-3 py-2 text-xs text-zinc-300"
+                    >
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={g.spec.kind}
+                          onChange={(e) =>
+                            updateGlyph(g.id, {
+                              spec: glyphSpec(
+                                e.target.value as CenterGlyph,
+                                g.spec.letters,
+                                g.spec.rotationDeg
+                              ),
+                            })
+                          }
+                          aria-label="Glyph kind"
+                          className={`${CONTROL} flex-1 py-1.5`}
+                        >
+                          {CENTER_GLYPH_GROUPS.filter(
+                            (group) => group.label !== 'None'
+                          ).map((group) => (
+                            <optgroup key={group.label} label={group.label}>
+                              {group.kinds.map((k) => (
+                                <option key={k} value={k}>
+                                  {CENTER_GLYPH_LABELS[k]}
+                                </option>
+                              ))}
+                            </optgroup>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => removeGlyph(g.id)}
+                          className="rounded-md border border-ananael-border px-2 py-1 text-xs text-zinc-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="flex items-center gap-2">
+                          Clock
+                          <select
+                            value={
+                              g.angleDeg % 30 === 0 ? String(g.angleDeg) : ''
+                            }
+                            onChange={(e) => {
+                              if (e.target.value === '') return;
+                              updateGlyph(g.id, {
+                                angleDeg: Number(e.target.value),
+                              });
+                            }}
+                            aria-label="Clock position"
+                            className={`${CONTROL} py-1.5`}
+                          >
+                            <option value="">Custom</option>
+                            {CLOCK_POSITIONS.map((c) => (
+                              <option key={c.angle} value={c.angle}>
+                                {c.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          Degrees
+                          <input
+                            type="number"
+                            min={0}
+                            max={359}
+                            value={g.angleDeg}
+                            onChange={(e) =>
+                              updateGlyph(g.id, {
+                                angleDeg: normalizeAngle(
+                                  Number(e.target.value)
+                                ),
+                              })
+                            }
+                            aria-label="Angle in degrees"
+                            className={`${CONTROL} w-20 py-1.5`}
+                          />
+                        </label>
+                        <label className="flex items-center gap-2">
+                          Rotation
+                          <input
+                            type="number"
+                            min={0}
+                            max={359}
+                            value={g.spec.rotationDeg}
+                            onChange={(e) =>
+                              updateGlyph(g.id, {
+                                spec: glyphSpec(
+                                  g.spec.kind,
+                                  g.spec.letters,
+                                  normalizeAngle(Number(e.target.value))
+                                ),
+                              })
+                            }
+                            aria-label="Glyph rotation"
+                            className={`${CONTROL} w-20 py-1.5`}
+                          />
+                        </label>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label className="flex min-w-[150px] flex-1 items-center gap-2">
+                          Distance
+                          <input
+                            type="range"
+                            min={0}
+                            max={MAX_RING_RADIUS}
+                            value={g.radius}
+                            onChange={(e) =>
+                              updateGlyph(g.id, {
+                                radius: Number(e.target.value),
+                              })
+                            }
+                            className="flex-1 accent-ananael-gold"
+                          />
+                          <span className="w-8 text-right">{g.radius}</span>
+                        </label>
+                        <label className="flex min-w-[130px] flex-1 items-center gap-2">
+                          Size
+                          <input
+                            type="range"
+                            min={MIN_GLYPH_SIZE}
+                            max={MAX_GLYPH_SIZE}
+                            value={g.size}
+                            onChange={(e) =>
+                              updateGlyph(g.id, {
+                                size: Number(e.target.value),
+                              })
+                            }
+                            className="flex-1 accent-ananael-gold"
+                          />
+                          <span className="w-8 text-right">{g.size}</span>
+                        </label>
+                      </div>
+                      {glyphHasVertexLetters(g.spec.kind) && (
+                        <label className="flex items-center gap-2">
+                          Vertex letters
+                          <input
+                            value={g.spec.letters}
+                            onChange={(e) =>
+                              updateGlyph(g.id, {
+                                spec: glyphSpec(
+                                  g.spec.kind,
+                                  e.target.value,
+                                  g.spec.rotationDeg
+                                ),
+                              })
+                            }
+                            maxLength={16}
+                            className={`${CONTROL} w-36 py-1.5`}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  ))
+                )}
+              </section>
+            </div>
+          )}
+
           <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:p-6">
             {tab === 'sutras' ? (
               <OfudaPreview ref={svgRef} layout={ofudaLayout} />
@@ -538,20 +969,20 @@ export default function TalismanModule({
                 ref={svgRef}
                 grid={grid}
                 points={points}
-                showNumbers={tab === 'squares'}
+                showNumbers={showNumbers}
                 showGrid={showGridInPreview}
                 sigilColor={sigilColor}
+                rings={rings}
+                glyphs={glyphs}
               />
             )}
           </div>
           <p className="text-xs leading-relaxed text-ananael-muted">
             {tab === 'sutras'
               ? `${sutraPreset.notes} Historical Shingon bonji used Siddham script; Devanagari here aligns with Script Translator for study.`
-              : tab === 'squares'
-                ? `${planet}'s ${grid.length}×${grid.length} square uses 1–${grid.length ** 2}; every row, column, and diagonal has the same sum. Classical metal: ${metalForPlanet(planet)}.`
-                : sigilMode === 'planetary'
-                  ? `Letters repeat on the Agrippan 1–9 key and join their kamea cell centers. Classical metal: ${metalForPlanet(planet)}.`
-                  : 'Vowels and repeated consonants are removed before the remaining letters trace the consonant wheel.'}
+              : sigilMode === 'planetary'
+                ? `${planet}'s ${grid.length}×${grid.length} square uses 1–${grid.length ** 2}; letters repeat on the Agrippan 1–9 key and join their kamea cell centers. Classical metal: ${metalForPlanet(planet)}.`
+                : 'Vowels and repeated consonants are removed before the remaining letters trace the consonant wheel.'}
           </p>
         </section>
 
@@ -658,19 +1089,33 @@ export default function TalismanModule({
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {designs.map((design) => (
-                <button
+                <div
                   key={design._id}
-                  type="button"
-                  onClick={() => load(design)}
-                  className="rounded-lg border border-ananael-border/60 bg-ananael-panel p-3 text-left hover:border-ananael-violet/50"
+                  className="flex flex-col rounded-lg border border-ananael-border/60 bg-ananael-panel p-3 hover:border-ananael-violet/50"
                 >
-                  <span className="font-display text-sm text-ananael-gold">
-                    {design.name}
-                  </span>
-                  <span className="mt-1 block text-xs capitalize text-ananael-muted">
-                    {design.kind} · {new Date(design.date).toLocaleString()}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => load(design)}
+                    className="block w-full text-left"
+                  >
+                    <div className="rounded-md border border-ananael-border/40 bg-ananael-bg p-2">
+                      <DesignThumbnail design={design} />
+                    </div>
+                    <span className="mt-2 block font-display text-sm text-ananael-gold">
+                      {design.name}
+                    </span>
+                    <span className="mt-1 block text-xs capitalize text-ananael-muted">
+                      {design.kind} · {new Date(design.date).toLocaleString()}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void deleteDesign(design)}
+                    className="mt-2 self-start rounded-md border border-red-900/60 px-2 py-1 text-xs text-red-300 transition hover:bg-red-900/20"
+                  >
+                    Delete
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -680,8 +1125,14 @@ export default function TalismanModule({
   );
 }
 
-const OfudaPreview = forwardRef<SVGSVGElement, { layout: OfudaLayout }>(
-  function OfudaPreview({ layout }, ref) {
+const OfudaPreview = forwardRef<
+  SVGSVGElement,
+  { layout: OfudaLayout; className?: string }
+>(
+  function OfudaPreview(
+    { layout, className = 'mx-auto w-full max-w-[280px]' },
+    ref
+  ) {
     const sealChars = layout.seal ? [...layout.seal.text] : [];
     const sealFontSize = layout.seal
       ? Math.min(14, (layout.seal.size - 8) / Math.max(sealChars.length, 1))
@@ -691,7 +1142,7 @@ const OfudaPreview = forwardRef<SVGSVGElement, { layout: OfudaLayout }>(
       <svg
         ref={ref}
         viewBox={`0 0 ${OFUDA_WIDTH} ${OFUDA_HEIGHT}`}
-        className="mx-auto w-full max-w-[280px]"
+        className={className}
         style={{ aspectRatio: `${OFUDA_WIDTH} / ${OFUDA_HEIGHT}` }}
         role="img"
         aria-label="Sutra ofuda preview"
@@ -815,89 +1266,235 @@ const OfudaPreview = forwardRef<SVGSVGElement, { layout: OfudaLayout }>(
   }
 );
 
-const Preview = forwardRef<
-  SVGSVGElement,
-  {
-    grid: number[][];
-    points: { x: number; y: number }[];
-    showNumbers: boolean;
-    showGrid: boolean;
-    sigilColor: string;
-  }
->(function Preview({ grid, points, showNumbers, showGrid, sigilColor }, ref) {
+interface SigilArtProps {
+  grid: number[][];
+  points: { x: number; y: number }[];
+  showNumbers: boolean;
+  showGrid: boolean;
+  sigilColor: string;
+  rings: SigilRing[];
+  glyphs: SigilGlyph[];
+}
+
+/**
+ * SVG body for a sigil design (grid, sigil path, rings, glyph placements).
+ * Shared by the live editor preview and saved-design thumbnails.
+ */
+function SigilArt({
+  grid,
+  points,
+  showNumbers,
+  showGrid,
+  sigilColor,
+  rings,
+  glyphs,
+}: SigilArtProps) {
   const cell = SIZE / grid.length;
+  const innerRadius = rings.length
+    ? Math.min(...rings.map((r) => r.radius))
+    : null;
+  // Inscribe the square sigil content inside the innermost ring.
+  const scale =
+    innerRadius === null ? 1 : (innerRadius * Math.SQRT2 * 0.96) / SIZE;
+  const offset = CENTER * (1 - scale);
+  return (
+    <>
+      <g
+        transform={
+          scale === 1 ? undefined : `translate(${offset},${offset}) scale(${scale})`
+        }
+      >
+        {showGrid &&
+          grid.map((row, r) =>
+            row.map((value, c) => (
+              <g key={value} data-talisman-grid>
+                <rect
+                  x={c * cell}
+                  y={r * cell}
+                  width={cell}
+                  height={cell}
+                  fill="none"
+                  stroke="#5b4a8a"
+                  strokeWidth={0.7}
+                />
+                {showNumbers && (
+                  <text
+                    x={(c + 0.5) * cell}
+                    y={(r + 0.5) * cell}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="#d9c675"
+                    fontFamily="Georgia, serif"
+                    fontSize={Math.max(9, cell * 0.28)}
+                  >
+                    {value}
+                  </text>
+                )}
+              </g>
+            ))
+          )}
+        {!showGrid && (
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r={114}
+            fill="none"
+            stroke="#3d3554"
+            strokeDasharray="4 6"
+          />
+        )}
+        {points.length > 1 && (
+          <polyline
+            points={pointsToPolyline(points)}
+            fill="none"
+            stroke={sigilColor}
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+        {points[0] && (
+          <circle
+            data-talisman-start
+            cx={points[0].x}
+            cy={points[0].y}
+            r={6}
+            fill="#0c0a12"
+            stroke={sigilColor}
+            strokeWidth={3}
+          />
+        )}
+      </g>
+      {rings.map((ringItem) => (
+        <circle
+          key={ringItem.id}
+          data-talisman-ring
+          cx={CENTER}
+          cy={CENTER}
+          r={ringItem.radius}
+          fill="none"
+          stroke="#c9a227"
+          strokeWidth={1.5}
+          opacity={ringItem.opacity}
+        />
+      ))}
+      {glyphs.map((g) => {
+        const pos = polarToCartesian(CENTER, CENTER, g.radius, g.angleDeg);
+        return (
+          <CircleGlyph
+            key={g.id}
+            spec={g.spec}
+            cx={pos.x}
+            cy={pos.y}
+            radius={g.size}
+            strokeWidth={1.4}
+            labelFontSize={Math.max(7, g.size * 0.45)}
+            labelOutward={Math.max(7, g.size * 0.5)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+const Preview = forwardRef<SVGSVGElement, SigilArtProps>(
+  function Preview(props, ref) {
+    return (
+      <svg
+        ref={ref}
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        className="mx-auto aspect-square w-full max-w-[620px]"
+        role="img"
+        aria-label="Talisman preview"
+      >
+        <rect data-talisman-bg width={SIZE} height={SIZE} fill="#0c0a12" />
+        <SigilArt {...props} />
+      </svg>
+    );
+  }
+);
+
+/** Live SVG thumbnail for a saved design, derived from its stored config. */
+function DesignThumbnail({ design }: { design: SavedDesign }) {
+  const cfg = design.config ?? {};
+
+  if (design.kind === 'sutra') {
+    const sutraId =
+      typeof cfg.sutraId === 'string' && getSutraPreset(cfg.sutraId)
+        ? cfg.sutraId
+        : DEFAULT_SUTRA_ID;
+    const preset = getSutraPreset(sutraId) ?? SUTRA_PRESETS[0]!;
+    const showBonji = typeof cfg.showBonji === 'boolean' ? cfg.showBonji : true;
+    const bonjiIast = typeof cfg.bonjiIast === 'string' ? cfg.bonjiIast : '';
+    const bonji =
+      showBonji && bonjiIast.trim()
+        ? transliterate(bonjiIast.trim(), 'latin', 'sanskrit').output
+        : '';
+    const layout = layoutOfuda({
+      titleJp: preset.titleJp,
+      purposeLabel: SUTRA_PURPOSE_LABELS[preset.purpose],
+      columns: preset.columns,
+      bonjiDevanagari: bonji || undefined,
+      sealText:
+        typeof cfg.sealText === 'string' ? cfg.sealText : preset.sealDefault,
+      dedication: typeof cfg.dedication === 'string' ? cfg.dedication : '',
+    });
+    return <OfudaPreview layout={layout} className="mx-auto h-28 w-auto" />;
+  }
+
+  // Legacy kamea designs map through the same rules as load().
+  const isKamea = design.kind === 'kamea';
+  const planet =
+    typeof cfg.planet === 'string' &&
+    PLANET_ORDER.includes(cfg.planet as KameaPlanet)
+      ? (cfg.planet as KameaPlanet)
+      : 'Saturn';
+  const mode: SigilMode =
+    !isKamea && cfg.mode === 'chaos' ? 'chaos' : 'planetary';
+  const name = isKamea
+    ? typeof cfg.overlayName === 'string'
+      ? cfg.overlayName
+      : ''
+    : typeof cfg.name === 'string'
+      ? cfg.name
+      : '';
+  const sigilColor =
+    typeof cfg.sigilColor === 'string' && HEX_COLOR.test(cfg.sigilColor)
+      ? cfg.sigilColor
+      : DEFAULT_SIGIL_COLOR;
+  const showNumbers = isKamea
+    ? true
+    : typeof cfg.showNumbers === 'boolean'
+      ? cfg.showNumbers
+      : true;
+  const rings = isKamea ? [] : sanitizeRings(cfg.rings);
+  const glyphs = isKamea ? [] : sanitizeGlyphPlacements(cfg.glyphs);
+  const grid = getKamea(planet);
+  const points =
+    mode === 'planetary'
+      ? kameaSigilPath(planet, name, SIZE)
+      : chaosSigilPoints(name, SIZE, SIZE);
+
   return (
     <svg
-      ref={ref}
       viewBox={`0 0 ${SIZE} ${SIZE}`}
-      className="mx-auto aspect-square w-full max-w-[620px]"
+      className="mx-auto h-28 w-28"
       role="img"
-      aria-label="Talisman preview"
+      aria-label={`${design.name} preview`}
     >
-      <rect data-talisman-bg width={SIZE} height={SIZE} fill="#0c0a12" />
-      {showGrid &&
-        grid.map((row, r) =>
-          row.map((value, c) => (
-            <g key={value} data-talisman-grid>
-              <rect
-                x={c * cell}
-                y={r * cell}
-                width={cell}
-                height={cell}
-                fill="none"
-                stroke="#5b4a8a"
-                strokeWidth={0.7}
-              />
-              {showNumbers && (
-                <text
-                  x={(c + 0.5) * cell}
-                  y={(r + 0.5) * cell}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fill="#d9c675"
-                  fontFamily="Georgia, serif"
-                  fontSize={Math.max(9, cell * 0.28)}
-                >
-                  {value}
-                </text>
-              )}
-            </g>
-          ))
-        )}
-      {!showGrid && (
-        <circle
-          cx={150}
-          cy={150}
-          r={114}
-          fill="none"
-          stroke="#3d3554"
-          strokeDasharray="4 6"
-        />
-      )}
-      {points.length > 1 && (
-        <polyline
-          points={pointsToPolyline(points)}
-          fill="none"
-          stroke={sigilColor}
-          strokeWidth={4}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      )}
-      {points[0] && (
-        <circle
-          data-talisman-start
-          cx={points[0].x}
-          cy={points[0].y}
-          r={6}
-          fill="#0c0a12"
-          stroke={sigilColor}
-          strokeWidth={3}
-        />
-      )}
+      <rect width={SIZE} height={SIZE} fill="#0c0a12" />
+      <SigilArt
+        grid={grid}
+        points={points}
+        showNumbers={showNumbers}
+        showGrid={mode === 'planetary'}
+        sigilColor={sigilColor}
+        rings={rings}
+        glyphs={glyphs}
+      />
     </svg>
   );
-});
+}
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (

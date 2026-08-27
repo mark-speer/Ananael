@@ -132,4 +132,25 @@ router.put('/designs/:id', protect, async (req: AuthRequest, res: Response) => {
   }
 });
 
+router.delete(
+  '/designs/:id',
+  protect,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const design = await TalismanDesign.findOneAndDelete({
+        _id: req.params.id,
+        userId: req.userId,
+      });
+      if (!design) {
+        res.status(404).json({ message: 'Design not found' });
+        return;
+      }
+      res.json({ message: 'Talisman design deleted' });
+    } catch (error) {
+      console.error('Talisman design delete error:', error);
+      res.status(500).json({ message: 'Server error while deleting design' });
+    }
+  }
+);
+
 export default router;
