@@ -58,6 +58,8 @@ interface SavedDesign {
 }
 
 const SIZE = 300;
+const DEFAULT_SIGIL_COLOR = '#c9a227';
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 const DEFAULT_SUTRA_ID = SUTRA_PRESETS[0]!.id;
 const CONTROL =
   'rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-ananael-violet';
@@ -96,6 +98,8 @@ export default function TalismanModule({
   const [status, setStatus] = useState<string | null>(null);
   const [hideGridOnExport, setHideGridOnExport] = useState(false);
   const [exportTransparentBg, setExportTransparentBg] = useState(false);
+  const [sigilColor, setSigilColor] = useState(DEFAULT_SIGIL_COLOR);
+  const [sigilColorDraft, setSigilColorDraft] = useState(DEFAULT_SIGIL_COLOR);
 
   const sutraPreset = useMemo(
     () => getSutraPreset(sutraId) ?? SUTRA_PRESETS[0]!,
@@ -175,10 +179,15 @@ export default function TalismanModule({
 
   const config = () => {
     if (kind === 'kamea') {
-      return { planet, overlay, overlayName: overlay ? name : '' };
+      return {
+        planet,
+        overlay,
+        overlayName: overlay ? name : '',
+        sigilColor,
+      };
     }
     if (kind === 'sigil') {
-      return { planet, mode: sigilMode, name };
+      return { planet, mode: sigilMode, name, sigilColor };
     }
     return {
       sutraId,
@@ -296,6 +305,16 @@ export default function TalismanModule({
       PLANET_ORDER.includes(cfg.planet as KameaPlanet)
     ) {
       setPlanet(cfg.planet as KameaPlanet);
+    }
+    if (
+      typeof cfg.sigilColor === 'string' &&
+      HEX_COLOR.test(cfg.sigilColor)
+    ) {
+      setSigilColor(cfg.sigilColor);
+      setSigilColorDraft(cfg.sigilColor);
+    } else {
+      setSigilColor(DEFAULT_SIGIL_COLOR);
+      setSigilColorDraft(DEFAULT_SIGIL_COLOR);
     }
     if (design.kind === 'kamea') {
       setTab('squares');
@@ -465,6 +484,35 @@ export default function TalismanModule({
                 Overlay sigil
               </label>
             )}
+            {tab !== 'sutras' && (
+              <Field label="Sigil color">
+                <span className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={sigilColor}
+                    onChange={(e) => {
+                      setSigilColor(e.target.value);
+                      setSigilColorDraft(e.target.value);
+                    }}
+                    aria-label="Sigil color"
+                    className="h-10 w-12 cursor-pointer rounded-md border border-ananael-border bg-ananael-bg p-0.5"
+                  />
+                  <input
+                    value={sigilColorDraft}
+                    onChange={(e) => {
+                      const next = e.target.value.trim();
+                      setSigilColorDraft(next);
+                      if (HEX_COLOR.test(next)) setSigilColor(next);
+                    }}
+                    onBlur={() => setSigilColorDraft(sigilColor)}
+                    maxLength={7}
+                    spellCheck={false}
+                    aria-label="Sigil color hex"
+                    className={`${CONTROL} w-[7.5rem] font-mono`}
+                  />
+                </span>
+              </Field>
+            )}
           </div>
 
           {tab === 'sutras' && showBonji && onNavigate && (
@@ -492,6 +540,7 @@ export default function TalismanModule({
                 points={points}
                 showNumbers={tab === 'squares'}
                 showGrid={showGridInPreview}
+                sigilColor={sigilColor}
               />
             )}
           </div>
@@ -773,8 +822,9 @@ const Preview = forwardRef<
     points: { x: number; y: number }[];
     showNumbers: boolean;
     showGrid: boolean;
+    sigilColor: string;
   }
->(function Preview({ grid, points, showNumbers, showGrid }, ref) {
+>(function Preview({ grid, points, showNumbers, showGrid, sigilColor }, ref) {
   const cell = SIZE / grid.length;
   return (
     <svg
@@ -828,7 +878,7 @@ const Preview = forwardRef<
         <polyline
           points={pointsToPolyline(points)}
           fill="none"
-          stroke="#c9a227"
+          stroke={sigilColor}
           strokeWidth={4}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -841,7 +891,7 @@ const Preview = forwardRef<
           cy={points[0].y}
           r={6}
           fill="#0c0a12"
-          stroke="#c9a227"
+          stroke={sigilColor}
           strokeWidth={3}
         />
       )}
