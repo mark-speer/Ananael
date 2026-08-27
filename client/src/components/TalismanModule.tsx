@@ -34,7 +34,7 @@ import {
   kameaSigilPath,
   pointsToPolyline,
 } from '../lib/sigil';
-import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
+import { downloadJson, exportSvg, exportSvgAsPng } from '../lib/svgExport';
 import { transliterate } from '../lib/transliterate';
 import type { ModuleId } from './Sidebar';
 
@@ -95,6 +95,7 @@ export default function TalismanModule({
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [hideGridOnExport, setHideGridOnExport] = useState(false);
+  const [exportTransparentBg, setExportTransparentBg] = useState(false);
 
   const sutraPreset = useMemo(
     () => getSutraPreset(sutraId) ?? SUTRA_PRESETS[0]!,
@@ -202,6 +203,20 @@ export default function TalismanModule({
     );
   };
 
+  const prepareExportClone = (clone: SVGSVGElement) => {
+    if (hideGridOnExport) {
+      clone.querySelectorAll('[data-talisman-grid]').forEach((el) => {
+        el.remove();
+      });
+    }
+    if (exportTransparentBg) {
+      clone.querySelector('[data-talisman-bg]')?.remove();
+      clone.querySelectorAll('[data-talisman-start]').forEach((el) => {
+        el.setAttribute('fill', 'none');
+      });
+    }
+  };
+
   const exportPng = () => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -216,17 +231,24 @@ export default function TalismanModule({
         fallbackName: 'talisman',
         width: isOfuda ? 900 : 1200,
         height: isOfuda ? 1950 : 1200,
-        background: '#0c0a12',
-        prepareClone: hideGridOnExport
-          ? (clone) => {
-              clone.querySelectorAll('[data-talisman-grid]').forEach((el) => {
-                el.remove();
-              });
-            }
-          : undefined,
+        background: exportTransparentBg ? null : '#0c0a12',
+        prepareClone: prepareExportClone,
       });
     })().catch(() => {
       setStatus('PNG export failed.');
+    });
+  };
+
+  const exportSvgFile = () => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    void exportSvg({
+      svg,
+      filenameBase: designName || 'talisman',
+      fallbackName: 'talisman',
+      prepareClone: prepareExportClone,
+    }).catch(() => {
+      setStatus('SVG export failed.');
     });
   };
 
@@ -320,7 +342,7 @@ export default function TalismanModule({
           <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Talismans</h1>
           <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
             Build planetary magic squares, trace personal sigils, and craft sutra
-            ofuda talismans. Export your work as PNG or JSON, or sign in to keep
+            ofuda talismans. Export your work as PNG, SVG, or JSON, or sign in to keep
             it in your profile.
           </p>
         </header>
@@ -494,11 +516,23 @@ export default function TalismanModule({
                   onChange={(e) => setHideGridOnExport(e.target.checked)}
                   className="accent-ananael-violet"
                 />
-                Hide kamea grid on PNG export
+                Hide kamea grid on export
               </label>
             )}
+            <label className="mb-1 flex w-full items-center gap-2 text-sm text-zinc-300">
+              <input
+                type="checkbox"
+                checked={exportTransparentBg}
+                onChange={(e) => setExportTransparentBg(e.target.checked)}
+                className="accent-ananael-violet"
+              />
+              Transparent background
+            </label>
             <button type="button" onClick={exportPng} className={GOLD_BUTTON}>
               Export PNG
+            </button>
+            <button type="button" onClick={exportSvgFile} className={GOLD_BUTTON}>
+              Export SVG
             </button>
             <button type="button" onClick={exportJson} className={VIOLET_BUTTON}>
               Export JSON
@@ -613,7 +647,12 @@ const OfudaPreview = forwardRef<SVGSVGElement, { layout: OfudaLayout }>(
         role="img"
         aria-label="Sutra ofuda preview"
       >
-        <rect width={OFUDA_WIDTH} height={OFUDA_HEIGHT} fill="#0c0a12" />
+        <rect
+          data-talisman-bg
+          width={OFUDA_WIDTH}
+          height={OFUDA_HEIGHT}
+          fill="#0c0a12"
+        />
         <rect
           x={4}
           y={4}
@@ -745,7 +784,7 @@ const Preview = forwardRef<
       role="img"
       aria-label="Talisman preview"
     >
-      <rect width={SIZE} height={SIZE} fill="#0c0a12" />
+      <rect data-talisman-bg width={SIZE} height={SIZE} fill="#0c0a12" />
       {showGrid &&
         grid.map((row, r) =>
           row.map((value, c) => (
@@ -797,6 +836,7 @@ const Preview = forwardRef<
       )}
       {points[0] && (
         <circle
+          data-talisman-start
           cx={points[0].x}
           cy={points[0].y}
           r={6}

@@ -1,5 +1,5 @@
 /**
- * Shared SVG → PNG / JSON download helpers for canvas modules.
+ * Shared SVG → PNG / SVG / JSON download helpers for canvas modules.
  */
 
 export function slugify(name: string, fallback = 'export'): string {
@@ -91,6 +91,47 @@ export async function inlineExternalImages(
   );
 }
 
+interface PrepareSvgCloneOptions {
+  svg: SVGSVGElement;
+  /** Mutate the clone before serialize (e.g. inline external images). */
+  prepareClone?: (clone: SVGSVGElement) => void | Promise<void>;
+  /** Pixel size written onto the clone; omit to keep viewBox-only vector sizing. */
+  width?: number;
+  height?: number;
+}
+
+async function clonePreparedSvg(
+  options: PrepareSvgCloneOptions
+): Promise<SVGSVGElement> {
+  const clone = options.svg.cloneNode(true) as SVGSVGElement;
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  if (options.width != null) clone.setAttribute('width', String(options.width));
+  if (options.height != null) {
+    clone.setAttribute('height', String(options.height));
+  }
+  if (options.prepareClone) {
+    await options.prepareClone(clone);
+  }
+  return clone;
+}
+
+function serializeSvg(clone: SVGSVGElement): Blob {
+  const xml = new XMLSerializer().serializeToString(clone);
+  return new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+}
+
+function viewBoxSize(svg: SVGSVGElement): { width: number; height: number } {
+  const vb = svg.getAttribute('viewBox')?.split(/\s+/).map(Number);
+  const vbW = vb && vb.length >= 4 ? vb[2] : 0;
+  const vbH = vb && vb.length >= 4 ? vb[3] : 0;
+  const attrW = Number(svg.getAttribute('width'));
+  const attrH = Number(svg.getAttribute('height'));
+  return {
+    width: attrW || vbW || 800,
+    height: attrH || vbH || 800,
+  };
+}
+
 export interface ExportSvgAsPngOptions {
   svg: SVGSVGElement;
   filenameBase: string;
@@ -118,27 +159,17 @@ export async function exportSvgAsPng(
     prepareClone,
   } = options;
 
-  const clone = svg.cloneNode(true) as SVGSVGElement;
-  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  const fallback = viewBoxSize(svg);
+  const width = options.width ?? fallback.width;
+  const height = options.height ?? fallback.height;
 
-  const vb = clone.getAttribute('viewBox')?.split(/\s+/).map(Number);
-  const vbW = vb && vb.length >= 4 ? vb[2] : 0;
-  const vbH = vb && vb.length >= 4 ? vb[3] : 0;
-  const attrW = Number(clone.getAttribute('width'));
-  const attrH = Number(clone.getAttribute('height'));
-  const width = options.width ?? (attrW || vbW || 800);
-  const height = options.height ?? (attrH || vbH || 800);
-
-  clone.setAttribute('width', String(width));
-  clone.setAttribute('height', String(height));
-
-  if (prepareClone) {
-    await prepareClone(clone);
-  }
-
-  const xml = new XMLSerializer().serializeToString(clone);
-  const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(svgBlob);
+  const clone = await clonePreparedSvg({
+    svg,
+    prepareClone,
+    width,
+    height,
+  });
+  const url = URL.createObjectURL(serializeSvg(clone));
 
   try {
     const img = await loadImage(url);
@@ -156,6 +187,29 @@ export async function exportSvgAsPng(
       canvas.toDataURL('image/png'),
       `${slugify(filenameBase, fallbackName)}.png`
     );
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export interface ExportSvgOptions {
+  svg: SVGSVGElement;
+  filenameBase: string;
+  fallbackName?: string;
+  /** Mutate the clone before serialize (e.g. strip background). */
+  prepareClone?: (clone: SVGSVGElement) => void | Promise<void>;
+}
+
+/**
+ * Clone an SVG element, optionally prepare it, and download as a vector file.
+ * Keeps the source viewBox; does not force raster pixel dimensions.
+ */
+export async function exportSvg(options: ExportSvgOptions): Promise<void> {
+  const { svg, filenameBase, fallbackName = 'export', prepareClone } = options;
+  const clone = await clonePreparedSvg({ svg, prepareClone });
+  const url = URL.createObjectURL(serializeSvg(clone));
+  try {
+    downloadUrl(url, `${slugify(filenameBase, fallbackName)}.svg`);
   } finally {
     URL.revokeObjectURL(url);
   }
