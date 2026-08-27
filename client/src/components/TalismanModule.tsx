@@ -770,11 +770,20 @@ export default function TalismanModule({
                   rings.map((ringItem, i) => (
                     <div
                       key={ringItem.id}
-                      className="flex flex-wrap items-center gap-3 rounded-lg border border-ananael-border/60 bg-ananael-panel px-3 py-2 text-xs text-zinc-300"
+                      className="space-y-2 rounded-lg border border-ananael-border/60 bg-ananael-panel px-3 py-2 text-xs text-zinc-300"
                     >
-                      <span className="w-6 text-ananael-muted">#{i + 1}</span>
-                      <label className="flex min-w-[150px] flex-1 items-center gap-2">
-                        Radius
+                      <div className="flex items-center justify-between">
+                        <span className="text-ananael-muted">#{i + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeRing(ringItem.id)}
+                          className="rounded-md border border-ananael-border px-2 py-1 text-xs text-zinc-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <label className="flex items-center gap-2">
+                        <span className="w-14 shrink-0">Radius</span>
                         <input
                           type="range"
                           min={MIN_RING_RADIUS}
@@ -785,14 +794,14 @@ export default function TalismanModule({
                               radius: Number(e.target.value),
                             })
                           }
-                          className="flex-1 accent-ananael-gold"
+                          className="min-w-0 flex-1 accent-ananael-gold"
                         />
-                        <span className="w-8 text-right">
+                        <span className="w-8 shrink-0 text-right">
                           {ringItem.radius}
                         </span>
                       </label>
-                      <label className="flex min-w-[130px] flex-1 items-center gap-2">
-                        Opacity
+                      <label className="flex items-center gap-2">
+                        <span className="w-14 shrink-0">Opacity</span>
                         <input
                           type="range"
                           min={0.1}
@@ -804,19 +813,12 @@ export default function TalismanModule({
                               opacity: Number(e.target.value),
                             })
                           }
-                          className="flex-1 accent-ananael-gold"
+                          className="min-w-0 flex-1 accent-ananael-gold"
                         />
-                        <span className="w-8 text-right">
+                        <span className="w-8 shrink-0 text-right">
                           {Math.round(ringItem.opacity * 100)}%
                         </span>
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => removeRing(ringItem.id)}
-                        className="rounded-md border border-ananael-border px-2 py-1 text-xs text-zinc-400 hover:text-red-300"
-                      >
-                        Remove
-                      </button>
                     </div>
                   ))
                 )}
@@ -951,40 +953,38 @@ export default function TalismanModule({
                           />
                         </label>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <label className="flex min-w-[150px] flex-1 items-center gap-2">
-                          Distance
-                          <input
-                            type="range"
-                            min={0}
-                            max={maxGlyphDistance(g.spec, g.size)}
-                            value={g.radius}
-                            onChange={(e) =>
-                              updateGlyph(g.id, {
-                                radius: Number(e.target.value),
-                              })
-                            }
-                            className="flex-1 accent-ananael-gold"
-                          />
-                          <span className="w-8 text-right">{g.radius}</span>
-                        </label>
-                        <label className="flex min-w-[130px] flex-1 items-center gap-2">
-                          Size
-                          <input
-                            type="range"
-                            min={MIN_GLYPH_SIZE}
-                            max={MAX_GLYPH_SIZE}
-                            value={g.size}
-                            onChange={(e) =>
-                              updateGlyph(g.id, {
-                                size: Number(e.target.value),
-                              })
-                            }
-                            className="flex-1 accent-ananael-gold"
-                          />
-                          <span className="w-8 text-right">{g.size}</span>
-                        </label>
-                      </div>
+                      <label className="flex items-center gap-2">
+                        <span className="w-14 shrink-0">Distance</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={maxGlyphDistance(g.spec, g.size)}
+                          value={g.radius}
+                          onChange={(e) =>
+                            updateGlyph(g.id, {
+                              radius: Number(e.target.value),
+                            })
+                          }
+                          className="min-w-0 flex-1 accent-ananael-gold"
+                        />
+                        <span className="w-8 shrink-0 text-right">{g.radius}</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <span className="w-14 shrink-0">Size</span>
+                        <input
+                          type="range"
+                          min={MIN_GLYPH_SIZE}
+                          max={MAX_GLYPH_SIZE}
+                          value={g.size}
+                          onChange={(e) =>
+                            updateGlyph(g.id, {
+                              size: Number(e.target.value),
+                            })
+                          }
+                          className="min-w-0 flex-1 accent-ananael-gold"
+                        />
+                        <span className="w-8 shrink-0 text-right">{g.size}</span>
+                      </label>
                       {glyphHasVertexLetters(g.spec.kind) && (
                         <label className="flex items-center gap-2">
                           Vertex letters
