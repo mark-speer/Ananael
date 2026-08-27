@@ -115,6 +115,25 @@ export default function CircleGlyph({
     labels = glyphPointLabels(cx, cy, verts, spec.letters, labelOutward);
   }
 
+  if (spec.kind === 'script') {
+    if (!spec.letters) return null;
+    return (
+      <text
+        x={cx}
+        y={cy}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={stroke}
+        opacity={0.9}
+        fontFamily="Cinzel, Georgia, serif"
+        fontSize={radius * 1.9}
+        transform={rot ? `rotate(${rot} ${cx} ${cy})` : undefined}
+      >
+        {spec.letters}
+      </text>
+    );
+  }
+
   if (isAlchemicalGlyph(spec.kind) && isAlchemicalGlyphId(spec.kind)) {
     const paths = ALCHEMICAL_GLYPH_PATHS[spec.kind];
     const scale = (radius * 2) / ALCHEMICAL_VIEWBOX;

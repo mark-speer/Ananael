@@ -43,6 +43,7 @@ import {
   type CenterGlyph,
   type GlyphSpec,
 } from '../data/solomonicCircles';
+import { SCRIPT_CHAR_GROUPS, SCRIPT_CHARS } from '../data/scriptGlyphs';
 import { polarToCartesian } from '../lib/solomonicGeometry';
 import CircleGlyph from './CircleGlyph';
 import { downloadJson, exportSvg, exportSvgAsPng } from '../lib/svgExport';
@@ -70,6 +71,17 @@ interface SigilGlyph {
   radius: number;
   /** Glyph radius in SVG px. */
   size: number;
+  /** UI-only: family shown in the two-step picker (not persisted). */
+  family?: string;
+  /** UI-only: saved-circle id backing this glyph when family is Saved. */
+  savedRef?: string;
+}
+
+/** A saved Solomonic circle's center glyph, offered in the Saved family. */
+interface SavedGlyphOption {
+  id: string;
+  name: string;
+  spec: GlyphSpec;
 }
 
 interface Props {
@@ -109,6 +121,23 @@ const CLOCK_POSITIONS = Array.from({ length: 12 }, (_, i) => ({
   label: `${i === 0 ? 12 : i} o'clock`,
   angle: i * 30,
 }));
+
+const SCRIPT_FAMILY = 'Script characters';
+const SAVED_FAMILY = 'Saved glyphs';
+
+/** Geometric / alchemical families from the shared glyph groups. */
+const GEOMETRIC_GLYPH_GROUPS = CENTER_GLYPH_GROUPS.filter(
+  (group) => group.label !== 'None'
+);
+
+/** Family implied by a glyph spec (used when no explicit pick exists). */
+function familyFromSpec(spec: GlyphSpec): string {
+  if (spec.kind === 'script') return SCRIPT_FAMILY;
+  return (
+    GEOMETRIC_GLYPH_GROUPS.find((group) => group.kinds.includes(spec.kind))
+      ?.label ?? GEOMETRIC_GLYPH_GROUPS[0]!.label
+  );
+}
 
 function uid(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
@@ -266,6 +295,75 @@ export default function TalismanModule({
       }),
     [sutraPreset, showBonji, bonjiDevanagari, sealText, name]
   );
+
+  const [savedGlyphs, setSavedGlyphs] = useState<SavedGlyphOption[]>([]);
+
+  const loadSavedGlyphs = useCallback(async () => {
+    if (!isAuthenticated) {
+      setSavedGlyphs([]);
+      return;
+    }
+    try {
+      const res = await apiFetch('/api/solomonic/circles');
+      const data = (await res.json()) as {
+        circles?: { _id: string; name: string; config?: Record<string, unknown> }[];
+      };
+      if (!res.ok) return;
+      setSavedGlyphs(
+        (data.circles ?? []).flatMap((c) => {
+          const spec = sanitizeGlyphSpec(c.config?.centerGlyph);
+          if (spec.kind === 'none') return [];
+          return [{ id: c._id, name: c.name, spec }];
+        })
+      );
+    } catch {
+      // Saved-glyph family is simply unavailable when circles can't load.
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    void loadSavedGlyphs();
+  }, [loadSavedGlyphs]);
+
+  /** Family shown for a glyph; falls back to spec when Saved is unavailable. */
+  const glyphFamily = (g: SigilGlyph): string => {
+    if (g.family === SAVED_FAMILY && savedGlyphs.length === 0) {
+      return familyFromSpec(g.spec);
+    }
+    return g.family ?? familyFromSpec(g.spec);
+  };
+
+  const changeGlyphFamily = (g: SigilGlyph, family: string) => {
+    if (family === SAVED_FAMILY) {
+      // Keep the current drawing until a saved glyph is chosen.
+      updateGlyph(g.id, { family, savedRef: '' });
+      return;
+    }
+    if (family === SCRIPT_FAMILY) {
+      updateGlyph(g.id, {
+        family,
+        savedRef: '',
+        spec:
+          g.spec.kind === 'script'
+            ? g.spec
+            : glyphSpec('script', 'A', g.spec.rotationDeg),
+      });
+      return;
+    }
+    const group = GEOMETRIC_GLYPH_GROUPS.find((gr) => gr.label === family);
+    const kind = group?.kinds.includes(g.spec.kind)
+      ? g.spec.kind
+      : group?.kinds[0] ?? 'pentagram';
+    updateGlyph(g.id, {
+      family,
+      savedRef: '',
+      spec: glyphSpec(
+        kind,
+        g.spec.kind === 'script' ? '' : g.spec.letters,
+        g.spec.rotationDeg
+      ),
+    });
+  };
 
   const loadHistory = useCallback(async () => {
     if (!isAuthenticated) {
@@ -846,16 +944,100 @@ export default function TalismanModule({
                 </div>
                 {glyphs.length === 0 ? (
                   <p className="text-xs text-ananael-muted">
-                    Place stars, polygons, and alchemical marks from the
-                    Solomonic circle library at any degree or clock position.
+                    Place stars, polygons, alchemical marks, script
+                    characters, or center glyphs from your saved circles at
+                    any degree or clock position.
                   </p>
                 ) : (
-                  glyphs.map((g) => (
+                  glyphs.map((g) => {
+                    const family = glyphFamily(g);
+                    return (
                     <div
                       key={g.id}
                       className="space-y-2 rounded-lg border border-ananael-border/60 bg-ananael-panel px-3 py-2 text-xs text-zinc-300"
                     >
                       <div className="flex items-center gap-2">
+                        <select
+                          value={family}
+                          onChange={(e) =>
+                            changeGlyphFamily(g, e.target.value)
+                          }
+                          aria-label="Glyph family"
+                          className={`${CONTROL} flex-1 py-1.5`}
+                        >
+                          {GEOMETRIC_GLYPH_GROUPS.map((group) => (
+                            <option key={group.label} value={group.label}>
+                              {group.label}
+                            </option>
+                          ))}
+                          <option value={SCRIPT_FAMILY}>{SCRIPT_FAMILY}</option>
+                          {savedGlyphs.length > 0 && (
+                            <option value={SAVED_FAMILY}>{SAVED_FAMILY}</option>
+                          )}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => removeGlyph(g.id)}
+                          className="rounded-md border border-ananael-border px-2 py-1 text-xs text-zinc-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      {family === SCRIPT_FAMILY ? (
+                        <select
+                          value={
+                            SCRIPT_CHARS.has(g.spec.letters)
+                              ? g.spec.letters
+                              : ''
+                          }
+                          onChange={(e) => {
+                            if (!e.target.value) return;
+                            updateGlyph(g.id, {
+                              spec: glyphSpec(
+                                'script',
+                                e.target.value,
+                                g.spec.rotationDeg
+                              ),
+                            });
+                          }}
+                          aria-label="Script character"
+                          className={`${CONTROL} w-full py-1.5`}
+                        >
+                          <option value="">Custom…</option>
+                          {SCRIPT_CHAR_GROUPS.map((group) => (
+                            <optgroup key={group.label} label={group.label}>
+                              {group.options.map((o) => (
+                                <option key={o.char} value={o.char}>
+                                  {o.label}
+                                </option>
+                              ))}
+                            </optgroup>
+                          ))}
+                        </select>
+                      ) : family === SAVED_FAMILY ? (
+                        <select
+                          value={g.savedRef ?? ''}
+                          onChange={(e) => {
+                            const picked = savedGlyphs.find(
+                              (s) => s.id === e.target.value
+                            );
+                            if (!picked) return;
+                            updateGlyph(g.id, {
+                              savedRef: picked.id,
+                              spec: { ...picked.spec },
+                            });
+                          }}
+                          aria-label="Saved glyph"
+                          className={`${CONTROL} w-full py-1.5`}
+                        >
+                          <option value="">Choose a saved glyph…</option>
+                          {savedGlyphs.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name} — {CENTER_GLYPH_LABELS[s.spec.kind]}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
                         <select
                           value={g.spec.kind}
                           onChange={(e) =>
@@ -868,28 +1050,19 @@ export default function TalismanModule({
                             })
                           }
                           aria-label="Glyph kind"
-                          className={`${CONTROL} flex-1 py-1.5`}
+                          className={`${CONTROL} w-full py-1.5`}
                         >
-                          {CENTER_GLYPH_GROUPS.filter(
-                            (group) => group.label !== 'None'
-                          ).map((group) => (
-                            <optgroup key={group.label} label={group.label}>
-                              {group.kinds.map((k) => (
-                                <option key={k} value={k}>
-                                  {CENTER_GLYPH_LABELS[k]}
-                                </option>
-                              ))}
-                            </optgroup>
+                          {(
+                            GEOMETRIC_GLYPH_GROUPS.find(
+                              (group) => group.label === family
+                            )?.kinds ?? []
+                          ).map((k) => (
+                            <option key={k} value={k}>
+                              {CENTER_GLYPH_LABELS[k]}
+                            </option>
                           ))}
                         </select>
-                        <button
-                          type="button"
-                          onClick={() => removeGlyph(g.id)}
-                          className="rounded-md border border-ananael-border px-2 py-1 text-xs text-zinc-400 hover:text-red-300"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                      )}
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="flex items-center gap-2">
                           Clock
@@ -985,6 +1158,25 @@ export default function TalismanModule({
                         />
                         <span className="w-8 shrink-0 text-right">{g.size}</span>
                       </label>
+                      {g.spec.kind === 'script' && (
+                        <label className="flex items-center gap-2">
+                          Characters
+                          <input
+                            value={g.spec.letters}
+                            onChange={(e) =>
+                              updateGlyph(g.id, {
+                                spec: glyphSpec(
+                                  'script',
+                                  e.target.value,
+                                  g.spec.rotationDeg
+                                ),
+                              })
+                            }
+                            maxLength={8}
+                            className={`${CONTROL} w-36 py-1.5`}
+                          />
+                        </label>
+                      )}
                       {glyphHasVertexLetters(g.spec.kind) && (
                         <label className="flex items-center gap-2">
                           Vertex letters
@@ -1005,7 +1197,8 @@ export default function TalismanModule({
                         </label>
                       )}
                     </div>
-                  ))
+                    );
+                  })
                 )}
               </section>
             </div>

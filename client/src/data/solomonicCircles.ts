@@ -20,6 +20,7 @@ export type Weekday =
 
 export type CenterGlyph =
   | 'none'
+  | 'script'
   | 'hexagram'
   | 'pentagram'
   | 'heptagram'
@@ -48,7 +49,10 @@ export type CardinalDir = 'n' | 'e' | 's' | 'w';
 /** Per-glyph kind, point letters, and rotation. */
 export interface GlyphSpec {
   kind: CenterGlyph;
-  /** Characters mapped onto vertices in order; extras ignored. */
+  /**
+   * Characters mapped onto vertices in order; extras ignored.
+   * For the 'script' kind this is the character(s) drawn as the glyph itself.
+   */
   letters: string;
   /** Compass degrees (0 = tip North, CW) for geometric / alchemical glyphs. */
   rotationDeg: number;
@@ -162,6 +166,7 @@ export const WEEKDAYS: Weekday[] = [
 
 export const CENTER_GLYPH_LABELS: Record<CenterGlyph, string> = {
   none: 'None',
+  script: 'Script character',
   hexagram: 'Hexagram',
   pentagram: 'Pentagram',
   heptagram: 'Heptagram',
