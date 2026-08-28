@@ -32,6 +32,7 @@ import type { SubtleBodyPane } from '../lib/subtleBody';
 import { suggestEasternRite } from '../lib/subtleBodyCounsel';
 import type { ModuleId } from './Sidebar';
 import SkyDisc from './SkyDisc';
+import SkyDiscModal from './SkyDiscModal';
 import TarotCard, { type DealtCard } from './TarotCard';
 
 const REVERSAL_CHANCE = 0.2;
@@ -136,6 +137,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
   const [onlineCount, setOnlineCount] = useState<number | null>(null);
   const [geoStatus, setGeoStatus] = useState<string | null>(null);
   const [corrQuery, setCorrQuery] = useState('');
+  const [skyDiscOpen, setSkyDiscOpen] = useState(false);
 
   const refreshSky = useCallback(() => {
     setNow(new Date());
@@ -530,10 +532,15 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
             <SkyDisc
               snapshot={skySnap}
               hours={chart}
-              onClick={() =>
-                onNavigate('planetary', { planetaryPanel: 'planets' })
-              }
+              onClick={() => setSkyDiscOpen(true)}
+              expanded={skyDiscOpen}
               className="mx-auto h-56 w-56 shrink-0 sm:h-64 sm:w-64 lg:h-72 lg:w-72"
+            />
+            <SkyDiscModal
+              open={skyDiscOpen}
+              onClose={() => setSkyDiscOpen(false)}
+              snapshot={skySnap}
+              hours={chart}
             />
           </div>
         </section>

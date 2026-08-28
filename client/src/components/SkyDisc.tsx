@@ -38,6 +38,8 @@ interface SkyDiscProps {
   snapshot: SkySnapshot;
   hours?: PlanetaryHoursChart | null;
   onClick?: () => void;
+  /** When the disc opens a dialog, marks the trigger as expanded. */
+  expanded?: boolean;
   className?: string;
 }
 
@@ -167,6 +169,7 @@ export default function SkyDisc({
   snapshot,
   hours,
   onClick,
+  expanded = false,
   className = 'h-64 w-64',
 }: SkyDiscProps) {
   const rawId = useId().replace(/:/g, '');
@@ -199,7 +202,7 @@ export default function SkyDisc({
   const skyLabel = dayNightLabel(sun?.altitude, clockHour);
   const visibleNames = visible.map((b) => b.id);
   const ariaLabel = [
-    'Sky disc',
+    onClick ? 'Enlarge sky disc' : 'Sky disc',
     skyLabel,
     snapshot.moon.name,
     hasObserver
@@ -373,6 +376,8 @@ export default function SkyDisc({
       onClick={onClick}
       className={`shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ananael-violet ${className}`}
       aria-label={ariaLabel}
+      aria-haspopup="dialog"
+      aria-expanded={expanded}
     >
       {svg}
     </button>
