@@ -1173,7 +1173,7 @@ export default function TalismanModule({
                               })
                             }
                             maxLength={8}
-                            className={`${CONTROL} w-36 py-1.5`}
+                            className={`${CONTROL} min-w-0 flex-1 py-1.5 sm:w-36 sm:flex-none`}
                           />
                         </label>
                       )}
@@ -1192,7 +1192,7 @@ export default function TalismanModule({
                               })
                             }
                             maxLength={16}
-                            className={`${CONTROL} w-36 py-1.5`}
+                            className={`${CONTROL} min-w-0 flex-1 py-1.5 sm:w-36 sm:flex-none`}
                           />
                         </label>
                       )}

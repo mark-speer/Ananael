@@ -346,7 +346,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
 
   return (
     <div className="space-y-8">
-      <header className="flex items-start justify-between gap-4">
+      <header className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div>
           <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">Magical OS</h1>
           <p className="mt-1 text-sm text-ananael-muted">
@@ -355,7 +355,7 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
           </p>
         </div>
         {userCount !== null && onlineCount !== null && (
-          <p className="shrink-0 pt-1 text-xs text-ananael-muted">
+          <p className="shrink-0 text-xs text-ananael-muted sm:pt-1">
             {onlineCount} / {userCount} practitioners online
           </p>
         )}

@@ -375,7 +375,7 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
             </dl>
           </section>
 
-          <section className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
+          <section className="rounded-xl border border-ananael-border/50 bg-ananael-surface">
             <div className="border-b border-ananael-border/40 px-4 py-3">
               <h2 className="font-display text-lg text-ananael-gold">
                 Positions
@@ -384,6 +384,47 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
                 Tropical ecliptic of date at birth moment
               </p>
             </div>
+            {/* Phone layout: one card per body */}
+            <ul className="divide-y divide-ananael-border/30 sm:hidden">
+              {chart.positions.map((b) => {
+                const house = chart.housePlacements?.find(
+                  (h) => h.id === b.id
+                )?.house;
+                return (
+                  <li
+                    key={b.id}
+                    className="flex items-center gap-3 px-4 py-2.5"
+                  >
+                    <p className="w-24 shrink-0 font-medium text-zinc-100">
+                      <span className="mr-1 text-ananael-gold">
+                        {PLANET_GLYPHS[b.id]}
+                      </span>
+                      {b.id}
+                      {b.retrograde && (
+                        <span className="ml-1 text-ananael-muted">℞</span>
+                      )}
+                    </p>
+                    <div className="min-w-0 text-sm">
+                      {onNavigate ? (
+                        <button
+                          type="button"
+                          onClick={() => openSign(b.tropical.sign)}
+                          className="text-left text-ananael-gold underline-offset-2 hover:underline"
+                        >
+                          {formatBodyRow(b)}
+                        </button>
+                      ) : (
+                        formatBodyRow(b)
+                      )}
+                      {house != null && (
+                        <p className="text-xs text-zinc-400">House {house}</p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="hidden overflow-x-auto sm:block">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
@@ -433,6 +474,7 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
                 })}
               </tbody>
             </table>
+            </div>
           </section>
 
           <section className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
@@ -452,9 +494,9 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
-                    <th className="px-4 py-3 font-medium">Pair</th>
-                    <th className="px-4 py-3 font-medium">Aspect</th>
-                    <th className="px-4 py-3 font-medium">Orb</th>
+                    <th className="px-3 py-3 font-medium sm:px-4">Pair</th>
+                    <th className="px-3 py-3 font-medium sm:px-4">Aspect</th>
+                    <th className="px-3 py-3 font-medium sm:px-4">Orb</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -463,13 +505,13 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
                       key={`${a.a}-${a.b}-${a.kind}`}
                       className="border-b border-ananael-border/30 last:border-0"
                     >
-                      <td className="px-4 py-2 text-zinc-100">
+                      <td className="px-3 py-2 text-zinc-100 sm:px-4">
                         {PLANET_GLYPHS[a.a]} {a.a} · {PLANET_GLYPHS[a.b]} {a.b}
                       </td>
-                      <td className="px-4 py-2 text-ananael-gold">
+                      <td className="px-3 py-2 text-ananael-gold sm:px-4">
                         {a.glyph} {a.kind}
                       </td>
-                      <td className="px-4 py-2 text-zinc-400">
+                      <td className="px-3 py-2 text-zinc-400 sm:px-4">
                         {a.orb.toFixed(2)}°
                       </td>
                     </tr>

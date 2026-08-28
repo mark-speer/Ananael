@@ -402,7 +402,7 @@ export default function App() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={drawerTitleId}
-            className="relative h-full w-64"
+            className="relative h-full w-64 max-w-[85vw]"
           >
             <h2 id={drawerTitleId} className="sr-only">
               Modules
@@ -447,7 +447,8 @@ export default function App() {
           </div>
         </div>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 sm:px-8 lg:px-10">
+        {/* overflow-x-clip (not hidden/auto) so main is not a scroll container — keeps sticky children viewport-anchored */}
+        <main className="flex-1 overflow-x-clip px-4 py-6 sm:px-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-6">{renderModule()}</div>
         </main>
       </div>

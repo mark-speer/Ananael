@@ -330,7 +330,8 @@ export default function RitualRunnerPanel({
 
   return (
     <div className="space-y-4 rounded-xl border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
-      <div className="sticky top-0 z-10 -mx-4 -mt-4 space-y-3 border-b border-ananael-border/40 bg-ananael-surface/95 px-4 pb-3 pt-4 backdrop-blur-sm sm:-mx-5 sm:-mt-5 sm:px-5">
+      {/* top offset clears the sticky mobile app header (hidden at md+) */}
+      <div className="sticky top-[77px] z-10 -mx-4 -mt-4 space-y-3 border-b border-ananael-border/40 bg-ananael-surface/95 px-4 pb-3 pt-4 backdrop-blur-sm sm:-mx-5 sm:-mt-5 sm:px-5 md:top-0">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-ananael-muted">

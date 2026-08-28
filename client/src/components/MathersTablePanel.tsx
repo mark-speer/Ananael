@@ -14,7 +14,51 @@ export default function MathersTablePanel() {
         twenty-two Hebrew letters as given by Mathers.
       </p>
 
-      <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
+      <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface">
+        {/* Phone layout: one card per letter */}
+        <ul className="divide-y divide-ananael-border/30 md:hidden">
+          {MATHERS_TABLE.map((row) => (
+            <li key={row.number} className="p-3">
+              <div className="flex items-center gap-3">
+                <span className="font-display text-2xl leading-none text-zinc-100">
+                  {row.letter}
+                  {row.finalLetter && (
+                    <span className="ml-1.5 text-zinc-400">
+                      {row.finalLetter}
+                    </span>
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm text-zinc-100">
+                    {row.name}
+                    <span className="text-ananael-muted"> · {row.roman}</span>
+                  </p>
+                  <p className="text-xs text-ananael-muted">{row.sound}</p>
+                </div>
+                <div className="ml-auto shrink-0 text-right">
+                  <p className="text-sm text-ananael-gold">
+                    {row.value}
+                    {row.finalValue != null && (
+                      <span className="text-ananael-bronze">
+                        {' '}
+                        / {row.finalValue}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-ananael-muted">
+                    No. {row.number}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-300">
+                {row.signification}
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        {/* Wider screens: full reference table */}
+        <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full text-left text-sm">
           <thead>
             <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
@@ -54,6 +98,7 @@ export default function MathersTablePanel() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <p className="text-xs text-zinc-500">{MATHERS_TABLE_SOURCE}</p>

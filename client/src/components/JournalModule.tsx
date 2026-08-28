@@ -59,7 +59,7 @@ function ScalePicker({
             key={n}
             type="button"
             onClick={() => onChange(value === n ? null : n)}
-            className={`h-8 w-8 rounded-md border text-xs ${
+            className={`h-10 w-10 rounded-md border text-xs sm:h-8 sm:w-8 ${
               value === n
                 ? 'border-ananael-gold bg-ananael-gold/20 text-ananael-gold'
                 : 'border-ananael-border text-zinc-400 hover:border-ananael-violet'

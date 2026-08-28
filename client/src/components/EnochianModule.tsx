@@ -144,7 +144,7 @@ export default function EnochianModule({ onNavigate }: EnochianModuleProps) {
                       type="button"
                       onClick={() => setSelected(key)}
                       className={[
-                        'flex h-8 w-8 items-center justify-center rounded font-display text-base sm:h-10 sm:w-10 sm:text-lg',
+                        'flex h-10 w-10 items-center justify-center rounded font-display text-base sm:text-lg',
                         active
                           ? 'bg-ananael-violet/40 text-ananael-gold'
                           : 'bg-ananael-panel text-zinc-200 hover:text-ananael-gold',

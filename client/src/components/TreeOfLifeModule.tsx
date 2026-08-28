@@ -289,14 +289,14 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
                     strokeLinecap="round"
                     className="pointer-events-none"
                   />
-                  {/* Wider invisible hit target */}
+                  {/* Wider invisible hit target (28 viewBox units ≈ 23px on a 360px phone) */}
                   <line
                     x1={a.x}
                     y1={a.y}
                     x2={b.x}
                     y2={b.y}
                     stroke="transparent"
-                    strokeWidth={18}
+                    strokeWidth={28}
                     strokeLinecap="round"
                     className="cursor-pointer"
                     tabIndex={0}

@@ -121,7 +121,7 @@ export default function Sidebar({
   const grouped = variant === 'drawer';
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-ananael-border/60 bg-ananael-surface/90 backdrop-blur-sm">
+    <aside className="flex h-full w-64 max-w-[85vw] shrink-0 flex-col border-r border-ananael-border/60 bg-ananael-surface/90 backdrop-blur-sm">
       <div className="flex items-start justify-between gap-2 border-b border-ananael-border/60 px-5 py-6">
         <div>
           <p className="font-display text-2xl font-semibold tracking-wide text-ananael-gold">

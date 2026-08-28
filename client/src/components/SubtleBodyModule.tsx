@@ -326,7 +326,23 @@ export default function SubtleBodyModule({
             Study map only — traditions disagree; not a claim of identity between
             systems.
           </p>
-          <div className="overflow-x-auto">
+          {/* Phone layout: one card per mapping */}
+          <ul className="divide-y divide-ananael-border/30 sm:hidden">
+            {CHAKRA_SEPHIRAH_MAP.map((row) => (
+              <li key={row.chakraId} className="py-2.5 text-sm">
+                <p className="text-zinc-200">
+                  <span className="capitalize">{row.chakraId}</span>
+                  <span className="text-ananael-muted"> ↔ </span>
+                  {row.sephirahName}
+                  <span className="text-ananael-muted"> ({row.sephirahKey})</span>
+                </p>
+                <p className="mt-0.5 text-xs text-ananael-muted">
+                  {row.notes ?? row.source}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto sm:block">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
@@ -369,7 +385,27 @@ export default function SubtleBodyModule({
             Three-worlds study map only — not a claim that dantians or sephiroth
             are shamanic worlds.
           </p>
-          <div className="overflow-x-auto">
+          {/* Phone layout: one card per world */}
+          <ul className="divide-y divide-ananael-border/30 sm:hidden">
+            {WORLDS.map((w) => (
+              <li key={w.id} className="py-2.5 text-sm">
+                <p className="text-zinc-200">
+                  {w.name}
+                  {w.sephirahName && (
+                    <span className="text-ananael-muted">
+                      {' '}
+                      ↔ {w.sephirahName}
+                    </span>
+                  )}
+                </p>
+                <p className="mt-0.5 text-xs text-ananael-muted">
+                  Dantian: {(w.relatedDantians ?? []).join(', ') || '—'} ·
+                  Chakras: {(w.relatedChakras ?? []).join(', ') || '—'}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto sm:block">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">

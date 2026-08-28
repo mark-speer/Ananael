@@ -356,9 +356,9 @@ export default function RitualSpaceModule({
         </header>
       )}
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs uppercase tracking-wider text-ananael-muted">
+      {/* Toolbar: horizontal scroll on phones, wraps on larger screens */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+        <span className="shrink-0 text-xs uppercase tracking-wider text-ananael-muted">
           Place
         </span>
         {(Object.keys(TOOL_LABELS) as RitualToolType[]).map((t) => (
@@ -370,7 +370,7 @@ export default function RitualSpaceModule({
               setSelectedId(null);
             }}
             className={[
-              'rounded-md border min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium transition',
+              'shrink-0 whitespace-nowrap rounded-md border min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium transition',
               placeTool === t
                 ? 'border-ananael-gold/60 bg-ananael-gold/15 text-ananael-gold'
                 : 'border-ananael-border/70 text-zinc-300 hover:border-ananael-violet/50 hover:text-ananael-gold',
@@ -383,7 +383,7 @@ export default function RitualSpaceModule({
           type="button"
           onClick={() => setPlaceTool(null)}
           className={[
-            'rounded-md border min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium transition',
+            'shrink-0 whitespace-nowrap rounded-md border min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium transition',
             placeTool === null
               ? 'border-ananael-violet/60 bg-ananael-violet/15 text-zinc-100'
               : 'border-ananael-border/70 text-zinc-400 hover:text-zinc-200',
@@ -393,8 +393,8 @@ export default function RitualSpaceModule({
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs uppercase tracking-wider text-ananael-muted">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+        <span className="shrink-0 text-xs uppercase tracking-wider text-ananael-muted">
           Templates
         </span>
         {(Object.keys(TEMPLATE_LABELS) as TemplateId[]).map((id) => (
@@ -402,7 +402,7 @@ export default function RitualSpaceModule({
             key={id}
             type="button"
             onClick={() => applyTpl(id)}
-            className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-zinc-300 transition hover:border-ananael-gold/40 hover:text-ananael-gold"
+            className="shrink-0 whitespace-nowrap rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 font-medium text-zinc-300 transition hover:border-ananael-gold/40 hover:text-ananael-gold"
           >
             {TEMPLATE_LABELS[id]}
           </button>
@@ -411,14 +411,14 @@ export default function RitualSpaceModule({
         <button
           type="button"
           onClick={() => setShowCompass((v) => !v)}
-          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
+          className="shrink-0 whitespace-nowrap rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Compass {showCompass ? 'On' : 'Off'}
         </button>
         <button
           type="button"
           onClick={() => setShowCircle((v) => !v)}
-          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
+          className="shrink-0 whitespace-nowrap rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-300 transition hover:text-ananael-gold"
         >
           Circle {showCircle ? 'On' : 'Off'}
         </button>
@@ -426,14 +426,14 @@ export default function RitualSpaceModule({
           type="button"
           disabled={!selectedId}
           onClick={deleteSelected}
-          className="rounded-md border border-red-900/50 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-red-300/90 transition hover:bg-red-950/40 disabled:opacity-40"
+          className="shrink-0 whitespace-nowrap rounded-md border border-red-900/50 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-red-300/90 transition hover:bg-red-950/40 disabled:opacity-40"
         >
           Delete
         </button>
         <button
           type="button"
           onClick={clearCanvas}
-          className="rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-400 transition hover:text-zinc-200"
+          className="shrink-0 whitespace-nowrap rounded-md border border-ananael-border/70 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-400 transition hover:text-zinc-200"
         >
           Clear
         </button>
@@ -441,7 +441,7 @@ export default function RitualSpaceModule({
           <button
             type="button"
             onClick={cycleQuarter}
-            className="rounded-md border border-ananael-violet/50 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-200 transition hover:bg-ananael-violet/20"
+            className="shrink-0 whitespace-nowrap rounded-md border border-ananael-violet/50 min-h-10 px-3 py-1.5 text-xs sm:min-h-0 text-zinc-200 transition hover:bg-ananael-violet/20"
           >
             Cycle quarter ({selected.label ?? 'N'})
           </button>

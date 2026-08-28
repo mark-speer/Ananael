@@ -850,12 +850,20 @@ export default function CelestialTimingModule({
                 <table className="min-w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
-                      <th className="px-4 py-3 font-medium">#</th>
-                      <th className="px-4 py-3 font-medium">Segment</th>
-                      <th className="px-4 py-3 font-medium">Planet</th>
-                      <th className="px-4 py-3 font-medium">Meridian</th>
-                      <th className="px-4 py-3 font-medium">Start</th>
-                      <th className="px-4 py-3 font-medium">End</th>
+                      <th className="px-2.5 py-3 font-medium sm:px-4">#</th>
+                      <th className="px-2.5 py-3 font-medium sm:px-4">
+                        Segment
+                      </th>
+                      <th className="px-2.5 py-3 font-medium sm:px-4">
+                        Planet
+                      </th>
+                      <th className="px-2.5 py-3 font-medium sm:px-4">
+                        Meridian
+                      </th>
+                      <th className="px-2.5 py-3 font-medium sm:px-4">
+                        Start
+                      </th>
+                      <th className="px-2.5 py-3 font-medium sm:px-4">End</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -872,12 +880,16 @@ export default function CelestialTimingModule({
                               : '',
                           ].join(' ')}
                         >
-                          <td className="px-4 py-2">{h.hourOfSegment}</td>
-                          <td className="px-4 py-2 capitalize">{h.segment}</td>
-                          <td className="px-4 py-2 font-medium">
+                          <td className="px-2.5 py-2 sm:px-4">
+                            {h.hourOfSegment}
+                          </td>
+                          <td className="px-2.5 py-2 capitalize sm:px-4">
+                            {h.segment}
+                          </td>
+                          <td className="px-2.5 py-2 font-medium sm:px-4">
                             {h.planet as PlanetId}
                           </td>
-                          <td className="px-4 py-2 text-xs text-zinc-300">
+                          <td className="px-2.5 py-2 text-xs text-zinc-300 sm:px-4">
                             {peaking.length ? (
                               onNavigate ? (
                                 <button
@@ -899,8 +911,12 @@ export default function CelestialTimingModule({
                               '—'
                             )}
                           </td>
-                          <td className="px-4 py-2">{formatTime(h.start)}</td>
-                          <td className="px-4 py-2">{formatTime(h.end)}</td>
+                          <td className="px-2.5 py-2 sm:px-4">
+                            {formatTime(h.start)}
+                          </td>
+                          <td className="px-2.5 py-2 sm:px-4">
+                            {formatTime(h.end)}
+                          </td>
                         </tr>
                       );
                     })}
@@ -913,7 +929,47 @@ export default function CelestialTimingModule({
       )}
 
       {panel === 'planets' && (
-        <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
+        <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface">
+          {/* Phone layout: one card per body */}
+          <ul className="divide-y divide-ananael-border/30 sm:hidden">
+            {sky.bodies.map((b) => {
+              const sid = siderealFromTropical(b.longitude, referenceNow);
+              return (
+                <li key={b.id} className="px-4 py-2.5 text-sm">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="font-medium text-zinc-100">
+                      {b.id}
+                      {b.retrograde && (
+                        <span className="ml-1 text-ananael-muted">℞</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      Alt {formatAlt(b.altitude)}
+                    </p>
+                  </div>
+                  <div className="mt-0.5">
+                    {onNavigate ? (
+                      <button
+                        type="button"
+                        onClick={() => openSign(b.tropical.sign)}
+                        className="text-left text-ananael-gold underline-offset-2 hover:underline"
+                      >
+                        {formatBodyRow(b)}
+                      </button>
+                    ) : (
+                      <span className="text-ananael-gold">
+                        {formatBodyRow(b)}
+                      </span>
+                    )}
+                    <p className="text-xs text-zinc-400">
+                      Sidereal · {formatSiderealPosition(sid)}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="hidden overflow-x-auto sm:block">
           <table className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
@@ -962,6 +1018,7 @@ export default function CelestialTimingModule({
               })}
             </tbody>
           </table>
+          </div>
           {!coordsValid && (
             <p className="border-t border-ananael-border/40 px-4 py-2 text-xs text-ananael-muted">
               Set location to show altitude above the horizon.
@@ -1168,7 +1225,36 @@ export default function CelestialTimingModule({
           )}
 
           {electionWindows.length > 0 && (
-            <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface">
+            <div className="rounded-xl border border-ananael-border/50 bg-ananael-surface">
+              {/* Phone layout: one card per window */}
+              <ul className="divide-y divide-ananael-border/30 sm:hidden">
+                {electionWindows.map((w) => (
+                  <li key={w.start.toISOString()} className="px-4 py-3 text-sm">
+                    <p className="text-zinc-200">
+                      {w.start.toLocaleString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      <span className="text-ananael-muted">
+                        {' '}
+                        – {formatTime(w.end)}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-300">
+                      Day {w.dayRuler} · Hour{' '}
+                      <span className="text-ananael-gold">{w.hourPlanet}</span>{' '}
+                      · {w.moonPhase}
+                    </p>
+                    <p className="mt-1 text-xs text-ananael-muted">
+                      {w.reasons.join(' · ')}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden overflow-x-auto sm:block">
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-ananael-border/60 text-xs uppercase tracking-wider text-ananael-muted">
@@ -1210,6 +1296,7 @@ export default function CelestialTimingModule({
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
