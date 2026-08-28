@@ -14,6 +14,17 @@ import {
   type NatalChart,
 } from '../lib/natalChart';
 import {
+  formatEnochianCourt,
+  type EnochianNatalCourt,
+  type EnochianNatalWatchtower,
+} from '../lib/enochianNatal';
+import {
+  aethyrFocus,
+  heptarchiaFocus,
+  isHeptarchiaPlanet,
+  watchtowerFocus,
+} from '../data/enochianHierarchy';
+import {
   hasNatalHousesReady,
   isValidBirthDate,
   type NatalProfile,
@@ -29,10 +40,81 @@ type TimingNavigateOptions = {
   correspondencesQuery?: string;
   planetaryPanel?: PlanetaryPanelId;
   filter?: JournalEntryType | 'all';
+  enochianTab?: 'tablets' | 'calls' | 'hierarchy';
+  enochianFocus?: string;
 };
 
 interface NatalPanelProps {
   onNavigate?: (module: ModuleId, opts?: TimingNavigateOptions) => void;
+}
+
+function HierarchyLink({
+  label,
+  focus,
+  onNavigate,
+}: {
+  label: string;
+  focus: string;
+  onNavigate?: NatalPanelProps['onNavigate'];
+}) {
+  if (!onNavigate) return <>{label}</>;
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        onNavigate('enochian', {
+          enochianTab: 'hierarchy',
+          enochianFocus: focus,
+        })
+      }
+      className="text-ananael-gold underline-offset-2 hover:underline"
+    >
+      {label}
+    </button>
+  );
+}
+
+function CourtLine({
+  court,
+  onNavigate,
+}: {
+  court: EnochianNatalCourt;
+  onNavigate?: NatalPanelProps['onNavigate'];
+}) {
+  const focus = heptarchiaFocus(court.planet);
+  return (
+    <>
+      <HierarchyLink
+        label={court.king}
+        focus={focus}
+        onNavigate={onNavigate}
+      />
+      {' · '}
+      <HierarchyLink
+        label={court.prince}
+        focus={focus}
+        onNavigate={onNavigate}
+      />
+    </>
+  );
+}
+
+function WatchtowerLine({
+  wt,
+  onNavigate,
+}: {
+  wt: EnochianNatalWatchtower;
+  onNavigate?: NatalPanelProps['onNavigate'];
+}) {
+  const focus = watchtowerFocus(wt.element);
+  return (
+    <>
+      {wt.element} ({wt.quarter}) ·{' '}
+      <HierarchyLink label={wt.king} focus={focus} onNavigate={onNavigate} />
+      {' · '}
+      <HierarchyLink label={wt.union} focus={focus} onNavigate={onNavigate} />
+    </>
+  );
 }
 
 function profileToForm(p: NatalProfile | null): {
@@ -375,6 +457,114 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
             </dl>
           </section>
 
+          {chart.enochian && (
+            <section className="rounded-xl border border-ananael-border/50 bg-ananael-surface p-4 sm:p-5">
+              <h2 className="font-display text-lg text-ananael-gold">
+                Enochian natal
+              </h2>
+              <p className="mt-1 text-xs text-ananael-muted">
+                Study overlay, not a Dee nativity method. Heptarchia courts
+                follow <em>Heptarchia Mystica</em>; Watchtower Kings are
+                Golden Dawn reconstruction. Distinct from the 777 hermetic
+                ruler above.
+              </p>
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Heptarchic day
+                  </dt>
+                  <dd className="mt-1 text-zinc-100">
+                    {chart.enochian.dayCourt.weekday} ·{' '}
+                    <CourtLine
+                      court={chart.enochian.dayCourt}
+                      onNavigate={onNavigate}
+                    />
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Sun court
+                  </dt>
+                  <dd className="mt-1 text-zinc-100">
+                    <CourtLine
+                      court={chart.enochian.sunCourt}
+                      onNavigate={onNavigate}
+                    />
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Chart-ruler court
+                  </dt>
+                  <dd className="mt-1 text-zinc-100">
+                    {chart.enochian.rulerCourt.planet} ·{' '}
+                    <CourtLine
+                      court={chart.enochian.rulerCourt}
+                      onNavigate={onNavigate}
+                    />
+                  </dd>
+                </div>
+                {chart.enochian.risingCourt && (
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                      Rising court
+                    </dt>
+                    <dd className="mt-1 text-zinc-100">
+                      {chart.enochian.risingCourt.planet} ·{' '}
+                      <CourtLine
+                        court={chart.enochian.risingCourt}
+                        onNavigate={onNavigate}
+                      />
+                    </dd>
+                  </div>
+                )}
+                <div>
+                  <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                    Sun Watchtower
+                  </dt>
+                  <dd className="mt-1 text-zinc-100">
+                    <WatchtowerLine
+                      wt={chart.enochian.sunWatchtower}
+                      onNavigate={onNavigate}
+                    />
+                  </dd>
+                </div>
+                {chart.enochian.risingWatchtower && (
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wider text-ananael-muted">
+                      Rising Watchtower
+                    </dt>
+                    <dd className="mt-1 text-zinc-100">
+                      {chart.enochian.risingWatchtower.element ===
+                      chart.enochian.sunWatchtower.element ? (
+                        <span className="text-ananael-muted">
+                          Same as Sun (
+                          {chart.enochian.risingWatchtower.element})
+                        </span>
+                      ) : (
+                        <WatchtowerLine
+                          wt={chart.enochian.risingWatchtower}
+                          onNavigate={onNavigate}
+                        />
+                      )}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+              {chart.enochian.governorsPlaceSet && (
+                <p className="mt-4 text-xs text-zinc-300">
+                  Birth coordinates are set. The 91 Governors rule Parts of
+                  the Earth, not natal planets — browse the Hierarchy Aethyrs.{' '}
+                  <HierarchyLink
+                    label="Open Aethyrs"
+                    focus={aethyrFocus('LIL')}
+                    onNavigate={onNavigate}
+                  />
+                </p>
+              )}
+            </section>
+          )}
+
           <section className="rounded-xl border border-ananael-border/50 bg-ananael-surface">
             <div className="border-b border-ananael-border/40 px-4 py-3">
               <h2 className="font-display text-lg text-ananael-gold">
@@ -419,6 +609,25 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
                       {house != null && (
                         <p className="text-xs text-zinc-400">House {house}</p>
                       )}
+                      <p className="text-xs text-zinc-400">
+                        Heptarchia:{' '}
+                        {isHeptarchiaPlanet(b.id) &&
+                        chart.enochian?.bodies[b.id] ? (
+                          onNavigate ? (
+                            <HierarchyLink
+                              label={formatEnochianCourt(
+                                chart.enochian.bodies[b.id]!
+                              )}
+                              focus={heptarchiaFocus(b.id)}
+                              onNavigate={onNavigate}
+                            />
+                          ) : (
+                            formatEnochianCourt(chart.enochian.bodies[b.id]!)
+                          )
+                        ) : (
+                          '—'
+                        )}
+                      </p>
                     </div>
                   </li>
                 );
@@ -431,6 +640,7 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
                   <th className="px-4 py-3 font-medium">Body</th>
                   <th className="px-4 py-3 font-medium">Tropical</th>
                   <th className="px-4 py-3 font-medium">House</th>
+                  <th className="px-4 py-3 font-medium">Heptarchia</th>
                   <th className="px-4 py-3 font-medium">℞</th>
                 </tr>
               </thead>
@@ -465,6 +675,24 @@ export default function NatalPanel({ onNavigate }: NatalPanelProps) {
                       </td>
                       <td className="px-4 py-2 text-zinc-300">
                         {house ?? '—'}
+                      </td>
+                      <td className="px-4 py-2 text-zinc-300">
+                        {isHeptarchiaPlanet(b.id) &&
+                        chart.enochian?.bodies[b.id] ? (
+                          onNavigate ? (
+                            <HierarchyLink
+                              label={formatEnochianCourt(
+                                chart.enochian.bodies[b.id]!
+                              )}
+                              focus={heptarchiaFocus(b.id)}
+                              onNavigate={onNavigate}
+                            />
+                          ) : (
+                            formatEnochianCourt(chart.enochian.bodies[b.id]!)
+                          )
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="px-4 py-2 text-ananael-muted">
                         {b.retrograde ? '℞' : '—'}

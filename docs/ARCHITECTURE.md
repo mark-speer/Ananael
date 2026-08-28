@@ -134,6 +134,7 @@ flowchart TB
 | `riteId`, `runEntryId`, `liturgyMode` | Ritual Library |
 | `subtleBodyPane`, `subtleBodyFocus` | Subtle Body |
 | `shamanismPane`, `shamanismFocus`, `runEntryId` | Shamanism |
+| `enochianTab`, `enochianFocus` | Enochian (`tablets` / `calls` / `hierarchy`; focus e.g. `heptarchia:Sun`) |
 | Tree options (`TreeNavigateOptions`) | Tree of Life |
 
 Modules receive `onNavigate` and `initial*` props to honor deep links from Magical OS and other modules.
@@ -154,6 +155,7 @@ Some sidebar entries host sub-features:
 | **Athanor** | Stages, Vessel, Emblem (panes) |
 | **Subtle Body** | Chakras, Meridians, Mudras, Maps, Neidan, Practice (panes) |
 | **Shamanism** | Worlds, Directions, Allies, Journey, Cast, Practice (panes) |
+| **Enochian** | Tablets, Calls, Hierarchy (Heptarchia / Watchtowers / Aethyrs) |
 | **Ritual Library** | Browse + Ritual Runner (`RitualRunnerPanel.tsx`) |
 
 ---
@@ -190,13 +192,13 @@ Structural map of all 14 sidebar modules. Phase history and done-when criteria: 
 | Divination | `divination` | `DivinationModule.tsx`, `TarotModule`, `IChingModule`, `GeomancyModule`, `RunesModule`, `glyphs/*` | `tarotDeck`, `tarotDeckArt`, `tarotCombos`, `iching`, `ichingCorrespondences`, `geomancy`, `runes` | `iching`, `geomancy`, `runes`, `tarotSummary`, `glyphs/` | Journal saves (`/api/tarot`, `/api/iching`, `/api/geomancy`, `/api/runes`) |
 | Magical Journal | `journal` | `JournalModule.tsx` | — | `journal`, `journalSky` | `/api/journal/entries` |
 | Gematria | `gematria` | `GematriaModule.tsx` | `data/gematria/` | `gematria` | `/api/gematria/save` → `GematriaQuery` |
-| Celestial Timing | `planetary` | `CelestialTimingModule.tsx` | `birthstones` | `planetaryHours`, `celestialEphemeris`, `westernZodiac`, `hinduAstrology`, `chineseAstrology`, `elections`, `almanac`, `natalChart`, `natalProfile`, `planetaryLocation`, `planetaryPanel`, `moonPhase` | `/api/planetary/charts` → `PlanetaryChart` |
+| Celestial Timing | `planetary` | `CelestialTimingModule.tsx` | `birthstones` | `planetaryHours`, `celestialEphemeris`, `westernZodiac`, `hinduAstrology`, `chineseAstrology`, `elections`, `almanac`, `natalChart`, `natalProfile`, `planetaryLocation`, `planetaryPanel`, `moonPhase`, `enochianNatal` | `/api/planetary/charts` → `PlanetaryChart` |
 | Script Translator | `translator` | `ScriptTranslatorModule.tsx` | `data/scripts/` | `transliterate` | Client-only |
 | Tree of Life | `tree` | `TreeOfLifeModule.tsx` | `treeOfLife` | `svgExport` | `/api/tree/notes` → `TreeNote` |
 | Correspondences | `correspondences` | `CorrespondencesModule.tsx` | `correspondences` | `correspondences` | Client-only |
 | Athanor | `opus` | `AlchemyModule.tsx` | `alchemy` | `alchemy`, `alchemicalGlyphPaths` | `/api/opus/vessels` → `OpusVessel` |
 | Atelier | `atelier` | `AtelierModule.tsx`, `RitualSpaceModule`, `SolomonicCircleModule`, `TalismanModule` | `ritualTools`, `solomonicCircles`, `arsGoetia`, `goetiaSealPlates`, `sutras` | `solomonicGeometry`, `goetiaSealArt`, `kamea`, `sigil`, `ofuda`, `svgExport` | `/api/ritual/layouts` → `RitualLayout`; `/api/solomonic/circles` → `SolomonicCircle`; `/api/talisman/designs` → `TalismanDesign` (`kamea` \| `sigil` \| `sutra`) |
-| Enochian | `enochian` | `EnochianModule.tsx` | `enochian` | — | `/api/enochian/notes` → `EnochianNote` |
+| Enochian | `enochian` | `EnochianModule.tsx` | `enochian`, `enochianHierarchy` | `enochianNatal` | `/api/enochian/notes` → `EnochianNote` (`tablet` \| `call` \| `hierarchy`) |
 | Ritual Library | `liturgy` | `LiturgyModule.tsx`, `RitualRunnerPanel.tsx` | `liturgy` | `ritualRunner` | Client corpus; runner → journal; `/api/liturgy/rites` (metadata catalog) |
 | Subtle Body | `subtleBody` | `SubtleBodyModule.tsx`, `glyphs/MudraSvg` | `chakras`, `meridians`, `mudras`, `subtleBodyMaps`, `nakshatraChakras` | `subtleBody`, `subtleBodyCounsel`, `glyphs/mudraGlyph` | `/api/practice/vessels` → `PracticeVessel`; client corpus otherwise |
 | Shamanism | `shamanism` | `ShamanismModule.tsx`, `glyphs/WorldTreeSvg`, `DirectionWheelSvg`, `LotSvg` | `shamanism/worlds`, `directions`, `allies`, `lots` | `shamanism`, `shamanismJourney`, `shamanismCast`, `shamanismDrum`, `glyphs/worldTreeGlyph` | Journal journey (`payload.system: 'shamanic-journey'`); `/api/shamanism/save` → journal; `/api/practice/vessels` with `config.system: 'shamanism'` |
@@ -265,7 +267,7 @@ Default home module (`dashboard`). Composes sky conditions (Sky clock metrics pl
 | `/api/opus` | `OpusVessel` | Athanor vessels |
 | `/api/practice` | `PracticeVessel` | Subtle Body and Shamanism vessels (`config.system`) |
 | `/api/shamanism` | `JournalEntry` | Cleromancy / pendulum save |
-| `/api/enochian` | `EnochianNote` | Study notes |
+| `/api/enochian` | `EnochianNote` | Study notes (`tablet` \| `call` \| `hierarchy`) |
 | `/api/liturgy` | — | Metadata catalog only; rite content is client-side |
 
 Liturgy rite **content** lives in [`client/src/data/liturgy.ts`](../client/src/data/liturgy.ts). The server `GET /api/liturgy/rites` returns a metadata-only catalog.

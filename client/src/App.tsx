@@ -12,7 +12,9 @@ import DashboardModule from './components/DashboardModule';
 import DivinationModule, {
   type DivinationTab,
 } from './components/DivinationModule';
-import EnochianModule from './components/EnochianModule';
+import EnochianModule, {
+  type EnochianTabId,
+} from './components/EnochianModule';
 import GematriaModule from './components/GematriaModule';
 import JournalModule from './components/JournalModule';
 import LiturgyModule from './components/LiturgyModule';
@@ -114,6 +116,8 @@ export default function App() {
   const [translatorPrefill, setTranslatorPrefill] = useState<string | undefined>();
   const [translatorSource, setTranslatorSource] = useState<ScriptId | undefined>();
   const [translatorTarget, setTranslatorTarget] = useState<ScriptId | undefined>();
+  const [enochianTab, setEnochianTab] = useState<EnochianTabId>('tablets');
+  const [enochianFocus, setEnochianFocus] = useState<string | undefined>();
   const [navOpen, setNavOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -266,6 +270,12 @@ export default function App() {
       setTranslatorSource(undefined);
       setTranslatorTarget(undefined);
     }
+    if (target === 'enochian') {
+      setEnochianTab(opts?.enochianTab ?? 'tablets');
+      setEnochianFocus(opts?.enochianFocus);
+    } else {
+      setEnochianFocus(undefined);
+    }
     setActiveModule(target);
     setNavOpen(false);
   };
@@ -341,7 +351,13 @@ export default function App() {
           />
         );
       case 'enochian':
-        return <EnochianModule onNavigate={navigateToModule} />;
+        return (
+          <EnochianModule
+            onNavigate={navigateToModule}
+            initialTab={enochianTab}
+            initialFocus={enochianFocus}
+          />
+        );
       case 'liturgy':
         return (
           <LiturgyModule

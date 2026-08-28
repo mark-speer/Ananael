@@ -6,7 +6,7 @@ export const SPLASH_MISSION = {
   headline: 'Tools for the work, gathered in one sanctum.',
   support:
     'Ananael is the Inner Sanctum: a modular dashboard for hermetics, ceremonial magic, and esoteric study—divination, correspondences, planetary timing, alchemy, ritual design, subtle-body work, shamanic journey structure, and a journal for your workings.',
-  body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets, and the Athanor opus; explore chakras, meridians, and neidan with comparative maps to the Western schema; walk a three-worlds shamanism chamber with journey drum and cleromancy lots; craft altar layouts, Solomonic circles, kamea, and sigils in Atelier; browse a Ritual Library with Yoga, Taoist, Buddhist, and Shamanic study outlines plus guided Ritual Runner sessions; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
+    body: `Ananael — the Inner Sanctum — brings ceremonial magic and hermetic practice into a single working environment. Cast Tarot, I Ching, Geomancy, and Runes from one Divination portal; calculate gematria and celestial elections; study the Tree of Life, Liber 777–style correspondences, Enochian tablets and hierarchy, and the Athanor opus; explore chakras, meridians, and neidan with comparative maps to the Western schema; walk a three-worlds shamanism chamber with journey drum and cleromancy lots; craft altar layouts, Solomonic circles, kamea, and sigils in Atelier; browse a Ritual Library with Yoga, Taoist, Buddhist, and Shamanic study outlines plus guided Ritual Runner sessions; and keep a Magical Journal of rituals, dreams, and readings. Magical OS keeps every module within reach.`,
 } as const;
 
 export interface SplashFeature {
@@ -80,7 +80,7 @@ export const SPLASH_FEATURES: SplashFeature[] = [
     id: 'enochian',
     title: 'Enochian',
     description:
-      'Elemental tablet samples and the Calls for study, with deep-links into Gematria, Correspondences, and Script Translator, plus optional saved study notes.',
+      'Elemental tablet samples, the Calls, and a Hierarchy study tab (Heptarchia courts, Watchtower Kings, 91 Governors), with natal overlay in Celestial Timing, deep-links into Gematria, Correspondences, and Script Translator, plus optional saved study notes.',
   },
   {
     id: 'liturgy',

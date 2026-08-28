@@ -5,7 +5,7 @@ import EnochianNote, {
 } from '../models/EnochianNote';
 
 const router = Router();
-const VALID_TYPES: EnochianTargetType[] = ['tablet', 'call'];
+const VALID_TYPES: EnochianTargetType[] = ['tablet', 'call', 'hierarchy'];
 
 router.post(
   '/notes',
@@ -19,7 +19,9 @@ router.post(
       };
 
       if (!targetType || !VALID_TYPES.includes(targetType)) {
-        res.status(400).json({ message: 'targetType must be tablet or call' });
+        res.status(400).json({
+          message: 'targetType must be tablet, call, or hierarchy',
+        });
         return;
       }
       if (

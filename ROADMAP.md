@@ -33,7 +33,7 @@ Phased plan for sidebar modules beyond Phase 1 (JWT auth + Tarot).
 | Runes                | Active  | 11 / 40 (tab) |
 | Talismans            | Active  | 12 (in Atelier) |
 | Elections            | Active  | 13 (timing)  |
-| Enochian             | Active  | 14           |
+| Enochian             | Active  | 14 / 50      |
 | Ritual Library       | Active  | 15–16 / 18 / 25 |
 | Magical Almanac      | Active  | 17 (timing + OS) |
 | Hermetic Alchemy hooks | Active | 18 (cross-module) |
@@ -655,10 +655,24 @@ Single sidebar **Atelier** module with tabs wrapping Ritual Space, Solomonic Cir
 
 ---
 
+## Phase 50 — Enochian natal overlay — Shipped
+
+Client-side Heptarchia + Watchtower overlay on the natal chart, plus an Enochian Hierarchy study tab. No new natal API fields. Governors remain geographic study tables (no lat/lon match). Distinct from the 777 hermetic ruler.
+
+- `client/src/data/enochianHierarchy.ts` — seven Heptarchia courts, four Watchtower Kings + Tablet of Union + Seniors (study), 30 Aethyrs / 91 Governors with Parts-of-the-Earth labels
+- `client/src/lib/enochianNatal.ts` — weekday court, Sun/ruler/rising courts, Sun/rising Watchtowers; attached as `chart.enochian`
+- Natal panel: Enochian natal section + Heptarchia positions column; names deep-link `enochianTab: 'hierarchy'`
+- Enochian module: Hierarchy tab (Heptarchia / Watchtowers / Aethyrs); notes `targetType: 'hierarchy'`
+- Magical OS natal tile: Heptarchia day-King · Watchtower King + Hierarchy deep-link
+
+**Done when:** natal overlay appears with a birth date; Hierarchy tab browses all three corpora; deep-links from natal names open the matching hierarchy pane; Governors note shows when birth place is set.
+
+---
+
 ## Cross-cutting rules
 
 - Flip module `status` from `soon` → `active` in the sidebar only when that module’s **Done when** criteria are met
 - Prefer client-side calculation for deterministic tools; Express for auth-bound persistence only
 - Preserve existing gold/violet occult visual language
 - Keep Docker Compose / single-port SPA serving unchanged
-- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–49)
+- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–50)

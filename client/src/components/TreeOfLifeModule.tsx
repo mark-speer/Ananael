@@ -55,6 +55,8 @@ export interface TreeNavigateOptions {
   translatorTarget?: ScriptId;
   opusPane?: 'stages' | 'vessel' | 'emblem';
   stageId?: string;
+  enochianTab?: 'tablets' | 'calls' | 'hierarchy';
+  enochianFocus?: string;
 }
 
 interface TreeOfLifeModuleProps {

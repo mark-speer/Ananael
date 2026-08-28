@@ -16,6 +16,7 @@ import {
   formatNatalSummaryLine,
   WESTERN_SIGN_GLYPHS,
 } from '../lib/natalChart';
+import { heptarchiaFocus } from '../data/enochianHierarchy';
 import {
   fullNatalChartFromProfile,
   natalAlmanacContextFromProfile,
@@ -69,6 +70,8 @@ export interface DashboardNavigateOptions {
     | 'cast'
     | 'practice';
   shamanismFocus?: string;
+  enochianTab?: 'tablets' | 'calls' | 'hierarchy';
+  enochianFocus?: string;
 };
 
 interface DashboardModuleProps {
@@ -725,6 +728,26 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
                 Today: favor hours of {fullNatal.hermetic?.planet ?? 'your ruler'}{' '}
                 when electing.
               </p>
+            )}
+            {fullNatal.enochian && (
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-ananael-muted">
+                  Heptarchia {fullNatal.enochian.dayCourt.king} · Watchtower{' '}
+                  {fullNatal.enochian.sunWatchtower.king}
+                </p>
+                <TileLink
+                  label="Hierarchy"
+                  onClick={() =>
+                    onNavigate('enochian', {
+                      enochianTab: 'hierarchy',
+                      enochianFocus: heptarchiaFocus(
+                        fullNatal.enochian!.dayCourt.planet
+                      ),
+                    })
+                  }
+                  tone="violet"
+                />
+              </div>
             )}
           </section>
         )}

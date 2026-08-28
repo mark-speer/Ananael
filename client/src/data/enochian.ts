@@ -5,7 +5,8 @@
  * public-domain Dee/Casaubon-tradition wording in condensed form.
  */
 
-export type EnochianElement = 'Fire' | 'Water' | 'Air' | 'Earth';
+import type { EnochianElement } from './enochianHierarchy';
+export type { EnochianElement };
 
 export interface EnochianTablet {
   element: EnochianElement;
@@ -146,3 +147,26 @@ export function getTablet(element: EnochianElement): EnochianTablet {
 export function getCall(id: string): EnochianCall | undefined {
   return ENOCHIAN_CALLS.find((c) => c.id === id);
 }
+
+export {
+  ENOCHIAN_AETHYRS,
+  HEPTARCHIA_COURTS,
+  WATCHTOWERS,
+  aethyrFocus,
+  getAethyr,
+  getHeptarchiaCourt,
+  getHeptarchiaCourtByWeekday,
+  getWatchtower,
+  heptarchiaFocus,
+  isHeptarchiaPlanet,
+  parseHierarchyFocus,
+  watchtowerFocus,
+  type EnochianAethyr,
+  type EnochianGovernor,
+  type HeptarchiaCourt,
+  type HeptarchiaPlanet,
+  type HeptarchiaWeekday,
+  type HierarchyPane,
+  type WatchtowerRecord,
+} from './enochianHierarchy';
+

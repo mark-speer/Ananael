@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
-export type EnochianTargetType = 'tablet' | 'call';
+export type EnochianTargetType = 'tablet' | 'call' | 'hierarchy';
 
 export interface IEnochianNote extends Document {
   userId: Types.ObjectId;
@@ -24,7 +24,7 @@ const EnochianNoteSchema = new Schema<IEnochianNote>(
     },
     targetType: {
       type: String,
-      enum: ['tablet', 'call'],
+      enum: ['tablet', 'call', 'hierarchy'],
       required: true,
     },
     targetId: {

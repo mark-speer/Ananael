@@ -39,6 +39,11 @@ import {
   type WesternSign,
   type ZodiacPosition,
 } from './westernZodiac';
+import {
+  buildEnochianNatal,
+  enochianExportPayload,
+  type EnochianNatal,
+} from './enochianNatal';
 import { MakeTime, SiderealTime } from 'astronomy-engine';
 
 export type AspectKind =
@@ -132,6 +137,8 @@ export interface NatalChart {
   housePlacements?: NatalHousePlacement[];
   /** Full natal for Magical OS / Almanac personalization gate. */
   isFullNatal: boolean;
+  /** Heptarchia + Watchtower overlay; null until a Sun sign exists. */
+  enochian?: EnochianNatal;
 }
 
 /** Parse profile into a local Date; noon when time missing. */
@@ -317,6 +324,15 @@ export function buildNatalChart(profile: NatalProfile): NatalChart | null {
     houses,
     housePlacements,
     isFullNatal,
+    enochian:
+      buildEnochianNatal({
+        birthDate: profile.birthDate,
+        sunSign,
+        ascSign: ascendant?.sign,
+        housesReady,
+        birthPlaceSet: Boolean(place),
+        positions: sky.bodies,
+      }) ?? undefined,
   };
 }
 
@@ -373,6 +389,9 @@ export function natalExportPayload(chart: NatalChart): Record<string, unknown> {
       orb: Number(a.orb.toFixed(2)),
     })),
     houses: chart.houses ?? null,
+    enochian: chart.enochian
+      ? enochianExportPayload(chart.enochian)
+      : null,
   };
 }
 
