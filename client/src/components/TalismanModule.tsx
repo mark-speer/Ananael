@@ -765,7 +765,7 @@ export default function TalismanModule({
                 </select>
               </Field>
             )}
-            <label className="min-w-0 flex-1 text-sm text-ananael-muted sm:min-w-[220px]">
+            <label className="w-full basis-full text-sm text-ananael-muted xl:w-auto xl:min-w-[14rem] xl:flex-1 xl:basis-[14rem]">
               {tab === 'sutras' ? 'Dedication or intent' : 'Name or intent'}
               <input
                 value={name}
