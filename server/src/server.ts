@@ -12,6 +12,7 @@ import { getJwtSecret } from './lib/authCookie';
 import { getAllowedOrigins } from './lib/origins';
 import { csrfProtect } from './middleware/csrf';
 import authRoutes from './routes/auth';
+import usersRoutes from './routes/users';
 import gematriaRoutes from './routes/gematria';
 import geomancyRoutes from './routes/geomancy';
 import ichingRoutes from './routes/iching';
@@ -96,6 +97,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/tarot', tarotRoutes);
 app.use('/api/runes', runesRoutes);
 app.use('/api/gematria', gematriaRoutes);
