@@ -10,8 +10,6 @@ export interface ITreeNote extends Document {
   targetId: number;
   userNotes: string;
   visibility: VisibilityString;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const TreeNoteSchema = new Schema<ITreeNote>(
