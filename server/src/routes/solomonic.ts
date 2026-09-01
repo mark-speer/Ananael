@@ -1,7 +1,10 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import SolomonicCircle, {
   type TraditionId,
 } from '../models/SolomonicCircle';
+import User from '../models/User';
+import { toPublicUser } from '../lib/userSerializers';
+import { Visibility } from '../types/visibility';
 import { AuthRequest, protect } from '../middleware/auth';
 
 const router = Router();
@@ -258,6 +261,7 @@ function circlePayload(circle: {
   tradition: TraditionId;
   config: Record<string, unknown>;
   notes?: string;
+  visibility?: string;
 }) {
   return {
     _id: circle._id,
@@ -267,6 +271,7 @@ function circlePayload(circle: {
     tradition: circle.tradition,
     config: circle.config,
     notes: circle.notes ?? '',
+    visibility: circle.visibility ?? Visibility.PRIVATE,
   };
 }
 
@@ -277,11 +282,12 @@ function circlePayload(circle: {
  */
 router.post('/circles', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { name, tradition, config: rawConfig, notes } = req.body as {
+    const { name, tradition, config: rawConfig, notes, visibility } = req.body as {
       name?: string;
       tradition?: string;
       config?: unknown;
       notes?: string;
+      visibility?: string;
     };
 
     if (typeof name !== 'string' || !name.trim()) {
@@ -323,6 +329,7 @@ router.post('/circles', protect, async (req: AuthRequest, res: Response): Promis
       tradition: trad,
       config,
       notes: typeof notes === 'string' ? notes.trim() : '',
+      visibility: typeof visibility === 'string' && [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(visibility as any) ? visibility : Visibility.PRIVATE,
     });
 
     res.status(201).json({
@@ -373,11 +380,12 @@ router.put(
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const { name, tradition, config: rawConfig, notes } = req.body as {
+      const { name, tradition, config: rawConfig, notes, visibility } = req.body as {
         name?: string;
         tradition?: string;
         config?: unknown;
         notes?: string;
+        visibility?: string;
       };
 
       if (typeof name !== 'string' || !name.trim()) {
@@ -426,6 +434,9 @@ router.put(
       circle.tradition = trad;
       circle.config = config as unknown as Record<string, unknown>;
       circle.notes = typeof notes === 'string' ? notes.trim() : '';
+      if (typeof visibility === 'string' && [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(visibility as any)) {
+        circle.visibility = visibility as any;
+      }
       circle.date = new Date();
       await circle.save();
 
@@ -439,5 +450,35 @@ router.put(
     }
   }
 );
+
+/**
+ * Public GET handler for shareable Solomonic circles.
+ * Works without authentication if visibility is not private.
+ */
+const handlePublicCircle = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const circle = await SolomonicCircle.findById(req.params.id);
+    if (!circle) {
+      res.status(404).json({ message: 'Solomonic circle not found' });
+      return;
+    }
+    if (circle.visibility === Visibility.PRIVATE) {
+      res.status(403).json({ message: 'This circle is private' });
+      return;
+    }
+    const creatorUser = await User.findById(circle.userId).lean();
+    const creator = creatorUser ? toPublicUser(creatorUser) : null;
+    res.json({
+      ...circlePayload(circle),
+      creator,
+    });
+  } catch (error) {
+    console.error('Public circle fetch error:', error);
+    res.status(500).json({ message: 'Server error while fetching public circle' });
+  }
+};
+
+router.get('/circles/:id/public', handlePublicCircle);
+router.get('/:id/public', handlePublicCircle);
 
 export default router;

@@ -158,19 +158,31 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const trimmedUsername = username.trim();
+    if (!/^[a-zA-Z0-9_]{3,40}$/.test(trimmedUsername)) {
+      res.status(400).json({ message: 'Username must be 3-40 alphanumeric characters or underscores only' });
+      return;
+    }
+
     if (password.length < 6) {
       res.status(400).json({ message: 'Password must be at least 6 characters' });
       return;
     }
 
-    const existing = await User.findOne({ email: email.toLowerCase().trim() });
-    if (existing) {
+    const existingEmail = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existingEmail) {
       res.status(409).json({ message: 'An account with this email already exists' });
       return;
     }
 
+    const existingUsername = await User.findOne({ username: new RegExp(`^${trimmedUsername}$`, 'i') });
+    if (existingUsername) {
+      res.status(409).json({ message: 'Username is already taken' });
+      return;
+    }
+
     const user = await User.create({
-      username: username.trim(),
+      username: trimmedUsername,
       email: email.toLowerCase().trim(),
       password,
       lastSeenAt: new Date(),

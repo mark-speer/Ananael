@@ -1,7 +1,10 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import TalismanDesign, {
   type TalismanKind,
 } from '../models/TalismanDesign';
+import User from '../models/User';
+import { toPublicUser } from '../lib/userSerializers';
+import { Visibility } from '../types/visibility';
 import { AuthRequest, protect } from '../middleware/auth';
 
 const router = Router();
@@ -11,7 +14,10 @@ interface DesignBody {
   kind?: string;
   config?: unknown;
   notes?: string;
+  visibility?: string;
 }
+
+const VALID_VISIBILITIES = [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC];
 
 function bodyError(body: DesignBody): string | null {
   if (typeof body.name !== 'string' || !body.name.trim()) {
@@ -39,6 +45,9 @@ function bodyError(body: DesignBody): string | null {
   if (typeof body.notes === 'string' && body.notes.length > 5000) {
     return 'notes must be at most 5000 characters';
   }
+  if (body.visibility !== undefined && (typeof body.visibility !== 'string' || !VALID_VISIBILITIES.includes(body.visibility as any))) {
+    return 'visibility must be private, unlisted, or public';
+  }
   return null;
 }
 
@@ -49,6 +58,7 @@ function payload(design: {
   kind: TalismanKind;
   config: Record<string, unknown>;
   notes?: string;
+  visibility?: string;
 }) {
   return {
     _id: design._id,
@@ -57,6 +67,7 @@ function payload(design: {
     kind: design.kind,
     config: design.config,
     notes: design.notes ?? '',
+    visibility: design.visibility ?? Visibility.PRIVATE,
   };
 }
 
@@ -75,6 +86,7 @@ router.post('/designs', protect, async (req: AuthRequest, res: Response) => {
       kind: body.kind as TalismanKind,
       config: body.config as Record<string, unknown>,
       notes: body.notes?.trim() ?? '',
+      visibility: (body.visibility as any) ?? Visibility.PRIVATE,
     });
     res.status(201).json({
       message: 'Talisman design saved',
@@ -119,6 +131,9 @@ router.put('/designs/:id', protect, async (req: AuthRequest, res: Response) => {
     design.kind = body.kind as TalismanKind;
     design.config = body.config as Record<string, unknown>;
     design.notes = body.notes?.trim() ?? '';
+    if (body.visibility) {
+      design.visibility = body.visibility as any;
+    }
     design.date = new Date();
     design.markModified('config');
     await design.save();
@@ -152,5 +167,35 @@ router.delete(
     }
   }
 );
+
+/**
+ * Public GET handler for shareable talisman designs.
+ * Works without authentication if visibility is not private.
+ */
+const handlePublicTalisman = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const design = await TalismanDesign.findById(req.params.id);
+    if (!design) {
+      res.status(404).json({ message: 'Talisman design not found' });
+      return;
+    }
+    if (design.visibility === Visibility.PRIVATE) {
+      res.status(403).json({ message: 'This talisman design is private' });
+      return;
+    }
+    const creatorUser = await User.findById(design.userId).lean();
+    const creator = creatorUser ? toPublicUser(creatorUser) : null;
+    res.json({
+      ...payload(design),
+      creator,
+    });
+  } catch (error) {
+    console.error('Public talisman design fetch error:', error);
+    res.status(500).json({ message: 'Server error while fetching public design' });
+  }
+};
+
+router.get('/designs/:id/public', handlePublicTalisman);
+router.get('/:id/public', handlePublicTalisman);
 
 export default router;
