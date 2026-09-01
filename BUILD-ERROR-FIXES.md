@@ -46,7 +46,30 @@ export function toPublicUser(user: {
 - Removed: Unused `FullUser` and `IUser` imports from function signatures
 - Kept: `PublicUser` import which is still needed for the return type
 
-### 3. **Fixed React Router v6 Compatibility** ✅
+### 3. **Fixed Duplicate Object Key** ✅
+**In `server/src/routes/users.ts`:**
+- Removed: Duplicate `createdAt` property in the object passed to `toPublicUser()`
+- Before:
+```typescript
+const publicUser = toPublicUser({
+  _id: user._id.toString(),
+  username: user.username,
+  createdAt: user.createdAt,
+  createdAt: user.createdAt,  // ❌ Duplicate!
+} as any);
+```
+- After:
+```typescript
+const publicUser = toPublicUser({
+  _id: user._id.toString(),
+  username: user.username,
+  createdAt: user.createdAt,  // ✅ Single property
+});
+```
+
+**Benefit:** Eliminates potential runtime errors and ensures clean object literals.
+
+### 4. **Fixed React Router v6 Compatibility** ✅
 **Before:**
 ```typescript
 const { type, id } = useParams<{ type: string; id: string }>();
@@ -67,6 +90,7 @@ const { type, id } = useParams();
 
 ## Commits Made
 ```
+9121007 Fix duplicate createdAt key in users.ts
 6ac6620 Fix useParams type annotation in SharePage for React Router v6 compatibility
 658dd4d Improve TypeScript types for userSerializers function - use structural typing instead of complex unions
 6e5cb6e Remove unused import from auth.ts
