@@ -29,7 +29,6 @@ router.get('/:userId/public', async (req: Request, res: Response): Promise<void>
       _id: user._id.toString(),
       username: user.username,
       createdAt: user.createdAt,
-      createdAt: user.createdAt,
     });
 
     res.json(publicUser);
