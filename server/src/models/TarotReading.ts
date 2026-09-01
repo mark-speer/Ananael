@@ -15,8 +15,6 @@ export interface ITarotReading extends Document {
   spreadType: SpreadType;
   cardsDrawn: ICardDrawn[];
   userNotes?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const CardDrawnSchema = new Schema<ICardDrawn>(
