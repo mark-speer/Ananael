@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import AccountMenu from './components/AccountMenu';
 import AlchemyModule, {
   type OpusPaneId,
@@ -21,6 +22,7 @@ import LiturgyModule from './components/LiturgyModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { type ModuleId } from './components/Sidebar';
 import SplashPage from './components/SplashPage';
+import SharePage from './components/SharePage';
 import SubtleBodyModule from './components/SubtleBodyModule';
 import ShamanismModule from './components/ShamanismModule';
 import type { SubtleBodyPane } from './lib/subtleBody';
@@ -399,6 +401,64 @@ export default function App() {
   };
 
   return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <>
+            {isLoading && (
+              <div className="flex min-h-screen items-center justify-center font-display text-ananael-gold">
+                Opening Ananael…
+              </div>
+            )}
+            {!isLoading && !isAuthenticated && !enteredAsGuest && (
+              <SplashPage onEnterGuest={() => setEnteredAsGuest(true)} />
+            )}
+            {!isLoading && (isAuthenticated || enteredAsGuest) && (
+              <HomePage
+                activeModule={activeModule}
+                navigateToModule={navigateToModule}
+                renderModule={renderModule}
+                navOpen={navOpen}
+                setNavOpen={setNavOpen}
+                menuButtonRef={menuButtonRef}
+                drawerRef={drawerRef}
+                drawerTitleId={drawerTitleId}
+              />
+            )}
+          </>
+        }
+      />
+      <Route path="/s/:type/:id" element={<SharePage />} />
+    </Routes>
+  );
+}
+
+/**
+ * HomePage component renders the main app layout with sidebar and active module
+ */
+interface HomePageProps {
+  activeModule: ModuleId;
+  navigateToModule: (module: ModuleId, opts?: AppNavigateOptions) => void;
+  renderModule: () => React.ReactNode;
+  navOpen: boolean;
+  setNavOpen: (open: boolean) => void;
+  menuButtonRef: React.RefObject<HTMLButtonElement>;
+  drawerRef: React.RefObject<HTMLDivElement>;
+  drawerTitleId: string;
+}
+
+function HomePage({
+  activeModule,
+  navigateToModule,
+  renderModule,
+  navOpen,
+  setNavOpen,
+  menuButtonRef,
+  drawerRef,
+  drawerTitleId,
+}: HomePageProps) {
+  return (
     <div className="flex min-h-screen bg-ananael-bg">
       <div className="sticky top-0 hidden h-screen md:block">
         <Sidebar activeModule={activeModule} onSelect={navigateToModule} />
@@ -470,4 +530,3 @@ export default function App() {
       </div>
     </div>
   );
-}

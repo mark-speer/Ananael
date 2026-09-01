@@ -93,9 +93,27 @@ Env vars, HTTPS, and Portainer setup: see [README.md](../README.md).
 
 ---
 
-## Module system
+## Routing Architecture
 
-Navigation is **React state**, not a URL router. The sidebar defines modules; `App.tsx` switches on `activeModule`.
+### Navigation Modes
+
+Ananael uses **hybrid routing** for flexibility:
+
+1. **Sidebar Navigation** (React state-based)
+   - Sidebar modules trigger `navigateToModule()`
+   - State updates switch `App.tsx` component rendering
+   - No URL change (module selection is transient)
+   - Faster, better UX for tool switching
+
+2. **Share Links** (URL-based, React Router)
+   - `/s/:type/:id` loads SharePage component
+   - Cold-load friendly (user shares a link, visitor opens it)
+   - Displays read-only design + creator attribution
+   - Guest-accessible (no authentication required)
+
+### Module Navigation
+
+The sidebar defines modules; `App.tsx` switches on `activeModule`.
 
 ```mermaid
 flowchart TB
@@ -272,9 +290,145 @@ Default home module (`dashboard`). Composes sky conditions (Sky clock metrics pl
 
 Liturgy rite **content** lives in [`client/src/data/liturgy.ts`](../client/src/data/liturgy.ts). The server `GET /api/liturgy/rites` returns a metadata-only catalog.
 
-All mutating routes (except auth register/login) require JWT via `protect` middleware.
+---
 
-### API endpoints
+## Privacy and Visibility Model (Phase 51+)
+
+### Visibility Field
+
+All 6 shareable models include `visibility` controlling access level:
+
+```typescript
+enum Visibility {
+  PRIVATE = 'private',      // Owner only (default, backward compatible)
+  UNLISTED = 'unlisted',    // Link-shareable (Phase 51)
+  PUBLIC = 'public',        // Future public registry (Phase 52+)
+}
+```
+
+**Default:** `'private'` (via migration script, backward compatible)
+
+**Shareable Models with Visibility:**
+1. TalismanDesign — Kamea, sigil, sutra
+2. SolomonicCircle — Solomonic circles
+3. RitualLayout — Altar layouts
+4. OpusVessel — Athanor vessels
+5. PracticeVessel — Subtle Body, Shamanism practice
+6. TreeNote — Tree of Life study notes
+
+### Index Strategy
+
+Single-field index on `visibility` for fast queries:
+
+```typescript
+visibility: {
+  type: String,
+  enum: ['private', 'unlisted', 'public'],
+  default: 'private',
+  index: true,  // ✅ Allows fast public/private filtering
+}
+```
+
+**Query Performance:**
+- `Model.find({ visibility: 'public' })` — Fast (indexed)
+- `Model.find({ userId, visibility })` — Uses userId index + filters
+
+**Future Compound Indexes (Phase 52):**
+- `{ userId: 1, visibility: 1 }` — List by owner + access level
+- `{ visibility: 1, createdAt: -1 }` — Public timeline queries
+
+---
+
+## Social Attribution - Public DTO Pattern (Phase 51+)
+
+### User Type Separation
+
+Two TypeScript interfaces prevent PII leakage at compile time:
+
+**FullUser** (internal, authenticated contexts only)
+```typescript
+interface FullUser {
+  _id: string;
+  email: string;            // ← Never expose
+  username: string;
+  natal?: { /* ... */ };    // ← Never expose
+  location?: { /* ... */ }; // ← Never expose
+  lastSeenAt?: Date | null; // ← Never expose
+  createdAt: Date;
+}
+```
+
+**PublicUser** (safe for public/shared contexts)
+```typescript
+interface PublicUser {
+  _id: string;
+  username: string;
+  traditions?: string[];      // ← Safe (optional)
+  profileImageUrl?: string;   // ← Safe (optional)
+  createdAt: Date;
+}
+```
+
+### Serializer Architecture
+
+Explicit conversion prevents accidental PII exposure:
+
+```
+FullUser (database)
+    ↓
+    toPublicUser()      ← Forced conversion
+    ↓
+PublicUser (type-safe)
+    ↓
+isSafePublic()          ← Optional validation
+    ↓
+res.json(...)           ← Safe to send publicly
+```
+
+**Key Functions:**
+- `toPublicUser(user)` — Converts single FullUser → PublicUser
+- `toPublicUsers(users)` — Batch conversion
+- `isSafePublic(obj)` — Runtime validation (no PII fields present)
+
+**Location:** `server/src/lib/userSerializers.ts`
+
+### Public Endpoints Pattern (Phase 51)
+
+Each shareable model provides a public GET endpoint:
+
+```typescript
+// Private endpoint (owner only)
+router.get('/:id', protect, async (req, res) => {
+  const design = await TalismanDesign.findOne({
+    _id: req.params.id,
+    userId: req.userId,  // ← Only owner
+  });
+  res.json(design); // Full data
+});
+
+// Public endpoint (no auth, visibility-gated)
+router.get('/:id/public', async (req, res) => {
+  const design = await TalismanDesign.findById(req.params.id);
+  
+  if (design.visibility === 'private') {
+    return res.status(403).json({ error: 'Private' });
+  }
+  
+  const creator = await User.findById(design.userId);
+  res.json({
+    ...design.toObject(),
+    creator: toPublicUser(creator),  // ← Safe user data
+  });
+});
+```
+
+**Security Guarantees:**
+- Email never leaked (blocked at type level + serializer)
+- Natal never leaked (blocked at type level + serializer)
+- Location never leaked (blocked at type level + serializer)
+- Private designs hidden (403, not revealed as existing)
+
+
 
 #### Auth
 

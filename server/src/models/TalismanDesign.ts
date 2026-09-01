@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { Visibility, VisibilityString } from '../types/visibility';
 
 export type TalismanKind = 'kamea' | 'sigil' | 'sutra';
 
@@ -9,6 +10,7 @@ export interface ITalismanDesign extends Document {
   kind: TalismanKind;
   config: Record<string, unknown>;
   notes?: string;
+  visibility: VisibilityString;
 }
 
 const TalismanDesignSchema = new Schema<ITalismanDesign>(
@@ -32,6 +34,13 @@ const TalismanDesignSchema = new Schema<ITalismanDesign>(
       default: {},
     },
     notes: { type: String, maxlength: 5000, default: '' },
+    visibility: {
+      type: String,
+      enum: [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC],
+      default: Visibility.PRIVATE,
+      required: true,
+      index: true,
+    },
   },
   { timestamps: true }
 );

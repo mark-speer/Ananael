@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { Visibility, VisibilityString } from '../types/visibility';
 
 export interface IPracticeVessel extends Document {
   userId: Types.ObjectId;
@@ -6,6 +7,7 @@ export interface IPracticeVessel extends Document {
   name: string;
   config: Record<string, unknown>;
   notes?: string;
+  visibility: VisibilityString;
 }
 
 const PracticeVesselSchema = new Schema<IPracticeVessel>(
@@ -24,6 +26,13 @@ const PracticeVesselSchema = new Schema<IPracticeVessel>(
       default: {},
     },
     notes: { type: String, maxlength: 5000, default: '' },
+    visibility: {
+      type: String,
+      enum: [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC],
+      default: Visibility.PRIVATE,
+      required: true,
+      index: true,
+    },
   },
   { timestamps: true }
 );
