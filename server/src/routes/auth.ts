@@ -4,6 +4,8 @@ import User, {
   type IUserLocation,
   type IUserNatal,
 } from '../models/User';
+import type { PublicUser } from '../types/User';
+import { toPublicUser } from '../lib/userSerializers';
 import { AuthRequest, protect } from '../middleware/auth';
 import {
   clearAuthCookie,
@@ -39,7 +41,11 @@ function serializeNatal(natal: IUser['natal']): IUserNatal | null {
   };
 }
 
-function publicUser(user: IUser) {
+/**
+ * Returns full user data for authenticated endpoints (login, /auth/me).
+ * Includes email, natal, location (private fields visible to account owner only).
+ */
+function fullUserResponse(user: IUser) {
   return {
     _id: user._id.toString(),
     username: user.username,
@@ -176,7 +182,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     setAuthCookie(res, token);
 
     res.status(201).json({
-      user: publicUser(user),
+      user: fullUserResponse(user),
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -230,7 +236,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     setAuthCookie(res, token);
 
     res.json({
-      user: publicUser(user),
+      user: fullUserResponse(user),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -288,7 +294,7 @@ router.get('/me', protect, async (req: AuthRequest, res: Response): Promise<void
       res.status(404).json({ message: 'User not found' });
       return;
     }
-    res.json({ user: publicUser(user) });
+    res.json({ user: fullUserResponse(user) });
   } catch (error) {
     console.error('Auth me error:', error);
     res.status(500).json({ message: 'Server error while loading profile' });
@@ -321,9 +327,7 @@ router.put(
         return;
       }
 
-      res.json({ user: publicUser(user) });
-    } catch (error) {
-      console.error('Auth location error:', error);
+      res.json({ user: fullUserResponse(user) });
       res.status(500).json({ message: 'Server error while saving location' });
     }
   }
@@ -355,12 +359,48 @@ router.put(
         return;
       }
 
-      res.json({ user: publicUser(user) });
+      res.json({ user: fullUserResponse(user) });
     } catch (error) {
       console.error('Auth natal error:', error);
       res.status(500).json({ message: 'Server error while saving natal profile' });
     }
   }
 );
+
+/**
+ * GET /api/users/:userId/public
+ * Public user profile (no authentication required).
+ * Returns PublicUser DTO: _id, username, traditions, profileImageUrl, createdAt.
+ * Never includes: email, natal, location, lastSeenAt, passwordHash.
+ */
+router.get('/users/:userId/public', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+
+    // Validate userId looks like a valid ObjectId
+    if (!userId || !/^[a-f0-9]{24}$/.test(userId)) {
+      res.status(400).json({ message: 'Invalid user ID format' });
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    const publicUser = toPublicUser({
+      _id: user._id.toString(),
+      username: user.username,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    } as any);
+
+    res.json(publicUser);
+  } catch (error) {
+    console.error('Get public user error:', error);
+    res.status(500).json({ message: 'Server error while fetching user profile' });
+  }
+});
 
 export default router;

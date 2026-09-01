@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { Visibility, VisibilityString } from '../types/visibility';
 
 export type TreeTargetType = 'sephira' | 'path';
 
@@ -8,6 +9,7 @@ export interface ITreeNote extends Document {
   targetType: TreeTargetType;
   targetId: number;
   userNotes: string;
+  visibility: VisibilityString;
 }
 
 const TreeNoteSchema = new Schema<ITreeNote>(
@@ -38,6 +40,13 @@ const TreeNoteSchema = new Schema<ITreeNote>(
       required: true,
       maxlength: 5000,
       default: '',
+    },
+    visibility: {
+      type: String,
+      enum: [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC],
+      default: Visibility.PRIVATE,
+      required: true,
+      index: true,
     },
   },
   { timestamps: true }

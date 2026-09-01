@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { Visibility, VisibilityString } from '../types/visibility';
 
 export type TraditionId = 'goetia' | 'heptameron' | 'generic';
 
@@ -10,6 +11,7 @@ export interface ISolomonicCircle extends Document {
   /** Full CircleConfig JSON from the client. */
   config: Record<string, unknown>;
   notes?: string;
+  visibility: VisibilityString;
 }
 
 const SolomonicCircleSchema = new Schema<ISolomonicCircle>(
@@ -43,6 +45,13 @@ const SolomonicCircleSchema = new Schema<ISolomonicCircle>(
       type: String,
       maxlength: 5000,
       default: '',
+    },
+    visibility: {
+      type: String,
+      enum: [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC],
+      default: Visibility.PRIVATE,
+      required: true,
+      index: true,
     },
   },
   { timestamps: true }

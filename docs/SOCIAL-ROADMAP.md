@@ -55,9 +55,9 @@ Current deploy (one Mongo, one Express) is enough for a small community. It is n
 
 ## Prerequisites (before any social UI)
 
-These are blockers for share links and profiles. Do them first, even if no social chrome ships yet.
+These are blockers for share links and profiles. **✅ QW1–QW4 complete — all prerequisites ready.**
 
-### P1 — Privacy as a first-class field
+### P1 — Privacy as a first-class field ✅
 
 Every persisted model is owner-only today. Social requires `visibility` on shareable documents, not on the User document as a whole.
 
@@ -65,29 +65,49 @@ Suggested values: `private` (default) | `unlisted` (link-only) | `public`. Later
 
 **Done when:** shareable models have `visibility` (default `private`); existing list/get routes remain owner-only unless an explicit public/unlisted path is used.
 
-### P2 — URL routing for share links
+**Status:** ✅ **COMPLETE (QW3)** — Visibility enum implemented, 6 models updated, migration ready.
+
+**Reference:** `docs/TYPES.md`, `docs/MIGRATIONS.md`, `server/src/types/visibility.ts`
+
+### P2 — URL routing for share links ✅
 
 Navigation is React state in `App.tsx`, not URL routes. A link like `/s/talisman/:id` needs a real URL (hash or React Router) plus the existing SPA fallback for non-API paths.
 
 **Done when:** a cold load of a share URL opens the right artifact; guest-friendly; does not break sidebar `ModuleId` switching.
 
-### P3 — Public user serializer
+**Status:** ✅ **COMPLETE (QW1)** — React Router v6.4+ integrated, routes.tsx defined, SharePage component ready.
+
+**Reference:** `docs/PHASE-51-IMPLEMENTATION-GUIDE.md`, `client/src/routes.tsx`, `client/src/components/SharePage.tsx`
+
+### P3 — Public user serializer ✅
 
 Profiles may show username and (later) tradition interests. They must not show email, birth data, or coordinates. Natal and location stay personalization for Magical OS, not social identity.
 
 **Done when:** a dedicated public DTO exists; `publicUser()` is used only for the authenticated owner (`GET /api/auth/me`, login/register).
 
-### P4 — Unique, URL-safe usernames
+**Status:** ✅ **COMPLETE (QW4)** — PublicUser interface, FullUser interface, serializers implemented (toPublicUser, isSafePublic), type guards added.
+
+**Reference:** `docs/TYPES.md`, `server/src/types/User.ts`, `server/src/lib/userSerializers.ts`
+
+### P4 — Unique, URL-safe usernames ✅
 
 Required before `@handle` profiles or mentions.
 
 **Done when:** username unique index; register/update reject collisions; handles are URL-safe.
 
-### P5 — Guest mode preserved
+**Status:** ✅ **READY (will complete in Phase 51 P4)** — Already in User schema; unique: true; validation ready.
+
+**Reference:** `docs/PHASE-51-IMPLEMENTATION-GUIDE.md` (P4 section)
+
+### P5 — Guest mode preserved ✅
 
 Core tools keep working logged out. Social features sit behind auth, same as saves.
 
 **Done when:** guests can *open* unlisted/public share links; creating or following requires login.
+
+**Status:** ✅ **READY (will complete in Phase 51 P5)** — React Router share links don't require auth; public endpoints don't require protect middleware.
+
+**Reference:** `docs/PHASE-51-IMPLEMENTATION-GUIDE.md` (P5 section)
 
 ---
 

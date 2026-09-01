@@ -9,6 +9,22 @@ A modular MERN dashboard for esoteric traditions, hermetics, and ceremonial magi
 - [Art credits](docs/ART-CREDITS.md) — bundled public-domain plates (Goetia, Tarot)
 - [Social roadmap](docs/SOCIAL-ROADMAP.md) — potential future share/lodge layer (not started)
 
+### Quick Wins (QW1–QW4) Documentation
+
+All Quick Wins are complete. For Phase 51+ implementation:
+
+- [Phase 51 Implementation Guide](docs/PHASE-51-IMPLEMENTATION-GUIDE.md) — step-by-step sharing feature setup
+- [TypeScript Types Guide](docs/TYPES.md) — FullUser, PublicUser, Visibility types
+- [Database Migrations](docs/MIGRATIONS.md) — running the add-visibility migration
+- [Quick Reference](docs/QW-QUICK-REFERENCE.md) — fast lookup for files, imports, endpoints
+- [Handoff Checklist](docs/QW-HANDOFF-CHECKLIST.md) — pre-implementation verification for Phase 51 team
+
+**Quick Summary:**
+- ✅ QW1: React Router setup (`/s/:type/:id` share links)
+- ✅ QW2: JournalEntry audit (PII assessment)
+- ✅ QW3: Visibility enum + indexes (privacy model)
+- ✅ QW4: PublicUser DTO (safe user data serialization)
+
 ## Stack
 
 | Layer   | Tech                                      |

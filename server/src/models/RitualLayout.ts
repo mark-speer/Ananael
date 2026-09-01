@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { Visibility, VisibilityString } from '../types/visibility';
 
 export type RitualToolType =
   | 'candle'
@@ -23,6 +24,7 @@ export interface IRitualLayout extends Document {
   items: IRitualItem[];
   showCompass: boolean;
   notes?: string;
+  visibility: VisibilityString;
 }
 
 const RitualItemSchema = new Schema<IRitualItem>(
@@ -76,6 +78,13 @@ const RitualLayoutSchema = new Schema<IRitualLayout>(
       type: String,
       maxlength: 5000,
       default: '',
+    },
+    visibility: {
+      type: String,
+      enum: [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC],
+      default: Visibility.PRIVATE,
+      required: true,
+      index: true,
     },
   },
   { timestamps: true }
