@@ -530,3 +530,4 @@ function HomePage({
       </div>
     </div>
   );
+}
