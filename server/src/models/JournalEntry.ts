@@ -76,6 +76,8 @@ export interface IJournalEntry extends Document {
   sky?: IJournalSky;
   payload?: Record<string, unknown>;
   links: IJournalLink[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const ENTITY_KINDS: JournalEntityKind[] = [

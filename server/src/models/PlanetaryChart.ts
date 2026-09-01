@@ -6,6 +6,8 @@ export interface IPlanetaryChart extends Document {
   name: string;
   config: Record<string, unknown>;
   notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const PlanetaryChartSchema = new Schema<IPlanetaryChart>(

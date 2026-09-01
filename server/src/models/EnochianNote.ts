@@ -8,6 +8,8 @@ export interface IEnochianNote extends Document {
   targetType: EnochianTargetType;
   targetId: string;
   userNotes: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const EnochianNoteSchema = new Schema<IEnochianNote>(

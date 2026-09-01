@@ -11,6 +11,8 @@ export interface IIChingCast extends Document {
   relatingNumber: number | null;
   changingLines: number[];
   userNotes?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const IChingCastSchema = new Schema<IIChingCast>(
