@@ -11,6 +11,8 @@ export interface ITalismanDesign extends Document {
   config: Record<string, unknown>;
   notes?: string;
   visibility: VisibilityString;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const TalismanDesignSchema = new Schema<ITalismanDesign>(
