@@ -4,7 +4,6 @@ import User, {
   type IUserLocation,
   type IUserNatal,
 } from '../models/User';
-import { toPublicUser } from '../lib/userSerializers';
 import { AuthRequest, protect } from '../middleware/auth';
 import {
   clearAuthCookie,
