@@ -15,7 +15,7 @@ import { useParams } from 'react-router-dom';
  * Example: /s/talisman/abc123
  */
 export default function SharePage() {
-  const { type, id } = useParams();
+  const { type = 'unknown', id = 'unknown' } = useParams<{ type: string; id: string }>();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-ananael-bg font-display text-ananael-gold">

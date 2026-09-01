@@ -25,6 +25,8 @@ export interface IRitualLayout extends Document {
   showCompass: boolean;
   notes?: string;
   visibility: VisibilityString;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const RitualItemSchema = new Schema<IRitualItem>(
