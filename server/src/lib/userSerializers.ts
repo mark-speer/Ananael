@@ -4,8 +4,7 @@
  * for use in public API responses, ensuring PII isolation.
  */
 
-import type { FullUser, PublicUser } from '../types/User';
-import type { IUser } from '../models/User';
+import type { PublicUser } from '../types/User';
 
 /**
  * Converts a FullUser or Mongoose IUser document to a PublicUser DTO.
@@ -28,20 +27,26 @@ import type { IUser } from '../models/User';
  * @returns PublicUser safe for public API responses
  * @throws TypeError if user is null/undefined
  */
-export function toPublicUser(user: FullUser | IUser | any): PublicUser {
+export function toPublicUser(user: {
+  _id?: unknown;
+  username: string;
+  createdAt: Date;
+  traditions?: unknown;
+  profileImageUrl?: unknown;
+}): PublicUser {
   if (!user) {
     throw new TypeError('User is required');
   }
 
   const publicUser: PublicUser = {
-    _id: typeof user._id === 'string' ? user._id : user._id?.toString(),
+    _id: typeof user._id === 'string' ? user._id : String(user._id),
     username: user.username,
     createdAt: user.createdAt,
   };
 
   // Add optional fields only if present and valid
   if (user.traditions && Array.isArray(user.traditions) && user.traditions.length > 0) {
-    publicUser.traditions = user.traditions;
+    publicUser.traditions = user.traditions as string[];
   }
 
   if (user.profileImageUrl && typeof user.profileImageUrl === 'string') {
@@ -55,10 +60,16 @@ export function toPublicUser(user: FullUser | IUser | any): PublicUser {
  * Batch converts multiple users to PublicUser DTOs.
  * Useful for endpoints returning arrays of users.
  * 
- * @param users - Array of FullUser or IUser objects
+ * @param users - Array of user objects
  * @returns Array of PublicUser DTOs
  */
-export function toPublicUsers(users: (FullUser | IUser | any)[]): PublicUser[] {
+export function toPublicUsers(users: Array<{
+  _id?: unknown;
+  username: string;
+  createdAt: Date;
+  traditions?: unknown;
+  profileImageUrl?: unknown;
+}>): PublicUser[] {
   if (!Array.isArray(users)) {
     throw new TypeError('Users must be an array');
   }
