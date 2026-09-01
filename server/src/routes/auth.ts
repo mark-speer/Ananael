@@ -326,6 +326,8 @@ router.put(
       }
 
       res.json({ user: fullUserResponse(user) });
+    } catch (error) {
+      console.error('Auth location error:', error);
       res.status(500).json({ message: 'Server error while saving location' });
     }
   }
