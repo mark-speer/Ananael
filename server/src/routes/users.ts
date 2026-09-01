@@ -25,13 +25,11 @@ router.get('/:userId/public', async (req: Request, res: Response): Promise<void>
       res.status(404).json({ message: 'User not found' });
       return;
     }
-
     const publicUser = toPublicUser({
       _id: user._id.toString(),
       username: user.username,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    } as any);
+    });
 
     res.json(publicUser);
   } catch (error) {
