@@ -36,8 +36,6 @@ export interface IUser extends Document {
   natal?: IUserNatal | null;
   /** Last authenticated activity (presence / online count). */
   lastSeenAt?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
   comparePassword(candidate: string): Promise<boolean>;
 }
 
