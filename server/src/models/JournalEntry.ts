@@ -76,6 +76,10 @@ export interface IJournalEntry extends Document {
   sky?: IJournalSky;
   payload?: Record<string, unknown>;
   links: IJournalLink[];
+  /** Optimistic-concurrency revision. Incremented for every successful edit. */
+  version: number;
+  /** Last successful sync timestamp; null until an edit is synchronized. */
+  syncedAt: Date | null;
 }
 
 const ENTITY_KINDS: JournalEntityKind[] = [
@@ -216,6 +220,15 @@ const JournalEntrySchema = new Schema<IJournalEntry>(
     links: {
       type: [JournalLinkSchema],
       default: [],
+    },
+    version: {
+      type: Number,
+      default: 1,
+      required: true,
+    },
+    syncedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }

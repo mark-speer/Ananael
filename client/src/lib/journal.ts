@@ -88,6 +88,8 @@ export interface JournalEntry {
   links?: Array<{ module: string; refModel: string; refId: string }>;
   createdAt?: string;
   updatedAt?: string;
+  version: number;
+  syncedAt?: string | null;
 }
 
 export const ENTRY_TYPE_LABELS: Record<JournalEntryType, string> = {

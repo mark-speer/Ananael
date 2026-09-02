@@ -67,6 +67,8 @@ function serializeEntry(e: {
   links?: unknown[];
   createdAt?: Date;
   updatedAt?: Date;
+  version?: number;
+  syncedAt?: Date | null;
 }) {
   return {
     _id: e._id,
@@ -85,6 +87,8 @@ function serializeEntry(e: {
     links: e.links ?? [],
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
+    version: e.version ?? 1,
+    syncedAt: e.syncedAt ?? null,
   };
 }
 
@@ -293,10 +297,23 @@ router.patch('/entries/:id', protect, async (req: AuthRequest, res: Response): P
     const entry = await JournalEntry.findOne({
       _id: req.params.id,
       userId: req.userId,
-    });
+    }).lean();
 
     if (!entry) {
       res.status(404).json({ message: 'Entry not found' });
+      return;
+    }
+
+    const expectedVersion = Number((req.body as Record<string, unknown>).version);
+    if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
+      res.status(400).json({ message: 'version must be a positive integer' });
+      return;
+    }
+    if (expectedVersion !== (entry.version ?? 1)) {
+      res.status(409).json({
+        message: 'Entry changed on the server; reload before editing again',
+        entry: serializeEntry(entry),
+      });
       return;
     }
 
@@ -314,12 +331,13 @@ router.patch('/entries/:id', protect, async (req: AuthRequest, res: Response): P
       payload,
     } = req.body as Record<string, unknown>;
 
+    const updates: Record<string, unknown> = {};
     if (
       entryType !== undefined &&
       typeof entryType === 'string' &&
       ENTRY_TYPES.includes(entryType as JournalEntryType)
     ) {
-      entry.entryType = entryType as JournalEntryType;
+      updates.entryType = entryType as JournalEntryType;
     }
 
     if (occurredAt !== undefined) {
@@ -328,37 +346,53 @@ router.patch('/entries/:id', protect, async (req: AuthRequest, res: Response): P
         res.status(400).json({ message: 'occurredAt must be a valid date' });
         return;
       }
-      entry.occurredAt = d;
+      updates.occurredAt = d;
     }
 
-    if (typeof title === 'string') entry.title = title.slice(0, 200);
-    if (typeof body === 'string') entry.body = body.slice(0, 20000);
-    if (mood !== undefined) entry.mood = clampScale(mood);
-    if (energy !== undefined) entry.energy = clampScale(energy);
+    if (typeof title === 'string') updates.title = title.slice(0, 200);
+    if (typeof body === 'string') updates.body = body.slice(0, 20000);
+    if (mood !== undefined) updates.mood = clampScale(mood);
+    if (energy !== undefined) updates.energy = clampScale(energy);
 
-    if (entry.entryType === 'working') {
+    const nextEntryType = (updates.entryType ?? entry.entryType) as JournalEntryType;
+    if (nextEntryType === 'working') {
       if (
         status &&
         typeof status === 'string' &&
         VALID_STATUS.includes(status as WorkingStatus)
       ) {
-        entry.status = status as WorkingStatus;
+        updates.status = status as WorkingStatus;
       }
     } else if (status === null) {
-      entry.status = null;
+      updates.status = null;
     }
 
-    if (tags !== undefined) entry.tags = normalizeTags(tags);
-    if (entities !== undefined) entry.entities = normalizeEntities(entities);
+    if (tags !== undefined) updates.tags = normalizeTags(tags);
+    if (entities !== undefined) updates.entities = normalizeEntities(entities);
     if (sky !== undefined && sky && typeof sky === 'object') {
-      entry.sky = sky as typeof entry.sky;
+      updates.sky = sky;
     }
     if (payload !== undefined && payload && typeof payload === 'object') {
-      entry.payload = payload as Record<string, unknown>;
+      updates.payload = payload;
     }
 
-    await entry.save();
-    res.json({ message: 'Entry updated', entry: serializeEntry(entry.toObject()) });
+    const updated = await JournalEntry.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId, version: expectedVersion },
+      { $set: { ...updates, syncedAt: new Date() }, $inc: { version: 1 } },
+      { new: true, runValidators: true }
+    ).lean();
+    if (!updated) {
+      const current = await JournalEntry.findOne({
+        _id: req.params.id,
+        userId: req.userId,
+      }).lean();
+      res.status(409).json({
+        message: 'Entry changed on the server; reload before editing again',
+        entry: current ? serializeEntry(current) : null,
+      });
+      return;
+    }
+    res.json({ message: 'Entry updated', entry: serializeEntry(updated) });
   } catch (error) {
     console.error('Journal patch error:', error);
     res.status(500).json({ message: 'Server error while updating entry' });

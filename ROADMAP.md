@@ -669,7 +669,7 @@ Client-side Heptarchia + Watchtower overlay on the natal chart, plus an Enochian
 
 ---
 
-## Phase 53 — Observability — In progress
+## Phase 53 — Observability — Shipped
 
 Server request observability baseline for production diagnosis:
 
@@ -681,6 +681,20 @@ Server request observability baseline for production diagnosis:
 Request logs intentionally exclude bodies, cookies, query values, and other practitioner data. Metrics reset when the server restarts; durable telemetry remains a future deployment concern.
 
 **Done when:** every request is logged with a correlation ID and duration; slow requests are distinguishable; health exposes a useful top-three route baseline; existing API behavior remains intact.
+
+---
+
+## Phase 54 — Sync and conflict resolution — In progress
+
+Add journal-entry synchronization metadata and optimistic concurrency. Each entry
+has a `version` (starting at 1) and nullable `syncedAt`. Journal edits must include
+the version they were based on; successful edits increment the version and stamp
+the sync time. A stale edit receives HTTP 409 with the current server entry, so
+the server-wins policy is explicit and clients can reload before retrying.
+
+**Done when:** version metadata is persisted and returned by journal APIs; stale
+updates cannot overwrite newer edits; successful updates advance version and
+`syncedAt`; migration-created entries retain safe defaults; policy is documented.
 
 ---
 
