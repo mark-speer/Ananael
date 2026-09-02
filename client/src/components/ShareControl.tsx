@@ -20,10 +20,19 @@ export default function ShareControl({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const link = `${window.location.origin}/s/${type}/${id}`;
+  const canShare = 'share' in navigator;
+
+  useEffect(() => {
+    setCurrent(visibility);
+  }, [visibility]);
 
   useEffect(() => {
     let active = true;
+    if (!open) return undefined;
+
     setQrDataUrl(null);
     QRCode.toDataURL(link, { errorCorrectionLevel: 'M', margin: 1, width: 256 })
       .then((dataUrl) => {
@@ -35,10 +44,11 @@ export default function ShareControl({
     return () => {
       active = false;
     };
-  }, [link]);
+  }, [link, open]);
 
   const updateVisibility = async (next: ShareVisibility) => {
     setError(null);
+    setUpdating(true);
     try {
       const response = await apiFetch(endpoint, {
         method: 'PUT',
@@ -51,16 +61,45 @@ export default function ShareControl({
       onVisibilityChange?.(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update sharing settings');
+    } finally {
+      setUpdating(false);
     }
   };
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(link);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const input = document.createElement('textarea');
+        input.value = link;
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
+        const copiedByFallback = document.execCommand('copy');
+        input.remove();
+        if (!copiedByFallback) throw new Error('Clipboard unavailable');
+      }
       setCopied(true);
       setError(null);
     } catch {
       setError('Could not copy link. Please copy it manually.');
+    }
+  };
+
+  const shareLink = async () => {
+    if (!canShare) return;
+    setSharing(true);
+    try {
+      await navigator.share({ title: 'Shared Ananael design', url: link });
+      setError(null);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      setError('Could not open the device share dialog.');
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -78,7 +117,7 @@ export default function ShareControl({
               <button type="button" onClick={() => setOpen(false)} className="text-zinc-400 hover:text-zinc-100" aria-label="Close">×</button>
             </div>
             <label className="block text-sm text-ananael-muted">Visibility
-              <select value={current} onChange={(event) => void updateVisibility(event.target.value as ShareVisibility)}
+              <select value={current} disabled={updating} onChange={(event) => void updateVisibility(event.target.value as ShareVisibility)}
                 className="mt-1 w-full rounded-md border border-ananael-border bg-ananael-bg px-3 py-2 text-zinc-100">
                 <option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option>
               </select>
@@ -93,9 +132,17 @@ export default function ShareControl({
               )}
               <div className="min-w-0 flex-1">
                 <p className="break-all text-xs text-ananael-muted">{link}</p>
-                <button type="button" onClick={() => void copyLink()} className="mt-3 rounded-md border border-ananael-gold/50 px-3 py-2 text-sm text-ananael-gold">
-                  {copied ? 'Copied' : 'Copy share link'}
-                </button>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => void copyLink()} className="rounded-md border border-ananael-gold/50 px-3 py-2 text-sm text-ananael-gold">
+                    {copied ? 'Copied' : 'Copy share link'}
+                  </button>
+                  {canShare && (
+                    <button type="button" onClick={() => void shareLink()} disabled={sharing}
+                      className="rounded-md border border-ananael-violet/50 px-3 py-2 text-sm text-zinc-100 disabled:opacity-60">
+                      {sharing ? 'Sharing…' : 'Share'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}

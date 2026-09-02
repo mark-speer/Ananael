@@ -568,13 +568,12 @@ npm run test -- --testNamePattern="PII"
 
 ---
 
-## Next Steps (Phase 52)
+## Phase 52 UI completion
 
-Phase 51 enables unlisted shares. Phase 52 adds:
-- [ ] Public registry (list all public designs)
-- [ ] Usernames as URLs (`/u/alice_the_wise`)
-- [ ] User discovery
-- [ ] Favorites / saves on shared designs
+Phase 51 enables unlisted shares. The Phase 52 shareable-design UI slice now
+provides visibility controls, QR/link sharing, cold-load public viewers, and
+privacy-safe creator attribution for supported artifacts. Public registry,
+username URLs/discovery, and favorites/saves remain future social features.
 
 ---
 
