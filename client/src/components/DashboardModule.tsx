@@ -7,6 +7,7 @@ import { buildDayCounsel, nextMonthHighlight } from '../lib/almanac';
 import { buildSkySnapshot } from '../lib/celestialEphemeris';
 import { buildJournalSky } from '../lib/journalSky';
 import type { JournalEntry, JournalEntryType } from '../lib/journal';
+import { listJournalEntries, refreshJournalFromServer } from '../lib/journalRepo';
 import {
   buildPlanetaryHours,
   formatTime,
@@ -248,12 +249,9 @@ export default function DashboardModule({ onNavigate }: DashboardModuleProps) {
     setWorkingsLoading(true);
     setWorkingsError(null);
     try {
-      const res = await apiFetch('/api/journal/entries?type=working&limit=40');
-      if (!res.ok) {
-        throw new Error('Failed to load workings');
-      }
-      const data = (await res.json()) as { entries: JournalEntry[] };
-      const ongoing = (data.entries ?? []).filter(
+      await refreshJournalFromServer();
+      const entries = await listJournalEntries({ type: 'working', limit: 40 });
+      const ongoing = entries.filter(
         (e) => e.status === 'active' || e.status === 'paused'
       );
       setWorkings(ongoing);

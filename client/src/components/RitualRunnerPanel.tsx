@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { LiturgyRite } from '../data/liturgy';
-import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
-import type { JournalEntry, JournalSky } from '../lib/journal';
+import type { JournalSky } from '../lib/journal';
+import { updateJournalEntry } from '../lib/journalRepo';
 import {
   buildPlanetaryHours,
   DAY_RULERS,
@@ -211,21 +211,13 @@ export default function RitualRunnerPanel({
           }),
           ...extra?.payloadExtras,
         };
-        const res = await apiFetch(`/api/journal/entries/${next.entryId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            status,
-            payload,
-            ...(extra?.body !== undefined ? { body: extra.body } : {}),
-            ...(extra?.sky ? { sky: extra.sky } : {}),
-          }),
+        const result = await updateJournalEntry(next.entryId, {
+          status,
+          payload,
+          ...(extra?.body !== undefined ? { body: extra.body } : {}),
+          ...(extra?.sky ? { sky: extra.sky } : {}),
         });
-        const data = (await res.json()) as {
-          message?: string;
-          entry?: JournalEntry;
-        };
-        if (!res.ok) throw new Error(data.message || 'Failed to update run');
+        if (!result.ok) throw new Error(result.message || 'Failed to update run');
         onSessionChange({ ...next, status });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Save failed');

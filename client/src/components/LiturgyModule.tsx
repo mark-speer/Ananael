@@ -8,9 +8,11 @@ import {
   type LiturgyRite,
 } from '../data/liturgy';
 import type { TemplateId } from '../data/ritualTools';
-import { apiFetch } from '../lib/api';
-import type { JournalEntry } from '../lib/journal';
 import { buildJournalSky } from '../lib/journalSky';
+import {
+  createJournalEntry,
+  getJournalEntry,
+} from '../lib/journalRepo';
 import {
   createRunnerPayload,
   createRunnerSession,
@@ -117,29 +119,21 @@ export default function LiturgyModule({
         target.tools.length > 0
           ? `Tools: ${target.tools.join(', ')}`
           : '';
-      const res = await apiFetch('/api/journal/entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entryType: 'working',
-          title: target.title,
-          body: toolsLine,
-          status: 'active',
-          tags: ['liturgy', 'runner', target.id, ...target.tags],
-          occurredAt: now.toISOString(),
-          sky,
-          payload,
-        }),
+      const result = await createJournalEntry({
+        entryType: 'working',
+        title: target.title,
+        body: toolsLine,
+        status: 'active',
+        tags: ['liturgy', 'runner', target.id, ...target.tags],
+        occurredAt: now.toISOString(),
+        sky,
+        payload,
       });
-      const data = (await res.json()) as {
-        message?: string;
-        entry?: JournalEntry;
-      };
-      if (!res.ok || !data.entry) {
-        throw new Error(data.message || 'Failed to start run');
+      if (!result.ok || !result.entry) {
+        throw new Error(result.message || 'Failed to start run');
       }
       const next = createRunnerSession(target, {
-        entryId: data.entry._id,
+        entryId: result.entry._id,
         startedAt: payload.startedAt,
         skyStart: sky,
         status: 'active',
@@ -159,15 +153,10 @@ export default function LiturgyModule({
       setResuming(true);
       setResumeError(null);
       try {
-        const res = await apiFetch(`/api/journal/entries/${entryId}`);
-        const data = (await res.json()) as {
-          message?: string;
-          entry?: JournalEntry;
-        };
-        if (!res.ok || !data.entry) {
-          throw new Error(data.message || 'Working not found');
+        const entry = await getJournalEntry(entryId);
+        if (!entry) {
+          throw new Error('Working not found');
         }
-        const entry = data.entry;
         if (!isRitualRunnerPayload(entry.payload)) {
           throw new Error('This working is not a ritual run');
         }
@@ -230,21 +219,16 @@ export default function LiturgyModule({
       const body = rite.steps
         .map((s, i) => `${i + 1}. ${s.title}\n${s.body}`)
         .join('\n\n');
-      const res = await apiFetch('/api/journal/entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entryType: 'working',
-          title: rite.title,
-          body,
-          status: 'active',
-          tags: ['liturgy', rite.id, ...rite.tags],
-          occurredAt: now.toISOString(),
-          sky,
-        }),
+      const result = await createJournalEntry({
+        entryType: 'working',
+        title: rite.title,
+        body,
+        status: 'active',
+        tags: ['liturgy', rite.id, ...rite.tags],
+        occurredAt: now.toISOString(),
+        sky,
       });
-      const data = (await res.json()) as { message?: string };
-      if (!res.ok) throw new Error(data.message || 'Failed to log working');
+      if (!result.ok) throw new Error(result.message || 'Failed to log working');
       setStatus('Working logged to Magical Journal.');
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Save failed');

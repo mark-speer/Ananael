@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getRite } from '../data/liturgy';
 import { getCardById } from '../data/tarotDeck';
-import { apiFetch } from '../lib/api';
 import { buildJournalSky } from '../lib/journalSky';
 import {
   ENTRY_TYPE_LABELS,
@@ -13,6 +12,16 @@ import {
   type JournalEntity,
   type WorkingStatus,
 } from '../lib/journal';
+import {
+  createJournalEntry,
+  deleteJournalEntry,
+  ensureJournalSyncWiring,
+  getJournalEntry,
+  listJournalEntries,
+  subscribeJournalSyncStatus,
+  updateJournalEntry,
+} from '../lib/journalRepo';
+import SyncStatusBadge from './SyncStatusBadge';
 
 export interface JournalNavigateOptions {
   /** Pre-select entry type filter (e.g. after saving a divination). */
@@ -156,7 +165,6 @@ export default function JournalModule({
   );
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingVersion, setEditingVersion] = useState<number | null>(null);
   const [entryType, setEntryType] = useState<JournalEntryType>('note');
   const [occurredAt, setOccurredAt] = useState(() =>
     toDatetimeLocalValue(new Date())
@@ -192,7 +200,6 @@ export default function JournalModule({
 
   const resetForm = useCallback(() => {
     setEditingId(null);
-    setEditingVersion(null);
     setEntryType('note');
     setOccurredAt(toDatetimeLocalValue(new Date()));
     setTitle('');
@@ -214,21 +221,13 @@ export default function JournalModule({
     setLoading(true);
     setListError(null);
     try {
-      const params = new URLSearchParams();
-      if (typeFilter !== 'all') params.set('type', typeFilter);
-      if (searchQ.trim()) params.set('q', searchQ.trim());
-      if (entityQ.trim()) params.set('entity', entityQ.trim());
-      params.set('limit', '80');
-
-      const res = await apiFetch(`/api/journal/entries?${params}`);
-      const data = (await res.json()) as {
-        entries?: JournalEntry[];
-        message?: string;
-      };
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to load journal');
-      }
-      setEntries(data.entries ?? []);
+      const cached = await listJournalEntries({
+        type: typeFilter,
+        q: searchQ.trim() || undefined,
+        entity: entityQ.trim() || undefined,
+        limit: 80,
+      });
+      setEntries(cached);
     } catch (err) {
       setListError(err instanceof Error ? err.message : 'Load failed');
     } finally {
@@ -244,9 +243,18 @@ export default function JournalModule({
     }
   }, [isAuthenticated, loadEntries]);
 
+  // Local-first: keep sync wired while the journal is visible, and refresh
+  // the on-screen list whenever a sync pass finishes (pull, push, or both).
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    ensureJournalSyncWiring();
+    return subscribeJournalSyncStatus((s) => {
+      if (!s.syncing) void loadEntries();
+    });
+  }, [isAuthenticated, loadEntries]);
+
   const loadIntoForm = (entry: JournalEntry) => {
     setEditingId(entry._id);
-    setEditingVersion(entry.version);
     setEntryType(entry.entryType);
     setOccurredAt(toDatetimeLocalValue(new Date(entry.occurredAt)));
     setTitle(entry.title ?? '');
@@ -271,11 +279,9 @@ export default function JournalModule({
     let cancelled = false;
     void (async () => {
       try {
-        const res = await apiFetch(`/api/journal/entries/${pendingEntryId}`);
-        if (!res.ok || cancelled) return;
-        const data = (await res.json()) as { entry?: JournalEntry };
-        if (data.entry && !cancelled) {
-          loadIntoForm(data.entry);
+        const entry = await getJournalEntry(pendingEntryId);
+        if (entry && !cancelled) {
+          loadIntoForm(entry);
           setPendingEntryId(undefined);
         }
       } catch {
@@ -300,7 +306,7 @@ export default function JournalModule({
     try {
       const when = parseDatetimeLocal(occurredAt);
       const sky = buildJournalSky(when);
-      const payload = {
+      const input = {
         entryType,
         occurredAt: when.toISOString(),
         title,
@@ -311,24 +317,14 @@ export default function JournalModule({
         tags: parseTags(),
         entities,
         sky,
-        ...(editingId && editingVersion !== null ? { version: editingVersion } : {}),
       };
 
-      const url = editingId
-        ? `/api/journal/entries/${editingId}`
-        : '/api/journal/entries';
-      const method = editingId ? 'PATCH' : 'POST';
+      const result = editingId
+        ? await updateJournalEntry(editingId, input)
+        : await createJournalEntry(input);
 
-      const res = await apiFetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = (await res.json()) as { message?: string };
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to save entry');
+      if (!result.ok) {
+        throw new Error(result.message || 'Failed to save entry');
       }
       setSaveStatus(editingId ? 'Entry updated.' : 'Entry saved.');
       resetForm();
@@ -344,12 +340,9 @@ export default function JournalModule({
     if (!isAuthenticated) return;
     if (!window.confirm('Delete this journal entry?')) return;
     try {
-      const res = await apiFetch(`/api/journal/entries/${id}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const data = (await res.json()) as { message?: string };
-        throw new Error(data.message || 'Delete failed');
+      const result = await deleteJournalEntry(id);
+      if (!result.ok) {
+        throw new Error(result.message || 'Delete failed');
       }
       if (editingId === id) resetForm();
       await loadEntries();
@@ -391,14 +384,17 @@ export default function JournalModule({
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">
-          Magical Journal
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
-          The shared log for rituals, dreams, divinations, mood, and ongoing
-          workings. Moon phase and planetary hour are tagged automatically.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl text-ananael-gold sm:text-3xl">
+            Magical Journal
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-ananael-muted">
+            The shared log for rituals, dreams, divinations, mood, and ongoing
+            workings. Moon phase and planetary hour are tagged automatically.
+          </p>
+        </div>
+        <SyncStatusBadge />
       </header>
 
       {/* Filters */}
