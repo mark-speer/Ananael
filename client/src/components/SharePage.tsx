@@ -10,6 +10,41 @@ import {
   PracticeViewer,
 } from './share/ArtifactViewers';
 
+interface PublicArtifact {
+  _id?: string;
+  name?: string;
+  kind?: string;
+  targetType?: string;
+  targetId?: number;
+  userNotes?: string;
+  config?: Record<string, unknown>;
+  items?: Array<{ id: string; type: string; x: number; y: number; label?: string }>;
+  notes?: string;
+  date?: string | Date;
+  tradition?: string;
+  visibility?: string;
+  creator?: PublicCreator | null;
+}
+
+const API_PATHS: Record<string, string> = {
+  talisman: '/talisman',
+  talismans: '/talisman',
+  circle: '/solomonic',
+  solomonic: '/solomonic',
+  circles: '/solomonic',
+  ritual: '/ritual',
+  layout: '/ritual',
+  layouts: '/ritual',
+  tree: '/tree',
+  treenote: '/tree',
+  notes: '/tree',
+  opus: '/opus',
+  vessel: '/opus',
+  practice: '/practice',
+};
+
+const SUPPORTED_TYPES = new Set(Object.keys(API_PATHS));
+
 /**
  * SharePage component
  * 
@@ -21,18 +56,25 @@ import {
  */
 export default function SharePage() {
   const { type = '', id = '' } = useParams<{ type: string; id: string }>();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<PublicArtifact | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
     async function fetchPublicResource() {
       try {
         setLoading(true);
         setError(null);
-        const apiPath = mapTypeToApiPath(type);
-        const res = await fetch(`/api${apiPath}/${id}/public`);
+        const normalizedType = type.toLowerCase().trim();
+        const apiPath = mapTypeToApiPath(normalizedType);
+        if (!apiPath) {
+          throw new Error('This share link uses an unsupported artifact type.');
+        }
+        const res = await fetch(`/api${apiPath}/${encodeURIComponent(id)}/public`, {
+          signal: controller.signal,
+        });
 
         if (!res.ok) {
           if (res.status === 403) {
@@ -48,9 +90,10 @@ export default function SharePage() {
         if (isMounted) {
           setData(json);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         if (isMounted) {
-          setError(err.message || 'An error occurred while loading this shared resource.');
+          setError(err instanceof Error ? err.message : 'An error occurred while loading this shared resource.');
         }
       } finally {
         if (isMounted) {
@@ -68,35 +111,12 @@ export default function SharePage() {
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
   }, [type, id]);
 
-  function mapTypeToApiPath(t: string): string {
-    const norm = (t || '').toLowerCase().trim();
-    switch (norm) {
-      case 'talisman':
-      case 'talismans':
-        return '/talisman';
-      case 'circle':
-      case 'solomonic':
-      case 'circles':
-        return '/solomonic';
-      case 'ritual':
-      case 'layout':
-      case 'layouts':
-        return '/ritual';
-      case 'tree':
-      case 'treenote':
-      case 'notes':
-        return '/tree';
-      case 'opus':
-      case 'vessel':
-        return '/opus';
-      case 'practice':
-        return '/practice';
-      default:
-        return `/${norm}`;
-    }
+  function mapTypeToApiPath(t: string): string | null {
+    return SUPPORTED_TYPES.has(t) ? API_PATHS[t] : null;
   }
 
   function renderArtifactViewer() {
