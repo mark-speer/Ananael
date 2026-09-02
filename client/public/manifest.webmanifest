@@ -1,0 +1,28 @@
+{
+  "name": "Ananael — Inner Sanctum for Hermetics & Ceremonial Magic",
+  "short_name": "Ananael",
+  "id": "/",
+  "description": "A modular dashboard for hermetics and ceremonial magic — divination, correspondences, planetary timing, alchemy, ritual design, and a Magical Journal that works offline.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0c0c0f",
+  "theme_color": "#0c0c0f",
+  "lang": "en",
+  "categories": ["lifestyle", "education"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

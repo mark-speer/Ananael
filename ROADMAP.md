@@ -684,7 +684,7 @@ Request logs intentionally exclude bodies, cookies, query values, and other prac
 
 ---
 
-## Phase 54 — Sync and conflict resolution — In progress
+## Phase 54 — Sync and conflict resolution — Shipped
 
 Add journal-entry synchronization metadata and optimistic concurrency. Each entry
 has a `version` (starting at 1) and nullable `syncedAt`. Journal edits must include
@@ -695,6 +695,38 @@ the server-wins policy is explicit and clients can reload before retrying.
 **Done when:** version metadata is persisted and returned by journal APIs; stale
 updates cannot overwrite newer edits; successful updates advance version and
 `syncedAt`; migration-created entries retain safe defaults; policy is documented.
+
+---
+
+## Phase 55 — Offline-first journal + installable PWA — Shipped
+
+Bounded batch sync API plus a local-first client so the Magical Journal (and the
+divination/ritual tracking that logs into it) keeps working with no connection.
+
+- `POST /api/journal/sync` — authenticated, bounded (≤25 ops/request) batch
+  endpoint for queued create/update/delete journal mutations. Every operation
+  carries a client-minted `clientOpId`; replayed batches are idempotent-safe
+  (a previously applied id returns its cached outcome instead of re-applying).
+  Conflicts are always server-wins and reported inline per-operation — one bad
+  op never aborts the rest of the batch.
+- Installable PWA: `manifest.webmanifest` + a same-origin `sw.js` (network-first
+  navigations, cache-first hashed assets, `/api/*` left untouched) served by
+  Express alongside the existing single-port SPA — no Docker/Compose changes.
+- Typed IndexedDB layer (`client/src/lib/indexedDb.ts`) backing a local-first
+  journal repository (`client/src/lib/journalRepo.ts`): optimistic
+  create/update/delete, an outbox that coalesces multiple offline edits into
+  one net operation per entry, and reconnect + periodic background sync.
+- `JournalModule`, `RitualRunnerPanel`, `ShamanismModule`, `LiturgyModule`,
+  `AlchemyModule`, and the Dashboard's active-workings list all read/write
+  through the repo instead of calling the journal API directly — ritual and
+  divination progress tracking now survives a dropped connection, and a
+  visible sync-status badge (online/offline, pending count, last synced,
+  conflicts) sits in the journal header.
+
+**Done when:** journal CRUD works fully offline and reconciles automatically on
+reconnect; sync conflicts always resolve server-wins with the practitioner able
+to see it happened; the app is installable and its shell loads offline; existing
+UX and Docker Compose / single-port serving are unchanged.
 
 ---
 

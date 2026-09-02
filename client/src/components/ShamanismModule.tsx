@@ -34,7 +34,11 @@ import {
   type ShamanicJourneySession,
 } from '../lib/shamanismJourney';
 import { buildJournalSky } from '../lib/journalSky';
-import type { JournalEntry } from '../lib/journal';
+import {
+  createJournalEntry,
+  getJournalEntry,
+  updateJournalEntry,
+} from '../lib/journalRepo';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
 import GlyphFrame from './glyphs/GlyphFrame';
@@ -148,27 +152,23 @@ export default function ShamanismModule({
       setJourneyBusy(true);
       setJourneyStatus(null);
       try {
-        const res = await apiFetch(`/api/journal/entries/${entryId}`);
-        const data = (await res.json()) as {
-          message?: string;
-          entry?: JournalEntry;
-        };
-        if (!res.ok || !data.entry) {
-          throw new Error(data.message || 'Working not found');
+        const entry = await getJournalEntry(entryId);
+        if (!entry) {
+          throw new Error('Working not found');
         }
-        if (!isShamanicJourneyPayload(data.entry.payload)) {
+        if (!isShamanicJourneyPayload(entry.payload)) {
           throw new Error('This working is not a shamanic journey');
         }
         setSession(
           sessionFromJourneyPayload(
-            data.entry.payload,
-            data.entry._id,
-            data.entry.status ?? 'active'
+            entry.payload,
+            entry._id,
+            entry.status ?? 'active'
           )
         );
-        setWorldId(data.entry.payload.worldId);
-        setIntention(data.entry.payload.intention);
-        setAllyId(data.entry.payload.allyId ?? '');
+        setWorldId(entry.payload.worldId);
+        setIntention(entry.payload.intention);
+        setAllyId(entry.payload.allyId ?? '');
         setPane('journey');
       } catch (err) {
         setJourneyStatus(err instanceof Error ? err.message : 'Resume failed');
@@ -218,17 +218,12 @@ export default function ShamanismModule({
         skyStart: next.skyStart,
         encounterNotes: next.encounterNotes,
       });
-      const res = await apiFetch(`/api/journal/entries/${next.entryId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: extra?.status ?? next.status,
-          payload,
-          ...(extra?.body !== undefined ? { body: extra.body } : {}),
-        }),
+      const result = await updateJournalEntry(next.entryId, {
+        status: extra?.status ?? next.status,
+        payload,
+        ...(extra?.body !== undefined ? { body: extra.body } : {}),
       });
-      const data = (await res.json()) as { message?: string };
-      if (!res.ok) throw new Error(data.message || 'Failed to update journey');
+      if (!result.ok) throw new Error(result.message || 'Failed to update journey');
       setSession({ ...next, status: extra?.status ?? next.status });
     } catch (err) {
       setJourneyStatus(err instanceof Error ? err.message : 'Save failed');
@@ -267,35 +262,27 @@ export default function ShamanismModule({
         startedAt: now.toISOString(),
         skyStart: sky,
       });
-      const res = await apiFetch('/api/journal/entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entryType: 'working',
-          title: `Journey · ${world?.name ?? worldId}`,
-          body: intention.trim(),
-          status: 'active',
-          tags: ['shamanism', 'journey', worldId, ...(ally ? [ally.id] : [])],
-          occurredAt: now.toISOString(),
-          sky,
-          entities: [
-            { kind: 'world', id: worldId, label: world?.name ?? worldId },
-            ...(ally
-              ? [{ kind: 'ally' as const, id: ally.id, label: ally.name }]
-              : []),
-          ],
-          payload,
-        }),
+      const result = await createJournalEntry({
+        entryType: 'working',
+        title: `Journey · ${world?.name ?? worldId}`,
+        body: intention.trim(),
+        status: 'active',
+        tags: ['shamanism', 'journey', worldId, ...(ally ? [ally.id] : [])],
+        occurredAt: now.toISOString(),
+        sky,
+        entities: [
+          { kind: 'world', id: worldId, label: world?.name ?? worldId },
+          ...(ally
+            ? [{ kind: 'ally' as const, id: ally.id, label: ally.name }]
+            : []),
+        ],
+        payload,
       });
-      const data = (await res.json()) as {
-        message?: string;
-        entry?: JournalEntry;
-      };
-      if (!res.ok || !data.entry) {
-        throw new Error(data.message || 'Failed to start journey');
+      if (!result.ok || !result.entry) {
+        throw new Error(result.message || 'Failed to start journey');
       }
       setSession(
-        sessionFromJourneyPayload(payload, data.entry._id, 'active')
+        sessionFromJourneyPayload(payload, result.entry._id, 'active')
       );
     } catch (err) {
       setJourneyStatus(err instanceof Error ? err.message : 'Could not start');

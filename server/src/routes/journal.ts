@@ -6,8 +6,10 @@ import JournalEntry, {
   type JournalEntityKind,
   type WorkingStatus,
 } from '../models/JournalEntry';
+import JournalSyncOp from '../models/JournalSyncOp';
 import { AuthRequest, protect } from '../middleware/auth';
 import { migrateLegacyToJournal } from '../services/migrateJournal';
+import { validateSyncOperations } from '../lib/journalSyncValidation';
 
 const router = Router();
 
@@ -90,6 +92,157 @@ function serializeEntry(e: {
     version: e.version ?? 1,
     syncedAt: e.syncedAt ?? null,
   };
+}
+
+type BuildResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; status: number; message: string };
+
+/**
+ * Validates + normalizes a full-entry payload for creation.
+ * Shared by POST /entries and the 'create' operation in POST /sync so both
+ * paths apply identical field rules.
+ */
+function buildJournalCreateDoc(
+  raw: Record<string, unknown>
+): BuildResult<Record<string, unknown>> {
+  const {
+    entryType,
+    occurredAt,
+    title,
+    body,
+    mood,
+    energy,
+    status,
+    tags,
+    entities,
+    sky,
+    payload,
+    links,
+  } = raw;
+
+  if (
+    !entryType ||
+    typeof entryType !== 'string' ||
+    !ENTRY_TYPES.includes(entryType as JournalEntryType)
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      message: `entryType must be one of: ${ENTRY_TYPES.join(', ')}`,
+    };
+  }
+
+  let when = new Date();
+  if (occurredAt) {
+    const d = new Date(occurredAt as string);
+    if (Number.isNaN(d.getTime())) {
+      return { ok: false, status: 400, message: 'occurredAt must be a valid date' };
+    }
+    when = d;
+  }
+
+  let workingStatus: WorkingStatus | null = null;
+  if (entryType === 'working') {
+    if (
+      status &&
+      typeof status === 'string' &&
+      VALID_STATUS.includes(status as WorkingStatus)
+    ) {
+      workingStatus = status as WorkingStatus;
+    } else {
+      workingStatus = 'active';
+    }
+  }
+
+  return {
+    ok: true,
+    value: {
+      entryType,
+      occurredAt: when,
+      title: typeof title === 'string' ? title.slice(0, 200) : '',
+      body: typeof body === 'string' ? body.slice(0, 20000) : '',
+      mood: clampScale(mood),
+      energy: clampScale(energy),
+      ...(workingStatus ? { status: workingStatus } : {}),
+      tags: normalizeTags(tags),
+      entities: normalizeEntities(entities),
+      sky: sky && typeof sky === 'object' ? sky : undefined,
+      payload: payload && typeof payload === 'object' ? payload : undefined,
+      links: Array.isArray(links) ? links : [],
+    },
+  };
+}
+
+/**
+ * Validates + normalizes a partial-entry patch for an existing entry.
+ * Shared by PATCH /entries/:id and the 'update' operation in POST /sync.
+ * Only fields present in `raw` are included in the returned $set.
+ */
+function buildJournalUpdateSet(
+  currentEntryType: JournalEntryType,
+  raw: Record<string, unknown>
+): BuildResult<Record<string, unknown>> {
+  const {
+    entryType,
+    occurredAt,
+    title,
+    body,
+    mood,
+    energy,
+    status,
+    tags,
+    entities,
+    sky,
+    payload,
+  } = raw;
+
+  const updates: Record<string, unknown> = {};
+
+  if (
+    entryType !== undefined &&
+    typeof entryType === 'string' &&
+    ENTRY_TYPES.includes(entryType as JournalEntryType)
+  ) {
+    updates.entryType = entryType as JournalEntryType;
+  }
+
+  if (occurredAt !== undefined) {
+    const d = new Date(occurredAt as string);
+    if (Number.isNaN(d.getTime())) {
+      return { ok: false, status: 400, message: 'occurredAt must be a valid date' };
+    }
+    updates.occurredAt = d;
+  }
+
+  if (typeof title === 'string') updates.title = title.slice(0, 200);
+  if (typeof body === 'string') updates.body = body.slice(0, 20000);
+  if (mood !== undefined) updates.mood = clampScale(mood);
+  if (energy !== undefined) updates.energy = clampScale(energy);
+
+  const nextEntryType = (updates.entryType ?? currentEntryType) as JournalEntryType;
+  if (nextEntryType === 'working') {
+    if (
+      status &&
+      typeof status === 'string' &&
+      VALID_STATUS.includes(status as WorkingStatus)
+    ) {
+      updates.status = status as WorkingStatus;
+    }
+  } else if (status === null) {
+    updates.status = null;
+  }
+
+  if (tags !== undefined) updates.tags = normalizeTags(tags);
+  if (entities !== undefined) updates.entities = normalizeEntities(entities);
+  if (sky !== undefined && sky && typeof sky === 'object') {
+    updates.sky = sky;
+  }
+  if (payload !== undefined && payload && typeof payload === 'object') {
+    updates.payload = payload;
+  }
+
+  return { ok: true, value: updates };
 }
 
 /**
@@ -192,69 +345,15 @@ router.get('/entries', protect, async (req: AuthRequest, res: Response): Promise
  */
 router.post('/entries', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const {
-      entryType,
-      occurredAt,
-      title,
-      body,
-      mood,
-      energy,
-      status,
-      tags,
-      entities,
-      sky,
-      payload,
-      links,
-    } = req.body as Record<string, unknown>;
-
-    if (
-      !entryType ||
-      typeof entryType !== 'string' ||
-      !ENTRY_TYPES.includes(entryType as JournalEntryType)
-    ) {
-      res.status(400).json({
-        message: `entryType must be one of: ${ENTRY_TYPES.join(', ')}`,
-      });
+    const built = buildJournalCreateDoc(req.body as Record<string, unknown>);
+    if (!built.ok) {
+      res.status(built.status).json({ message: built.message });
       return;
-    }
-
-    let when = new Date();
-    if (occurredAt) {
-      const d = new Date(occurredAt as string);
-      if (Number.isNaN(d.getTime())) {
-        res.status(400).json({ message: 'occurredAt must be a valid date' });
-        return;
-      }
-      when = d;
-    }
-
-    let workingStatus: WorkingStatus | null = null;
-    if (entryType === 'working') {
-      if (
-        status &&
-        typeof status === 'string' &&
-        VALID_STATUS.includes(status as WorkingStatus)
-      ) {
-        workingStatus = status as WorkingStatus;
-      } else {
-        workingStatus = 'active';
-      }
     }
 
     const entry = await JournalEntry.create({
       userId: req.userId,
-      entryType,
-      occurredAt: when,
-      title: typeof title === 'string' ? title.slice(0, 200) : '',
-      body: typeof body === 'string' ? body.slice(0, 20000) : '',
-      mood: clampScale(mood),
-      energy: clampScale(energy),
-      ...(workingStatus ? { status: workingStatus } : {}),
-      tags: normalizeTags(tags),
-      entities: normalizeEntities(entities),
-      sky: sky && typeof sky === 'object' ? sky : undefined,
-      payload: payload && typeof payload === 'object' ? payload : undefined,
-      links: Array.isArray(links) ? links : [],
+      ...built.value,
     });
 
     res.status(201).json({
@@ -317,64 +416,15 @@ router.patch('/entries/:id', protect, async (req: AuthRequest, res: Response): P
       return;
     }
 
-    const {
-      entryType,
-      occurredAt,
-      title,
-      body,
-      mood,
-      energy,
-      status,
-      tags,
-      entities,
-      sky,
-      payload,
-    } = req.body as Record<string, unknown>;
-
-    const updates: Record<string, unknown> = {};
-    if (
-      entryType !== undefined &&
-      typeof entryType === 'string' &&
-      ENTRY_TYPES.includes(entryType as JournalEntryType)
-    ) {
-      updates.entryType = entryType as JournalEntryType;
+    const built = buildJournalUpdateSet(
+      entry.entryType,
+      req.body as Record<string, unknown>
+    );
+    if (!built.ok) {
+      res.status(built.status).json({ message: built.message });
+      return;
     }
-
-    if (occurredAt !== undefined) {
-      const d = new Date(occurredAt as string);
-      if (Number.isNaN(d.getTime())) {
-        res.status(400).json({ message: 'occurredAt must be a valid date' });
-        return;
-      }
-      updates.occurredAt = d;
-    }
-
-    if (typeof title === 'string') updates.title = title.slice(0, 200);
-    if (typeof body === 'string') updates.body = body.slice(0, 20000);
-    if (mood !== undefined) updates.mood = clampScale(mood);
-    if (energy !== undefined) updates.energy = clampScale(energy);
-
-    const nextEntryType = (updates.entryType ?? entry.entryType) as JournalEntryType;
-    if (nextEntryType === 'working') {
-      if (
-        status &&
-        typeof status === 'string' &&
-        VALID_STATUS.includes(status as WorkingStatus)
-      ) {
-        updates.status = status as WorkingStatus;
-      }
-    } else if (status === null) {
-      updates.status = null;
-    }
-
-    if (tags !== undefined) updates.tags = normalizeTags(tags);
-    if (entities !== undefined) updates.entities = normalizeEntities(entities);
-    if (sky !== undefined && sky && typeof sky === 'object') {
-      updates.sky = sky;
-    }
-    if (payload !== undefined && payload && typeof payload === 'object') {
-      updates.payload = payload;
-    }
+    const updates = built.value;
 
     const updated = await JournalEntry.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId, version: expectedVersion },
@@ -419,6 +469,163 @@ router.delete('/entries/:id', protect, async (req: AuthRequest, res: Response): 
     console.error('Journal delete error:', error);
     res.status(500).json({ message: 'Server error while deleting entry' });
   }
+});
+
+/**
+ * POST /api/journal/sync
+ *
+ * Bounded, authenticated batch endpoint for offline-queued journal mutations.
+ * Accepts up to `MAX_SYNC_OPERATIONS` create/update/delete operations per
+ * request. Every operation carries a client-minted `clientOpId`; replaying a
+ * batch (e.g. after a dropped response) is safe because a previously applied
+ * `clientOpId` returns its cached outcome instead of re-applying the
+ * mutation (idempotent-safe).
+ *
+ * Conflicts (a stale `baseVersion` on update, or a version mismatch on a
+ * version-guarded delete) never abort the batch — the server always wins and
+ * reports the current entry inline for that operation so the client can
+ * discard its local change and adopt the server's copy. One op failing does
+ * not affect the others; the response is always 200 with a per-operation
+ * status, unless the request shape itself is invalid (400).
+ */
+router.post('/sync', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  const validation = validateSyncOperations(req.body);
+  if (!validation.ok) {
+    res.status(400).json({ message: validation.message });
+    return;
+  }
+
+  const userId = req.userId!;
+  const results: Array<Record<string, unknown>> = [];
+
+  for (const op of validation.operations) {
+    try {
+      const existing = await JournalSyncOp.findOne({
+        userId,
+        clientOpId: op.clientOpId,
+      }).lean();
+
+      if (existing) {
+        results.push({
+          clientOpId: op.clientOpId,
+          type: op.type,
+          ...existing.result,
+          replayed: true,
+        });
+        continue;
+      }
+
+      let outcome: Record<string, unknown>;
+
+      if (op.type === 'create') {
+        const built = buildJournalCreateDoc(op.entry ?? {});
+        if (!built.ok) {
+          outcome = { status: 'error', message: built.message };
+        } else {
+          const created = await JournalEntry.create({
+            userId,
+            ...built.value,
+          });
+          outcome = {
+            status: 'created',
+            entry: serializeEntry(created.toObject()),
+          };
+        }
+      } else if (op.type === 'update') {
+        const current = await JournalEntry.findOne({
+          _id: op.entryId,
+          userId,
+        }).lean();
+
+        if (!current) {
+          outcome = { status: 'not_found', message: 'Entry not found' };
+        } else if ((current.version ?? 1) !== op.baseVersion) {
+          outcome = {
+            status: 'conflict',
+            message:
+              'Entry changed on the server; local edit discarded (server wins)',
+            entry: serializeEntry(current),
+          };
+        } else {
+          const built = buildJournalUpdateSet(current.entryType, op.entry ?? {});
+          if (!built.ok) {
+            outcome = { status: 'error', message: built.message };
+          } else {
+            const updated = await JournalEntry.findOneAndUpdate(
+              { _id: op.entryId, userId, version: op.baseVersion },
+              { $set: { ...built.value, syncedAt: new Date() }, $inc: { version: 1 } },
+              { new: true, runValidators: true }
+            ).lean();
+            if (!updated) {
+              const latest = await JournalEntry.findOne({
+                _id: op.entryId,
+                userId,
+              }).lean();
+              outcome = {
+                status: 'conflict',
+                message:
+                  'Entry changed on the server; local edit discarded (server wins)',
+                entry: latest ? serializeEntry(latest) : null,
+              };
+            } else {
+              outcome = { status: 'updated', entry: serializeEntry(updated) };
+            }
+          }
+        }
+      } else {
+        // delete
+        const current = await JournalEntry.findOne({
+          _id: op.entryId,
+          userId,
+        }).lean();
+
+        if (!current) {
+          // Already gone (e.g. a prior sync applied it) — idempotent no-op success.
+          outcome = { status: 'deleted' };
+        } else if (
+          op.baseVersion !== undefined &&
+          (current.version ?? 1) !== op.baseVersion
+        ) {
+          outcome = {
+            status: 'conflict',
+            message:
+              'Entry changed on the server; delete skipped (server wins)',
+            entry: serializeEntry(current),
+          };
+        } else {
+          await JournalEntry.deleteOne({ _id: op.entryId, userId });
+          outcome = { status: 'deleted' };
+        }
+      }
+
+      results.push({ clientOpId: op.clientOpId, type: op.type, ...outcome });
+
+      try {
+        await JournalSyncOp.create({
+          userId,
+          clientOpId: op.clientOpId,
+          type: op.type,
+          result: outcome,
+        });
+      } catch (persistError) {
+        const code = (persistError as { code?: number } | null)?.code;
+        if (code !== 11000) {
+          // Not a duplicate-key race from a concurrent retry — worth logging.
+          console.error('Journal sync op ledger error:', persistError);
+        }
+      }
+    } catch (error) {
+      console.error('Journal sync op error:', error);
+      results.push({
+        clientOpId: op.clientOpId,
+        type: op.type,
+        status: 'error',
+        message: 'Server error while applying operation',
+      });
+    }
+  }
+
+  res.json({ results, serverTime: new Date().toISOString() });
 });
 
 export default router;

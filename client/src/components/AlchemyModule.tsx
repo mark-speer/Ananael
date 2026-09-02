@@ -27,6 +27,7 @@ import {
 import { apiFetch } from '../lib/api';
 import { buildDayCounsel } from '../lib/almanac';
 import type { JournalEntry } from '../lib/journal';
+import { createJournalEntry, listJournalEntries, refreshJournalFromServer } from '../lib/journalRepo';
 import { buildJournalSky } from '../lib/journalSky';
 import {
   getNeidanStagesForOpus,
@@ -173,15 +174,13 @@ export default function AlchemyModule({
       return;
     }
     try {
-      const res = await apiFetch(
-        '/api/journal/entries?type=working&status=active&tag=opus'
-      );
-      const data = (await res.json()) as {
-        entries?: JournalEntry[];
-        message?: string;
-      };
-      if (!res.ok) throw new Error(data.message || 'Failed to load workings');
-      const entries = data.entries ?? [];
+      await refreshJournalFromServer();
+      const entries = await listJournalEntries({
+        type: 'working',
+        status: 'active',
+        tag: 'opus',
+        limit: 80,
+      });
       setOpusWorkings(
         entries.filter(
           (e) =>
@@ -309,51 +308,46 @@ export default function AlchemyModule({
         'Spagyria framing: separate → purify → recombine.',
         targetStage.gloss,
       ].join('\n');
-      const res = await apiFetch('/api/journal/entries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entryType: 'working',
-          title: intent.trim()
-            ? `Opus: ${intent.trim().slice(0, 80)}`
-            : `Opus — ${targetStage.name} / ${materiaMetal}`,
-          body,
-          status: 'active',
-          tags: [
-            'alchemy',
-            'opus',
-            targetStage.id,
-            principle.id,
-            materiaMetal.toLowerCase(),
-          ],
-          entities: [
-            {
-              kind: 'metal',
-              id: materiaMetal.toLowerCase(),
-              label: materiaMetal,
-            },
-            {
-              kind: 'principle',
-              id: principle.id,
-              label: principle.name,
-            },
-            {
-              kind: 'opusStage',
-              id: targetStage.id,
-              label: targetStage.name,
-            },
-            {
-              kind: 'planet',
-              id: materiaPlanet.toLowerCase(),
-              label: materiaPlanet,
-            },
-          ],
-          occurredAt: now.toISOString(),
-          sky,
-        }),
+      const result = await createJournalEntry({
+        entryType: 'working',
+        title: intent.trim()
+          ? `Opus: ${intent.trim().slice(0, 80)}`
+          : `Opus — ${targetStage.name} / ${materiaMetal}`,
+        body,
+        status: 'active',
+        tags: [
+          'alchemy',
+          'opus',
+          targetStage.id,
+          principle.id,
+          materiaMetal.toLowerCase(),
+        ],
+        entities: [
+          {
+            kind: 'metal',
+            id: materiaMetal.toLowerCase(),
+            label: materiaMetal,
+          },
+          {
+            kind: 'principle',
+            id: principle.id,
+            label: principle.name,
+          },
+          {
+            kind: 'opusStage',
+            id: targetStage.id,
+            label: targetStage.name,
+          },
+          {
+            kind: 'planet',
+            id: materiaPlanet.toLowerCase(),
+            label: materiaPlanet,
+          },
+        ],
+        occurredAt: now.toISOString(),
+        sky,
       });
-      const data = (await res.json()) as { message?: string };
-      if (!res.ok) throw new Error(data.message || 'Failed to log working');
+      if (!result.ok) throw new Error(result.message || 'Failed to log working');
       setStatus('Working logged to Magical Journal.');
       await loadOpusWorkings();
     } catch (err) {

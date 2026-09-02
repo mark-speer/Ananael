@@ -49,6 +49,8 @@ app.use(requestObservability);
 
 /**
  * Security headers including CSP for the Vite-built SPA + Google Fonts.
+ * `manifestSrc`/`workerSrc` allow the PWA manifest and installable service
+ * worker; both are same-origin static files, so 'self' is sufficient.
  */
 app.use(
   helmet({
@@ -61,6 +63,8 @@ app.use(
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:', 'blob:'],
         connectSrc: ["'self'"],
+        manifestSrc: ["'self'"],
+        workerSrc: ["'self'"],
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         frameAncestors: ["'none'"],
@@ -127,7 +131,20 @@ app.use('/api/liturgy', liturgyRoutes);
 app.use('/api/shamanism', shamanismRoutes);
 
 if (hasClient) {
-  app.use(express.static(publicDir));
+  app.use(
+    express.static(publicDir, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('manifest.webmanifest')) {
+          res.setHeader('Content-Type', 'application/manifest+json');
+        }
+        if (filePath.endsWith(`${path.sep}sw.js`) || filePath.endsWith('/sw.js')) {
+          // Service workers must not be cached, and are scoped to the whole origin here.
+          res.setHeader('Service-Worker-Allowed', '/');
+          res.setHeader('Cache-Control', 'no-cache');
+        }
+      },
+    })
+  );
 
   /** SPA fallback — non-API routes serve index.html */
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
