@@ -1,5 +1,8 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import TreeNote, { TreeTargetType } from '../models/TreeNote';
+import User from '../models/User';
+import { toPublicUser } from '../lib/userSerializers';
+import { Visibility } from '../types/visibility';
 import { AuthRequest, protect } from '../middleware/auth';
 
 const router = Router();
@@ -13,6 +16,25 @@ function isValidTarget(type: TreeTargetType, id: number): boolean {
   return false;
 }
 
+function notePayload(note: {
+  _id: unknown;
+  userId?: unknown;
+  date: Date;
+  targetType: TreeTargetType;
+  targetId: number;
+  userNotes: string;
+  visibility?: string;
+}) {
+  return {
+    _id: note._id,
+    date: note.date,
+    targetType: note.targetType,
+    targetId: note.targetId,
+    userNotes: note.userNotes,
+    visibility: note.visibility ?? Visibility.PRIVATE,
+  };
+}
+
 /**
  * POST /api/tree/notes
  * Requires JWT. Saves a study note for a sephira or path.
@@ -20,10 +42,11 @@ function isValidTarget(type: TreeTargetType, id: number): boolean {
  */
 router.post('/notes', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { targetType, targetId, userNotes } = req.body as {
+    const { targetType, targetId, userNotes, visibility } = req.body as {
       targetType?: TreeTargetType;
       targetId?: number;
       userNotes?: string;
+      visibility?: string;
     };
 
     if (!targetType || !VALID_TYPES.includes(targetType)) {
@@ -59,18 +82,12 @@ router.post('/notes', protect, async (req: AuthRequest, res: Response): Promise<
       targetType,
       targetId,
       userNotes: userNotes.trim(),
+      visibility: typeof visibility === 'string' && [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(visibility as any) ? visibility : Visibility.PRIVATE,
     });
 
     res.status(201).json({
       message: 'Note saved',
-      note: {
-        _id: note._id,
-        userId: note.userId,
-        date: note.date,
-        targetType: note.targetType,
-        targetId: note.targetId,
-        userNotes: note.userNotes,
-      },
+      note: notePayload(note),
     });
   } catch (error) {
     console.error('Tree note save error:', error);
@@ -90,18 +107,42 @@ router.get('/notes', protect, async (req: AuthRequest, res: Response): Promise<v
       .lean();
 
     res.json({
-      notes: notes.map((n) => ({
-        _id: n._id,
-        date: n.date,
-        targetType: n.targetType,
-        targetId: n.targetId,
-        userNotes: n.userNotes,
-      })),
+      notes: notes.map((n) => notePayload(n as any)),
     });
   } catch (error) {
     console.error('Tree notes history error:', error);
     res.status(500).json({ message: 'Server error while loading notes' });
   }
 });
+
+/**
+ * Public GET handler for shareable tree study notes.
+ * Works without authentication if visibility is not private.
+ */
+const handlePublicTreeNote = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const note = await TreeNote.findById(req.params.id);
+    if (!note) {
+      res.status(404).json({ message: 'Tree note not found' });
+      return;
+    }
+    if (note.visibility === Visibility.PRIVATE) {
+      res.status(403).json({ message: 'This tree note is private' });
+      return;
+    }
+    const creatorUser = await User.findById(note.userId).lean();
+    const creator = creatorUser ? toPublicUser(creatorUser) : null;
+    res.json({
+      ...notePayload(note),
+      creator,
+    });
+  } catch (error) {
+    console.error('Public tree note fetch error:', error);
+    res.status(500).json({ message: 'Server error while fetching public tree note' });
+  }
+};
+
+router.get('/notes/:id/public', handlePublicTreeNote);
+router.get('/:id/public', handlePublicTreeNote);
 
 export default router;

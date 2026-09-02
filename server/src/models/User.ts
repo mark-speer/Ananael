@@ -46,9 +46,11 @@ const UserSchema = new Schema<IUser>(
     username: {
       type: String,
       required: [true, 'Username is required'],
+      unique: true,
       trim: true,
       minlength: 3,
       maxlength: 40,
+      match: [/^[a-zA-Z0-9_]+$/, 'Username must be alphanumeric with underscores only'],
     },
     email: {
       type: String,

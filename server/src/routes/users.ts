@@ -38,4 +38,33 @@ router.get('/:userId/public', async (req: Request, res: Response): Promise<void>
   }
 });
 
+/**
+ * GET /api/users/by-username/:username/public
+ * Public user lookup by username.
+ */
+router.get('/by-username/:username/public', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { username } = req.params;
+    if (!username || !/^[a-zA-Z0-9_]{3,40}$/.test(username)) {
+      res.status(400).json({ message: 'Invalid username format' });
+      return;
+    }
+    const user = await User.findOne({ username: new RegExp(`^${username}$`, 'i') });
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+    res.json(
+      toPublicUser({
+        _id: user._id.toString(),
+        username: user.username,
+        createdAt: user.createdAt,
+      })
+    );
+  } catch (error) {
+    console.error('Get public user by username error:', error);
+    res.status(500).json({ message: 'Server error while fetching user profile' });
+  }
+});
+
 export default router;

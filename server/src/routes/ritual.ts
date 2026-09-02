@@ -1,8 +1,11 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import RitualLayout, {
   type IRitualItem,
   type RitualToolType,
 } from '../models/RitualLayout';
+import User from '../models/User';
+import { toPublicUser } from '../lib/userSerializers';
+import { Visibility } from '../types/visibility';
 import { AuthRequest, protect } from '../middleware/auth';
 
 const router = Router();
@@ -61,6 +64,7 @@ function layoutPayload(layout: {
   items: IRitualItem[];
   showCompass: boolean;
   notes?: string;
+  visibility?: string;
 }) {
   return {
     _id: layout._id,
@@ -70,6 +74,7 @@ function layoutPayload(layout: {
     items: layout.items,
     showCompass: layout.showCompass,
     notes: layout.notes ?? '',
+    visibility: layout.visibility ?? Visibility.PRIVATE,
   };
 }
 
@@ -80,11 +85,12 @@ function layoutPayload(layout: {
  */
 router.post('/layouts', protect, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { name, items: rawItems, showCompass, notes } = req.body as {
+    const { name, items: rawItems, showCompass, notes, visibility } = req.body as {
       name?: string;
       items?: unknown;
       showCompass?: boolean;
       notes?: string;
+      visibility?: string;
     };
 
     if (typeof name !== 'string' || !name.trim()) {
@@ -121,6 +127,7 @@ router.post('/layouts', protect, async (req: AuthRequest, res: Response): Promis
       items,
       showCompass: showCompass !== false,
       notes: typeof notes === 'string' ? notes.trim() : '',
+      visibility: typeof visibility === 'string' && [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(visibility as any) ? visibility : Visibility.PRIVATE,
     });
 
     res.status(201).json({
@@ -171,11 +178,12 @@ router.put(
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const { name, items: rawItems, showCompass, notes } = req.body as {
+      const { name, items: rawItems, showCompass, notes, visibility } = req.body as {
         name?: string;
         items?: unknown;
         showCompass?: boolean;
         notes?: string;
+        visibility?: string;
       };
 
       if (typeof name !== 'string' || !name.trim()) {
@@ -215,6 +223,9 @@ router.put(
       layout.items = items;
       layout.showCompass = showCompass !== false;
       layout.notes = typeof notes === 'string' ? notes.trim() : '';
+      if (typeof visibility === 'string' && [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(visibility as any)) {
+        layout.visibility = visibility as any;
+      }
       layout.date = new Date();
       await layout.save();
 
@@ -228,5 +239,35 @@ router.put(
     }
   }
 );
+
+/**
+ * Public GET handler for shareable ritual space layouts.
+ * Works without authentication if visibility is not private.
+ */
+const handlePublicLayout = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const layout = await RitualLayout.findById(req.params.id);
+    if (!layout) {
+      res.status(404).json({ message: 'Ritual layout not found' });
+      return;
+    }
+    if (layout.visibility === Visibility.PRIVATE) {
+      res.status(403).json({ message: 'This ritual layout is private' });
+      return;
+    }
+    const creatorUser = await User.findById(layout.userId).lean();
+    const creator = creatorUser ? toPublicUser(creatorUser) : null;
+    res.json({
+      ...layoutPayload(layout),
+      creator,
+    });
+  } catch (error) {
+    console.error('Public ritual layout fetch error:', error);
+    res.status(500).json({ message: 'Server error while fetching public layout' });
+  }
+};
+
+router.get('/layouts/:id/public', handlePublicLayout);
+router.get('/:id/public', handlePublicLayout);
 
 export default router;
