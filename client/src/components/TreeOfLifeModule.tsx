@@ -20,6 +20,7 @@ import {
 import { getChakraForSephirah } from '../data/subtleBodyMaps';
 import { getWorldForSephirah } from '../data/shamanism';
 import { apiFetch } from '../lib/api';
+import ShareControl, { type ShareVisibility } from './ShareControl';
 import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
 import type { ModuleId } from './Sidebar';
 import type { LiturgyMode } from '../lib/ritualRunner';
@@ -73,6 +74,7 @@ interface HistoryItem {
   targetType: 'sephira' | 'path';
   targetId: number;
   userNotes?: string;
+  visibility?: ShareVisibility;
 }
 
 const SEPHIRA_RADIUS = 28;
@@ -101,6 +103,8 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
   const [notes, setNotes] = useState('');
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<ShareVisibility>('private');
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
@@ -159,11 +163,13 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
           userNotes: notes,
         }),
       });
-      const data = (await res.json()) as { message?: string };
+      const data = (await res.json()) as { message?: string; note?: HistoryItem };
       if (!res.ok) {
         throw new Error(data.message || 'Failed to save note');
       }
       setSaveStatus('Note saved to your profile.');
+      setSavedId(data.note?._id ?? null);
+      setVisibility(data.note?.visibility ?? 'private');
       setNotes('');
       await loadHistory();
     } catch (err) {
@@ -499,6 +505,11 @@ export default function TreeOfLifeModule({ onNavigate }: TreeOfLifeModuleProps) 
               </button>
               {saveStatus && (
                 <p className="text-sm text-zinc-400">{saveStatus}</p>
+              )}
+              {savedId && (
+                <ShareControl type="tree" id={savedId}
+                  endpoint={`/api/tree/notes/${savedId}`}
+                  visibility={visibility} onVisibilityChange={setVisibility} />
               )}
             </div>
           )}

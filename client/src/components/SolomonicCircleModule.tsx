@@ -35,6 +35,7 @@ import {
   type Weekday,
 } from '../data/solomonicCircles';
 import { apiFetch } from '../lib/api';
+import ShareControl, { type ShareVisibility } from './ShareControl';
 import {
   goetiaSealAssetPath,
   goetiaSealFallbackPath,
@@ -67,6 +68,7 @@ interface SavedCircle {
   tradition: TraditionId;
   config: CircleConfig;
   notes?: string;
+  visibility?: ShareVisibility;
 }
 
 interface SolomonicCircleModuleProps {
@@ -90,6 +92,7 @@ export default function SolomonicCircleModule({
   const [layoutName, setLayoutName] = useState('Untitled circle');
   const [notes, setNotes] = useState('');
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<ShareVisibility>('private');
   const [dirty, setDirty] = useState(false);
   const [history, setHistory] = useState<SavedCircle[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -376,6 +379,7 @@ export default function SolomonicCircleModule({
         tradition: layout.tradition,
         config: layout,
         notes: notes.trim(),
+        visibility,
       };
       const url = savedId
         ? `/api/solomonic/circles/${savedId}`
@@ -396,6 +400,7 @@ export default function SolomonicCircleModule({
       }
       if (data.circle?._id) {
         setSavedId(data.circle._id);
+        setVisibility(data.circle.visibility ?? visibility);
       }
       setDirty(false);
       setSaveStatus(savedId ? 'Circle updated.' : 'Circle saved to your profile.');
@@ -423,6 +428,7 @@ export default function SolomonicCircleModule({
     setLayoutName(circle.name);
     setNotes(circle.notes ?? '');
     setSavedId(circle._id);
+    setVisibility(circle.visibility ?? 'private');
     setDirty(false);
     setSaveStatus(null);
   };
@@ -1131,6 +1137,11 @@ export default function SolomonicCircleModule({
                 {saving ? 'Saving…' : savedId ? 'Update' : 'Save'}
               </button>
             )}
+            {isAuthenticated && savedId && (
+              <ShareControl type="solomonic" id={savedId}
+                endpoint={`/api/solomonic/circles/${savedId}`}
+                visibility={visibility} onVisibilityChange={setVisibility} />
+            )}
             <label className="flex items-center gap-1.5 text-xs text-zinc-400">
               <input
                 type="checkbox"
@@ -1200,4 +1211,3 @@ export default function SolomonicCircleModule({
     </div>
   );
 }
-
