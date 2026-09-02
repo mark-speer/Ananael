@@ -462,10 +462,11 @@ syncedAt: {
 2. Add `linkedToSharedArtifact` field
 3. Implement export filters (strip PII)
 
-### Recommended Actions (Do in Phase 54)
-1. Add `version` and `syncedAt` fields
-2. Implement conflict-resolution logic
-3. Document versioning policy
+### Phase 54 implementation
+1. `version` defaults to 1 and `syncedAt` defaults to null.
+2. Journal PATCH requires the base version and uses an atomic version predicate.
+3. Stale edits return HTTP 409 with the current server entry (server-wins policy).
+4. Successful edits increment `version` and set `syncedAt`.
 
 ### Recommended Actions (Do in Phase 53)
 1. Monitor query performance for large datasets

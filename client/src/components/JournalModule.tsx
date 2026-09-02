@@ -156,6 +156,7 @@ export default function JournalModule({
   );
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingVersion, setEditingVersion] = useState<number | null>(null);
   const [entryType, setEntryType] = useState<JournalEntryType>('note');
   const [occurredAt, setOccurredAt] = useState(() =>
     toDatetimeLocalValue(new Date())
@@ -191,6 +192,7 @@ export default function JournalModule({
 
   const resetForm = useCallback(() => {
     setEditingId(null);
+    setEditingVersion(null);
     setEntryType('note');
     setOccurredAt(toDatetimeLocalValue(new Date()));
     setTitle('');
@@ -244,6 +246,7 @@ export default function JournalModule({
 
   const loadIntoForm = (entry: JournalEntry) => {
     setEditingId(entry._id);
+    setEditingVersion(entry.version);
     setEntryType(entry.entryType);
     setOccurredAt(toDatetimeLocalValue(new Date(entry.occurredAt)));
     setTitle(entry.title ?? '');
@@ -308,6 +311,7 @@ export default function JournalModule({
         tags: parseTags(),
         entities,
         sky,
+        ...(editingId && editingVersion !== null ? { version: editingVersion } : {}),
       };
 
       const url = editingId
