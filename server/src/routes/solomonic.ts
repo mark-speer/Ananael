@@ -388,6 +388,26 @@ router.put(
         visibility?: string;
       };
 
+      if (
+        Object.keys(req.body).length === 1 &&
+        typeof visibility === 'string' &&
+        [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(
+          visibility as Visibility
+        )
+      ) {
+        const circle = await SolomonicCircle.findOneAndUpdate(
+          { _id: id, userId: req.userId },
+          { visibility },
+          { new: true }
+        );
+        if (!circle) {
+          res.status(404).json({ message: 'Circle not found' });
+          return;
+        }
+        res.json({ message: 'Sharing settings updated', circle: circlePayload(circle) });
+        return;
+      }
+
       if (typeof name !== 'string' || !name.trim()) {
         res.status(400).json({ message: 'name is required' });
         return;

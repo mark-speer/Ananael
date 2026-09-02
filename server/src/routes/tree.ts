@@ -115,6 +115,35 @@ router.get('/notes', protect, async (req: AuthRequest, res: Response): Promise<v
   }
 });
 
+/** Update sharing visibility for an owned tree note. */
+router.put('/notes/:id', protect, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { visibility } = req.body as { visibility?: string };
+    if (
+      !visibility ||
+      ![Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(
+        visibility as Visibility
+      )
+    ) {
+      res.status(400).json({ message: 'visibility must be private, unlisted, or public' });
+      return;
+    }
+    const note = await TreeNote.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { visibility },
+      { new: true }
+    );
+    if (!note) {
+      res.status(404).json({ message: 'Tree note not found' });
+      return;
+    }
+    res.json({ note: notePayload(note), message: 'Sharing settings updated' });
+  } catch (error) {
+    console.error('Tree note visibility update error:', error);
+    res.status(500).json({ message: 'Server error while updating sharing settings' });
+  }
+});
+
 /**
  * Public GET handler for shareable tree study notes.
  * Works without authentication if visibility is not private.

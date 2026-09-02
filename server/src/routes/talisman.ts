@@ -74,6 +74,23 @@ function payload(design: {
 router.post('/designs', protect, async (req: AuthRequest, res: Response) => {
   try {
     const body = req.body as DesignBody;
+    if (
+      Object.keys(body).length === 1 &&
+      typeof body.visibility === 'string' &&
+      VALID_VISIBILITIES.includes(body.visibility as Visibility)
+    ) {
+      const design = await TalismanDesign.findOneAndUpdate(
+        { _id: req.params.id, userId: req.userId },
+        { visibility: body.visibility },
+        { new: true }
+      );
+      if (!design) {
+        res.status(404).json({ message: 'Design not found' });
+        return;
+      }
+      res.json({ message: 'Sharing settings updated', design: payload(design) });
+      return;
+    }
     const error = bodyError(body);
     if (error) {
       res.status(400).json({ message: error });

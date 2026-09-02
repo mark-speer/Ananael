@@ -49,6 +49,7 @@ import CircleGlyph from './CircleGlyph';
 import { downloadJson, exportSvg, exportSvgAsPng } from '../lib/svgExport';
 import { transliterate } from '../lib/transliterate';
 import type { ModuleId } from './Sidebar';
+import ShareControl, { type ShareVisibility } from './ShareControl';
 
 type Tab = 'sigils' | 'sutras';
 type SigilMode = 'planetary' | 'chaos';
@@ -98,6 +99,7 @@ interface SavedDesign {
   kind: 'kamea' | 'sigil' | 'sutra';
   config: Record<string, unknown>;
   notes?: string;
+  visibility?: ShareVisibility;
 }
 
 const SIZE = 300;
@@ -241,6 +243,7 @@ export default function TalismanModule({
   );
   const [notes, setNotes] = useState('');
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<ShareVisibility>('private');
   const [designs, setDesigns] = useState<SavedDesign[]>([]);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -561,6 +564,7 @@ export default function TalismanModule({
             kind,
             config: config(),
             notes: notes.trim(),
+            visibility,
           }),
         }
       );
@@ -570,6 +574,7 @@ export default function TalismanModule({
       };
       if (!res.ok) throw new Error(data.message || 'Save failed');
       setSavedId(data.design?._id ?? savedId);
+      setVisibility(data.design?.visibility ?? visibility);
       setStatus(savedId ? 'Design updated.' : 'Design saved.');
       await loadHistory();
     } catch (error) {
@@ -631,6 +636,7 @@ export default function TalismanModule({
       );
     }
     setSavedId(design._id);
+    setVisibility(design.visibility ?? 'private');
     setDesignName(design.name);
     setNotes(design.notes ?? '');
     setStatus(null);
@@ -1284,6 +1290,11 @@ export default function TalismanModule({
                 >
                   New
                 </button>
+                {savedId && (
+                  <ShareControl type="talisman" id={savedId}
+                    endpoint={`/api/talisman/designs/${savedId}`}
+                    visibility={visibility} onVisibilityChange={setVisibility} />
+                )}
               </div>
             ) : (
               <p className="text-xs text-ananael-muted">

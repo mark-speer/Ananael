@@ -29,6 +29,7 @@ import {
 } from '../data/ritualTools';
 import { apiFetch } from '../lib/api';
 import { downloadJson, exportSvgAsPng } from '../lib/svgExport';
+import ShareControl, { type ShareVisibility } from './ShareControl';
 
 interface SavedLayout {
   _id: string;
@@ -37,6 +38,7 @@ interface SavedLayout {
   items: RitualItem[];
   showCompass: boolean;
   notes?: string;
+  visibility?: ShareVisibility;
 }
 
 type PlaceTool = RitualToolType | null;
@@ -71,6 +73,7 @@ export default function RitualSpaceModule({
   const [layoutName, setLayoutName] = useState('Untitled layout');
   const [notes, setNotes] = useState('');
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<ShareVisibility>('private');
   const [history, setHistory] = useState<SavedLayout[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
@@ -237,6 +240,7 @@ export default function RitualSpaceModule({
         items,
         showCompass,
         notes: notes.trim() || undefined,
+        visibility,
         exportedAt: new Date().toISOString(),
       },
       layoutName.trim() || 'Untitled layout',
@@ -293,6 +297,7 @@ export default function RitualSpaceModule({
       }
       if (data.layout?._id) {
         setSavedId(data.layout._id);
+        setVisibility(data.layout.visibility ?? visibility);
       }
       setDirty(false);
       setSaveStatus(savedId ? 'Layout updated.' : 'Layout saved to your profile.');
@@ -317,6 +322,7 @@ export default function RitualSpaceModule({
     setLayoutName(layout.name);
     setNotes(layout.notes ?? '');
     setSavedId(layout._id);
+    setVisibility(layout.visibility ?? 'private');
     setSelectedId(null);
     setDirty(false);
     setSaveStatus(null);
@@ -643,6 +649,11 @@ export default function RitualSpaceModule({
                 >
                   New
                 </button>
+                {savedId && (
+                  <ShareControl type="ritual" id={savedId}
+                    endpoint={`/api/ritual/layouts/${savedId}`}
+                    visibility={visibility} onVisibilityChange={setVisibility} />
+                )}
               </div>
               {saveStatus && (
                 <p className="text-sm text-zinc-400">{saveStatus}</p>
@@ -899,4 +910,3 @@ function CompassRose() {
     </g>
   );
 }
-

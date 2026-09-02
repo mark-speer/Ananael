@@ -186,6 +186,26 @@ router.put(
         visibility?: string;
       };
 
+      if (
+        Object.keys(req.body).length === 1 &&
+        typeof visibility === 'string' &&
+        [Visibility.PRIVATE, Visibility.UNLISTED, Visibility.PUBLIC].includes(
+          visibility as Visibility
+        )
+      ) {
+        const layout = await RitualLayout.findOneAndUpdate(
+          { _id: id, userId: req.userId },
+          { visibility },
+          { new: true }
+        );
+        if (!layout) {
+          res.status(404).json({ message: 'Layout not found' });
+          return;
+        }
+        res.json({ message: 'Sharing settings updated', layout: layoutPayload(layout) });
+        return;
+      }
+
       if (typeof name !== 'string' || !name.trim()) {
         res.status(400).json({ message: 'name is required' });
         return;
