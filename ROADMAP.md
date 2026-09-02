@@ -669,6 +669,21 @@ Client-side Heptarchia + Watchtower overlay on the natal chart, plus an Enochian
 
 ---
 
+## Phase 53 — Observability — In progress
+
+Server request observability baseline for production diagnosis:
+
+- Correlation IDs via the `x-request-id` response header
+- Structured JSON request completion logs with method, route template, status, and duration
+- Slow-request logging controlled by `OBSERVABILITY_SLOW_MS` (default 500 ms)
+- In-memory top-three slow-route summaries included in `GET /api/health`
+
+Request logs intentionally exclude bodies, cookies, query values, and other practitioner data. Metrics reset when the server restarts; durable telemetry remains a future deployment concern.
+
+**Done when:** every request is logged with a correlation ID and duration; slow requests are distinguishable; health exposes a useful top-three route baseline; existing API behavior remains intact.
+
+---
+
 ## Cross-cutting rules
 
 - Flip module `status` from `soon` → `active` in the sidebar only when that module’s **Done when** criteria are met
