@@ -11,6 +11,10 @@ import connectDB from './config/db';
 import { getJwtSecret } from './lib/authCookie';
 import { getAllowedOrigins } from './lib/origins';
 import { csrfProtect } from './middleware/csrf';
+import {
+  getRouteSummaries,
+  requestObservability,
+} from './middleware/observability';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import gematriaRoutes from './routes/gematria';
@@ -40,6 +44,8 @@ const SSL_KEY_PATH = process.env.SSL_KEY_PATH;
 /** Built React app (copied into dist/public in the Docker image) */
 const publicDir = path.join(__dirname, 'public');
 const hasClient = fs.existsSync(path.join(publicDir, 'index.html'));
+
+app.use(requestObservability);
 
 /**
  * Security headers including CSP for the Vite-built SPA + Google Fonts.
@@ -93,7 +99,12 @@ app.use(csrfProtect);
 
 /** Health check for Compose / Portainer probes */
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', service: 'ananael-server', client: hasClient });
+  res.json({
+    status: 'ok',
+    service: 'ananael-server',
+    client: hasClient,
+    topSlowRoutes: getRouteSummaries(),
+  });
 });
 
 app.use('/api/auth', authRoutes);

@@ -73,7 +73,7 @@ flowchart TB
 | `server.ts` | Express app, middleware, route mounting, SPA static serve |
 | `routes/` | REST endpoints per domain (auth, journal, tarot, liturgy, …) |
 | `models/` | Mongoose schemas for user-generated data |
-| `middleware/` | JWT auth (`protect`), CSRF |
+| `middleware/` | JWT auth (`protect`), CSRF, request observability |
 | `config/db.ts` | MongoDB connection |
 | `services/` | e.g. `migrateJournal.ts` (legacy → journal migration) |
 | `lib/` | Auth cookie, CORS origins, presence tracking |
@@ -470,7 +470,15 @@ router.get('/:id/public', async (req, res) => {
 #### Other
 
 - `GET /api/liturgy/rites` — rite catalog (metadata)
-- `GET /api/health` — liveness (`client: true` when UI is baked into the image)
+- `GET /api/health` — liveness (`client: true` when UI is baked into the image); includes the in-memory top three slow routes
+
+### Request observability
+
+Every request receives an `x-request-id` response header and emits a structured JSON
+completion log with method, route template, status, and duration. Requests at or
+above `OBSERVABILITY_SLOW_MS` emit `http.request.slow`. The health response exposes
+the current process's top three routes by maximum duration; this baseline is
+intentionally in-memory and resets on restart.
 
 ---
 
