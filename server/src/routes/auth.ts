@@ -379,4 +379,48 @@ router.put(
   }
 );
 
+/**
+ * PATCH /api/auth/me/visibility
+ * Body: { visibility: 'private' | 'unlisted' | 'public' }
+ * Update the authenticated user's profile visibility.
+ */
+router.patch(
+  '/me/visibility',
+  protect,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const { visibility } = req.body as { visibility?: unknown };
+
+      if (!visibility || typeof visibility !== 'string') {
+        res.status(400).json({ message: 'Visibility is required' });
+        return;
+      }
+
+      const validVisibilities = ['private', 'unlisted', 'public'];
+      if (!validVisibilities.includes(visibility)) {
+        res.status(400).json({
+          message: `Visibility must be one of: ${validVisibilities.join(', ')}`,
+        });
+        return;
+      }
+
+      const user = await User.findByIdAndUpdate(
+        req.userId,
+        { visibility },
+        { new: true }
+      );
+
+      if (!user) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
+
+      res.json({ user: fullUserResponse(user) });
+    } catch (error) {
+      console.error('Auth visibility error:', error);
+      res.status(500).json({ message: 'Server error while updating visibility' });
+    }
+  }
+);
+
 export default router;

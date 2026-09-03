@@ -9,6 +9,11 @@ const router = Router();
  * Public user profile (no authentication required).
  * Returns PublicUser DTO: _id, username, traditions, profileImageUrl, createdAt.
  * Never includes: email, natal, location, lastSeenAt, passwordHash.
+ * 
+ * Visibility:
+ * - private: returns 403 Forbidden (or 404 to not leak existence)
+ * - unlisted: returns full profile
+ * - public: returns full profile
  */
 router.get('/:userId/public', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -25,6 +30,13 @@ router.get('/:userId/public', async (req: Request, res: Response): Promise<void>
       res.status(404).json({ message: 'User not found' });
       return;
     }
+
+    // Check visibility
+    if (user.visibility === 'private') {
+      res.status(403).json({ message: 'This profile is private' });
+      return;
+    }
+
     const publicUser = toPublicUser({
       _id: user._id.toString(),
       username: user.username,
@@ -41,6 +53,7 @@ router.get('/:userId/public', async (req: Request, res: Response): Promise<void>
 /**
  * GET /api/users/by-username/:username/public
  * Public user lookup by username.
+ * Respects visibility field (private returns 403).
  */
 router.get('/by-username/:username/public', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -54,6 +67,13 @@ router.get('/by-username/:username/public', async (req: Request, res: Response):
       res.status(404).json({ message: 'User not found' });
       return;
     }
+
+    // Check visibility
+    if (user.visibility === 'private') {
+      res.status(403).json({ message: 'This profile is private' });
+      return;
+    }
+
     res.json(
       toPublicUser({
         _id: user._id.toString(),

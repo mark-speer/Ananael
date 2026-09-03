@@ -428,7 +428,76 @@ router.get('/:id/public', async (req, res) => {
 - Location never leaked (blocked at type level + serializer)
 - Private designs hidden (403, not revealed as existing)
 
+---
 
+## Practitioner Profiles (Phase 56)
+
+### Overview
+
+Phase 56 extends the visibility model to user profiles themselves. Practitioners can now publish optional public profiles at `/u/:username` showing username, traditions, and account creation date — without exposing email, birth data, location, or any personal coordinates.
+
+### Visibility Enforcement for User Profiles
+
+User model includes `visibility` field:
+
+```typescript
+visibility: {
+  type: String,
+  enum: ['private', 'unlisted', 'public'],
+  default: 'private',  // Privacy-first: opt-in to discovery
+  index: true,
+}
+```
+
+**Three States:**
+- **`private` (default)** — Profile hidden from all non-owners. GET returns 403 to public requests.
+- **`unlisted`** — Profile visible only with direct `/u/:username` link. Not indexed. Returns 200 to public requests.
+- **`public`** — Profile visible to everyone and eligible for future discovery features (Phase 57+ lodges, Phase 58+ follows).
+
+### Profile Endpoints
+
+**Public Profile GET** — No authentication required
+```
+GET /api/users/:userId/public        → PublicUser (visibility-gated)
+GET /api/users/by-username/:username/public  → PublicUser (visibility-gated)
+```
+
+**Visibility Update** — Authenticated only
+```
+PATCH /api/auth/me/visibility { visibility: 'public' | 'unlisted' | 'private' }
+```
+
+### Frontend Integration
+
+**Client Route:** `/u/:username` → `ProfilePage.tsx`
+- **Guest experience:** View public/unlisted profiles, see 403 message for private
+- **Owner experience:** View own profile + edit visibility toggle in menu
+- **Reusable component:** `PractitionerCard.tsx` used in ProfilePage and future discovery surfaces
+
+**AuthContext Extension:**
+```typescript
+interface AuthUser {
+  /* ... existing fields ... */
+  visibility?: 'private' | 'unlisted' | 'public';  // New in Phase 56
+}
+
+refetchUser(): Promise<void>  // New method to reload user data after visibility toggle
+```
+
+### PII Isolation
+
+Public user profile serialization (`toPublicUser()`) ensures:
+- ✓ Username, traditions array, join date are exposed
+- ✗ Email, natal (birth) data, location coordinates never exposed
+- ✗ lastSeenAt exact timestamp never exposed (only implicit online status for future use)
+
+### Discovery Foundation (Phase 56)
+
+Phase 56 focuses on the profile itself and privacy controls. Future phases build on this:
+- **Phase 57** — Lodges (groups of practitioners with shared traditions)
+- **Phase 58+** — Opt-in follows and activity discovery
+
+---
 
 #### Auth
 

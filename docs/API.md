@@ -307,6 +307,90 @@ Fetch public user profile (no authentication required).
 
 ---
 
+### GET /api/users/by-username/:username/public
+Fetch public user profile by username (no authentication required).
+
+**Authentication:** Not required  
+**Returns:** PublicUser (safe for public sharing)
+
+**URL Parameters:**
+- `username` — User's display name (3-40 alphanumeric + underscore)
+
+**Response:** `200 OK`
+```json
+{
+  "_id": "660f1234567890abcdef1234",
+  "username": "alice_the_wise",
+  "traditions": ["Western Hermetic", "Taoist"],
+  "profileImageUrl": "https://...",
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+```
+
+**Security Guarantees:** Same as GET /api/users/:userId/public
+
+**Error Responses:**
+- `400 Bad Request` — Invalid username format
+- `403 Forbidden` — Profile is private (user has not opted in to public discovery)
+- `404 Not Found` — User not found
+- `500 Server Error` — Server error
+
+---
+
+## Profile Visibility (Phase 56)
+
+### Visibility States
+
+User profiles can be in one of three visibility states:
+
+- **`private` (default)** — Profile hidden from all non-owners. Returns 403 to public requests. Owner sees full profile at `/u/username`.
+- **`unlisted`** — Profile visible only with direct `/u/username` link. Not listed in discovery. Returns 200 to public requests.
+- **`public`** — Profile visible to everyone and eligible for discovery. Returns 200 to public requests.
+
+### PATCH /api/auth/me/visibility
+Update authenticated user's profile visibility setting.
+
+**Authentication:** Required (HttpOnly cookie)  
+**Returns:** FullUser with updated visibility field
+
+**Request Body:**
+```json
+{
+  "visibility": "public"
+}
+```
+
+**Allowed Values:**
+- `"private"` — Hide profile from non-owners
+- `"unlisted"` — Share profile via direct link only
+- `"public"` — Publish profile publicly
+
+**Response:** `200 OK`
+```json
+{
+  "user": {
+    "_id": "660f1234567890abcdef1234",
+    "username": "alice_the_wise",
+    "email": "alice@example.com",
+    "visibility": "public",
+    "traditions": ["Western Hermetic", "Taoist"],
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` — Invalid visibility value or missing field
+- `401 Unauthorized` — Not authenticated
+- `404 Not Found` — User not found
+- `500 Server Error` — Update failed
+
+**Field Validation:**
+- `visibility` must be one of: `"private"`, `"unlisted"`, `"public"`
+- No other fields can be modified via this endpoint
+
+---
+
 ## Security Best Practices
 
 ### For Frontend Developers
