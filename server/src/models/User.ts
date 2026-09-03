@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { type VisibilityString, DEFAULT_VISIBILITY } from '../types/visibility';
 
 /** Lat/lon used for Celestial Timing and journal sky tags. */
 export interface IUserLocation {
@@ -36,6 +37,8 @@ export interface IUser extends Document {
   natal?: IUserNatal | null;
   /** Last authenticated activity (presence / online count). */
   lastSeenAt?: Date | null;
+  /** Profile visibility: private (default), unlisted, or public */
+  visibility: VisibilityString;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidate: string): Promise<boolean>;
@@ -82,6 +85,12 @@ const UserSchema = new Schema<IUser>(
     lastSeenAt: {
       type: Date,
       default: null,
+    },
+    visibility: {
+      type: String,
+      enum: ['private', 'unlisted', 'public'],
+      default: DEFAULT_VISIBILITY,
+      index: true,
     },
   },
   { timestamps: true }

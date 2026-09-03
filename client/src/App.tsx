@@ -23,6 +23,7 @@ import ScriptTranslatorModule from './components/ScriptTranslatorModule';
 import Sidebar, { type ModuleId } from './components/Sidebar';
 import SplashPage from './components/SplashPage';
 import SharePage from './components/SharePage';
+import ProfilePage from './components/ProfilePage';
 import SubtleBodyModule from './components/SubtleBodyModule';
 import ShamanismModule from './components/ShamanismModule';
 import type { SubtleBodyPane } from './lib/subtleBody';
@@ -430,6 +431,7 @@ export default function App() {
         }
       />
       <Route path="/s/:type/:id" element={<SharePage />} />
+      <Route path="/u/:username" element={<ProfilePage />} />
     </Routes>
   );
 }

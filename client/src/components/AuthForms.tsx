@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'settings';
 
 interface AuthFormsProps {
   onSuccess?: () => void;
@@ -13,21 +13,144 @@ interface AuthFormsProps {
  * Login / register form for account modal and splash; shows welcome + sign out when authenticated.
  */
 export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
-  const { login, register, logout, isAuthenticated, user } = useAuth();
+  const { login, register, logout, isAuthenticated, user, refetchUser } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [visibility, setVisibility] = useState<'private' | 'unlisted' | 'public'>(
+    user?.visibility || 'private'
+  );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   if (isAuthenticated && user) {
+    if (mode === 'settings') {
+      const handleVisibilityChange = async (newVisibility: 'private' | 'unlisted' | 'public') => {
+        setError(null);
+        setSuccess(null);
+        setSubmitting(true);
+        try {
+          const response = await fetch('/api/auth/me/visibility', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ visibility: newVisibility }),
+          });
+
+          if (!response.ok) {
+            const data = await response.json() as { message?: string };
+            throw new Error(data.message || 'Failed to update visibility');
+          }
+
+          setVisibility(newVisibility);
+          setSuccess('Profile visibility updated');
+          await refetchUser();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to update visibility');
+        } finally {
+          setSubmitting(false);
+        }
+      };
+
+      return (
+        <div className={['space-y-6', className].filter(Boolean).join(' ')}>
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase text-ananael-gold/60">
+              Profile Settings
+            </h3>
+
+            <div className="space-y-3 rounded-lg border border-ananael-border/40 bg-ananael-panel/40 p-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-ananael-gold/60">
+                  Profile Visibility
+                </label>
+                <p className="text-xs text-ananael-text/60">
+                  Choose who can see your profile at /u/{user.username}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {(['private', 'unlisted', 'public'] as const).map((v) => (
+                  <label key={v} className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="visibility"
+                      value={v}
+                      checked={visibility === v}
+                      onChange={(e) => handleVisibilityChange(e.target.value as typeof v)}
+                      disabled={submitting}
+                      className="rounded border-ananael-border"
+                    />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium capitalize text-ananael-text">
+                        {v}
+                      </div>
+                      <div className="text-xs text-ananael-text/60">
+                        {v === 'private' && 'Only you can see your profile'}
+                        {v === 'unlisted' && 'Anyone with the link can see your profile'}
+                        {v === 'public' && 'Your profile is visible to all practitioners'}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {error && <p className="text-sm text-red-400">{error}</p>}
+            {success && <p className="text-sm text-ananael-gold">{success}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setError(null);
+                setSuccess(null);
+              }}
+              className="w-full rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-ananael-violet hover:text-ananael-gold"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                onSuccess?.();
+              }}
+              className="w-full rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-red-700 hover:text-red-400"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={['space-y-4', className].filter(Boolean).join(' ')}>
-        <p className="text-sm text-zinc-300">
-          Welcome back, <span className="text-ananael-gold">{user.username}</span>.
-          Your readings can be saved to your profile.
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm text-zinc-300">
+            Welcome back, <span className="text-ananael-gold">{user.username}</span>.
+          </p>
+          <p className="text-xs text-ananael-text/60">
+            Your profile visibility is{' '}
+            <span className="font-medium text-ananael-gold">{user.visibility || 'private'}</span>
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setMode('settings');
+            setError(null);
+            setSuccess(null);
+          }}
+          className="w-full rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-ananael-violet hover:text-ananael-gold"
+        >
+          Profile Settings
+        </button>
         <button
           type="button"
           onClick={() => {

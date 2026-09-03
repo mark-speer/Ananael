@@ -28,6 +28,7 @@ export interface AuthUser {
   email: string;
   location?: PlanetaryLocation | null;
   natal?: NatalProfile | null;
+  visibility?: 'private' | 'unlisted' | 'public';
 }
 
 interface AuthResponse {
@@ -49,6 +50,8 @@ interface AuthContextValue {
   saveLocation: (lat: number, lon: number) => Promise<void>;
   /** Save natal birth profile locally and, when signed in, to the account. */
   saveNatal: (profile: NatalProfile) => Promise<void>;
+  /** Refetch the current user profile from the server. */
+  refetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -298,6 +301,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, refreshNatal]
   );
 
+  const refetchUser = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/auth/me');
+      if (res.ok) {
+        const data = (await res.json()) as { user: AuthUser };
+        setUser(data.user);
+        syncLocationFromUser(data.user);
+        syncNatalFromUser(data.user);
+        refreshLocation();
+        refreshNatal();
+      }
+    } catch {
+      // Ignore refetch errors
+    }
+  }, [refreshLocation, refreshNatal]);
+
   const location = useMemo(() => {
     void locationTick;
     if (user?.location?.lat != null && user?.location?.lon != null) {
@@ -325,6 +344,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       saveLocation,
       saveNatal,
+      refetchUser,
     }),
     [
       user,
@@ -336,6 +356,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       saveLocation,
       saveNatal,
+      refetchUser,
     ]
   );
 
