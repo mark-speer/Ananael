@@ -35,6 +35,28 @@ All Quick Wins are complete. For Phase 51+ implementation:
 
 In production Docker, Express serves the built React app **and** the API on **port 5000**.
 
+## Development Workflow
+
+All version control (branching, merging, syncing, committing) is managed through **GitHub Desktop**. Copilot focuses on code editing, testing, building, and PR creation.
+
+### Before starting work:
+1. Open GitHub Desktop
+2. Select the **Ananael** repository
+3. Use **Current Branch** dropdown to switch to your working branch
+4. Open the repository in your editor (VS Code, etc.)
+
+### During development:
+- Edit code and run tests normally
+- Use Copilot for code review and building
+- Ask Copilot to create a PR when ready
+
+### Committing & pushing:
+1. Make code changes
+2. In GitHub Desktop: review changes → enter commit message → click **Commit to [branch]**
+3. Click **Push** to send to GitHub
+
+**All git operations (branch, merge, sync, push, pull) happen in GitHub Desktop.** This keeps workflows clear and centralized.
+
 ## Quick start (Docker Compose)
 
 1. Set `JWT_SECRET` (min 32 chars) in the environment.
