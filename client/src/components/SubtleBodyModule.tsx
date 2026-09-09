@@ -47,6 +47,14 @@ interface SubtleBodyModuleProps {
   initialFocus?: string;
 }
 
+interface PracticeVessel {
+  _id: string;
+  name: string;
+  date: string;
+  config: Record<string, unknown>;
+  visibility?: ShareVisibility;
+}
+
 const CHAKRA_Y: Record<string, number> = {
   sahasrara: 30,
   ajna: 75,
@@ -80,9 +88,7 @@ export default function SubtleBodyModule({
   const [vesselNotes, setVesselNotes] = useState('');
   const [savedVesselId, setSavedVesselId] = useState<string | null>(null);
   const [vesselVisibility, setVesselVisibility] = useState<ShareVisibility>('private');
-  const [vessels, setVessels] = useState<
-    { _id: string; name: string; date: string; config: Record<string, unknown>; visibility?: ShareVisibility }[]
-  >([]);
+  const [vessels, setVessels] = useState<PracticeVessel[]>([]);
   const [vesselSaving, setVesselSaving] = useState(false);
   const [vesselStatus, setVesselStatus] = useState<string | null>(null);
 
@@ -530,6 +536,8 @@ export default function SubtleBodyModule({
           setVesselSaving={setVesselSaving}
           vesselStatus={vesselStatus}
           setVesselStatus={setVesselStatus}
+          vesselVisibility={vesselVisibility}
+          setVesselVisibility={setVesselVisibility}
           onReload={loadVessels}
           onNavigate={onNavigate}
         />
@@ -559,6 +567,8 @@ function PracticePane({
   setVesselSaving,
   vesselStatus,
   setVesselStatus,
+  vesselVisibility,
+  setVesselVisibility,
   onReload,
   onNavigate,
 }: {
@@ -577,11 +587,13 @@ function PracticePane({
   setVesselNotes: (v: string) => void;
   savedVesselId: string | null;
   setSavedVesselId: (v: string | null) => void;
-  vessels: { _id: string; name: string; date: string; config: Record<string, unknown> }[];
+  vessels: PracticeVessel[];
   vesselSaving: boolean;
   setVesselSaving: (v: boolean) => void;
   vesselStatus: string | null;
   setVesselStatus: (v: string | null) => void;
+  vesselVisibility: ShareVisibility;
+  setVesselVisibility: (v: ShareVisibility) => void;
   onReload: () => Promise<void>;
   onNavigate?: (module: ModuleId, opts?: SubtleBodyNavigateOptions) => void;
 }) {
@@ -636,7 +648,7 @@ function PracticePane({
     });
   };
 
-  const loadVessel = (v: (typeof vessels)[0]) => {
+  const loadVessel = (v: PracticeVessel) => {
     setSavedVesselId(v._id);
     setVesselName(v.name);
     setVesselVisibility((v.visibility ?? 'private') as ShareVisibility);
