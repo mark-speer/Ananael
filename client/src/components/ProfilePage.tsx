@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AccountModal from './AccountModal';
 
 interface PublicUser {
   _id: string;
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<PublicUser | null>(null);
   const [state, setState] = useState<LoadingState>('loading');
   const [error, setError] = useState<string>('');
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!username) {
@@ -233,10 +235,7 @@ export default function ProfilePage() {
                 <div className="flex flex-wrap gap-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      // Profile editing is accessible via the Edit Profile button in the account modal
-                      console.log('Open account modal to edit profile');
-                    }}
+                    onClick={() => setSettingsOpen(true)}
                     className="rounded-lg bg-ananael-gold/10 px-4 py-2 text-ananael-gold transition hover:bg-ananael-gold/20"
                   >
                     Edit Profile
@@ -289,6 +288,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+      <AccountModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }
