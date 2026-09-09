@@ -13,7 +13,7 @@ import {
 } from '../data/tarotDeck';
 import { getPathByTarotId } from '../data/treeOfLife';
 
-export type SpreadType = 'single' | 'three' | 'celtic';
+export type SpreadType = 'single' | 'three' | 'celtic' | 'horseshoe' | 'pyramid' | 'wheel' | 'diamond';
 
 export interface SummaryDealtCard {
   card: TarotCardData;

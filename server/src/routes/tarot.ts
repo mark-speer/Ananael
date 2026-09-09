@@ -5,12 +5,16 @@ import type { SpreadType } from '../models/TarotReading';
 
 const router = Router();
 
-const VALID_SPREADS: SpreadType[] = ['single', 'three', 'celtic'];
+const VALID_SPREADS: SpreadType[] = ['single', 'three', 'celtic', 'horseshoe', 'pyramid', 'wheel', 'diamond'];
 
 const SPREAD_LABELS: Record<SpreadType, string> = {
   single: 'Single Card',
   three: 'Three-Card',
   celtic: 'Celtic Cross',
+  horseshoe: 'Horseshoe',
+  pyramid: 'Pyramid',
+  wheel: 'Wheel of Year',
+  diamond: 'Diamond',
 };
 
 const SUMMARY_MAX_LEN = 8000;
@@ -48,7 +52,7 @@ router.post('/save', protect, async (req: AuthRequest, res: Response): Promise<v
 
     if (!spreadType || !VALID_SPREADS.includes(spreadType)) {
       res.status(400).json({
-        message: 'spreadType must be one of: single, three, celtic',
+        message: 'spreadType must be one of: single, three, celtic, horseshoe, pyramid, wheel, diamond',
       });
       return;
     }

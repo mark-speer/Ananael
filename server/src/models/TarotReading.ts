@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
 /** Allowed spread identifiers matching the frontend selector. */
-export type SpreadType = 'single' | 'three' | 'celtic';
+export type SpreadType = 'single' | 'three' | 'celtic' | 'horseshoe' | 'pyramid' | 'wheel' | 'diamond';
 
 export interface ICardDrawn {
   cardId: string;
@@ -43,7 +43,7 @@ const TarotReadingSchema = new Schema<ITarotReading>(
     },
     spreadType: {
       type: String,
-      enum: ['single', 'three', 'celtic'],
+      enum: ['single', 'three', 'celtic', 'horseshoe', 'pyramid', 'wheel', 'diamond'],
       required: true,
     },
     cardsDrawn: {
