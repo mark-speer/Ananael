@@ -348,25 +348,56 @@ export default function TarotModule({
       </div>
 
       {/* Interactive board */}
-      {dealt.length > 0 &&
-        (spreadType === 'celtic' ? (
+      {dealt.length > 0 && (
+        spreadType === 'celtic' ? (
           <CelticCrossBoard
             dealt={dealt}
             deckStyle={deckStyle}
             onFlip={flipCard}
           />
-        ) : (
-          <div className="flex flex-wrap justify-center gap-3 rounded-xl border border-ananael-border/50 bg-ananael-surface p-3 sm:gap-6 sm:p-6">
-            {dealt.map((card, index) => (
-              <TarotCard
-                key={`${card.card.id}-${card.position}`}
-                dealt={card}
-                onFlip={() => flipCard(index)}
-                deckStyle={deckStyle}
-              />
-            ))}
-          </div>
-        ))}
+        ) : spreadType === 'single' ? (
+          <SingleCardBoard
+            dealt={dealt}
+            deckStyle={deckStyle}
+            onFlip={flipCard}
+          />
+        ) : spreadType === 'three' ? (
+          <ThreeCardBoard
+            dealt={dealt}
+            deckStyle={deckStyle}
+            onFlip={flipCard}
+          />
+        ) : spreadType === 'horseshoe' ? (
+          <HorseshoeBoard
+            dealt={dealt}
+            deckStyle={deckStyle}
+            onFlip={flipCard}
+          />
+        ) : spreadType === 'pyramid' ? (
+          <PyramidBoard
+            dealt={dealt}
+            deckStyle={deckStyle}
+            onFlip={flipCard}
+          />
+        ) : spreadType === 'wheel' ? (
+          <WheelBoard
+            dealt={dealt}
+            deckStyle={deckStyle}
+            onFlip={flipCard}
+          />
+        ) : spreadType === 'diamond' ? (
+          <DiamondBoard
+            dealt={dealt}
+            deckStyle={deckStyle}
+            onFlip={flipCard}
+          />
+        ) : null
+      )}
+
+      {/* Card meanings for visual spreads */}
+      {dealt.length > 0 && spreadType !== 'celtic' && (
+        <MeaningsList dealt={dealt} />
+      )}
 
       {/* Deterministic reading summary (guests + signed-in) */}
       {readingSummary && (
@@ -759,6 +790,287 @@ function CelticCrossBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+/** Display card meanings for flipped cards in a spread */
+interface MeaningsListProps {
+  dealt: DealtCard[];
+}
+
+function MeaningsList({ dealt }: MeaningsListProps) {
+  const flipped = dealt.filter((d) => d.isFlipped);
+  if (flipped.length === 0) return null;
+
+  return (
+    <ul className="max-w-3xl space-y-3 rounded-lg border border-ananael-border/50 bg-ananael-panel p-4">
+      {flipped.map((d) => {
+        const meaning = d.isReversed ? d.card.reversed : d.card.upright;
+        return (
+          <li key={`${d.card.id}-${d.position}`} className="text-sm">
+            <span className="font-medium text-ananael-gold">
+              {d.position}
+            </span>
+            <span className="text-ananael-muted"> · </span>
+            <span className="text-zinc-200">
+              {d.card.name}
+              {d.isReversed ? ' (reversed)' : ''}
+            </span>
+            <p className="mt-0.5 text-xs leading-relaxed text-zinc-400">
+              {meaning}
+            </p>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Single card display centered */
+function SingleCardBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
+  return (
+    <div className="flex justify-center rounded-xl border border-ananael-border/50 bg-ananael-surface p-6">
+      {dealt[0] && (
+        <TarotCard
+          dealt={dealt[0]}
+          onFlip={() => onFlip(0)}
+          deckStyle={deckStyle}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Three-card horizontal layout: Past – Present – Future */
+function ThreeCardBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-6">
+      <div className="mx-auto flex justify-center gap-8 md:min-w-[600px]">
+        {dealt.map((card, index) => (
+          <div key={`${card.card.id}-${card.position}`} className="flex flex-col items-center">
+           <TarotCard
+             dealt={card}
+             onFlip={() => onFlip(index)}
+             deckStyle={deckStyle}
+           />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Horseshoe spread: 7-card arc layout
+ * Positions in arc: 0,1,2 (left curve) → 3 (bottom) → 4,5,6 (right curve)
+ */
+function HorseshoeBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
+  const positions = [
+    { index: 0, style: { gridColumn: '1', gridRow: '1' } },     // Top-left
+    { index: 1, style: { gridColumn: '2', gridRow: '1-3' } },   // Left
+    { index: 2, style: { gridColumn: '3', gridRow: '1-2' } },   // Inner-left
+    { index: 3, style: { gridColumn: '4', gridRow: '3' } },     // Bottom center
+    { index: 4, style: { gridColumn: '5', gridRow: '1-2' } },   // Inner-right
+    { index: 5, style: { gridColumn: '6', gridRow: '1-3' } },   // Right
+    { index: 6, style: { gridColumn: '7', gridRow: '1' } },     // Top-right
+  ];
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-6">
+      <div className="mx-auto md:min-w-[750px]">
+        <div
+          className="grid place-items-center gap-4"
+          style={{
+           gridTemplateColumns: 'repeat(7, 1fr)',
+           gridTemplateRows: 'repeat(3, auto)',
+          }}
+        >
+          {positions.map(({ index, style }) => (
+           <div
+             key={`pos-${index}`}
+             style={style}
+             className="flex flex-col items-center"
+           >
+             {dealt[index] && (
+               <TarotCard
+                 dealt={dealt[index]}
+                 onFlip={() => onFlip(index)}
+                 deckStyle={deckStyle}
+                 size="compact"
+                 hideMeaning
+               />
+             )}
+           </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Pyramid spread: 6-card triangular layout
+ * Row 1 (top):    1 card (center)
+ * Row 2 (middle): 2 cards
+ * Row 3 (base):   3 cards
+ * Dealing order: [0,1,2,3,4,5] maps to positions shown
+ */
+function PyramidBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
+  // Map deal order to visual pyramid positions using 5-column grid
+  // Deal: 0,1,2,3,4,5 → Pyramid: (base) 0,1,2 at cols 1,3,5
+  //                              (middle) 3,4 at cols 2,4
+  //                              (apex) 5 at col 3
+  const positionMap = [
+    { index: 0, col: 1, row: 3 },  // Base left
+    { index: 1, col: 3, row: 3 },  // Base center
+    { index: 2, col: 5, row: 3 },  // Base right
+    { index: 3, col: 2, row: 2 },  // Middle left
+    { index: 4, col: 4, row: 2 },  // Middle right
+    { index: 5, col: 3, row: 1 },  // Apex
+  ];
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-6">
+      <div className="mx-auto md:min-w-[650px]">
+        <div
+          className="grid place-items-center gap-6 px-4"
+          style={{
+           gridTemplateColumns: 'repeat(5, 1fr)',
+           gridTemplateRows: 'auto auto auto',
+          }}
+        >
+          {positionMap.map(({ index, col, row }) => (
+           <div
+             key={`pyr-${index}`}
+             style={{
+               gridColumn: `${col}`,
+               gridRow: `${row}`,
+             }}
+             className="flex flex-col items-center"
+           >
+             {dealt[index] && (
+               <TarotCard
+                 dealt={dealt[index]}
+                 onFlip={() => onFlip(index)}
+                 deckStyle={deckStyle}
+                 size="compact"
+                 hideMeaning
+               />
+             )}
+           </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Wheel of Year: 8-card circular/radial layout
+ * Positions: Spring, Summer, Autumn, Winter (cardinal)
+ *            + Current Energy, Challenge, Gift, Resolution (between/center)
+ */
+function WheelBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
+  // 5x5 grid for a proper wheel/circle arrangement
+  // Cardinal directions at the edges, inner circle for supporting cards
+  // Positions in clock order starting from top:
+  // 0: Spring (top), 1: Summer (right), 2: Autumn (bottom), 3: Winter (left)
+  // 4: Current Energy (center), 5-7: Challenge/Gift/Resolution (inner circle)
+  
+  const positions = [
+    { index: 0, col: 3, row: 1 },   // Spring - top center
+    { index: 1, col: 5, row: 3 },   // Summer - right center
+    { index: 2, col: 3, row: 5 },   // Autumn - bottom center
+    { index: 3, col: 1, row: 3 },   // Winter - left center
+    { index: 4, col: 3, row: 3 },   // Current Energy - center
+    { index: 5, col: 4, row: 2 },   // Challenge - top-right inner
+    { index: 6, col: 4, row: 4 },   // Gift - bottom-right inner
+    { index: 7, col: 2, row: 3 },   // Resolution - left inner (alternative: row 2 or 4)
+  ];
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-6">
+      <div className="mx-auto md:min-w-[700px]">
+        <div
+          className="grid place-items-center gap-3"
+          style={{
+           gridTemplateColumns: 'repeat(5, 1fr)',
+           gridTemplateRows: 'repeat(5, 1fr)',
+           minHeight: '400px',
+          }}
+        >
+          {positions.map(({ index, col, row }) => (
+           <div
+             key={`wheel-${index}`}
+             style={{
+               gridColumn: `${col}`,
+               gridRow: `${row}`,
+             }}
+             className="flex flex-col items-center"
+           >
+             {dealt[index] && (
+               <TarotCard
+                 dealt={dealt[index]}
+                 onFlip={() => onFlip(index)}
+                 deckStyle={deckStyle}
+                 size="compact"
+                 hideMeaning
+               />
+             )}
+           </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Diamond spread: 5-card diamond/rhombus layout
+ * Positions:
+ *      2 (top)
+ *   1     3 (sides)
+ *      4 (bottom center)
+ *      0 (heart/center in middle)
+ */
+function DiamondBoard({ dealt, deckStyle, onFlip }: CelticCrossBoardProps) {
+  const positionMap = [
+    { index: 0, col: 2, row: 2 },   // Heart of Matter (center)
+    { index: 1, col: 1, row: 2 },   // Left perspective
+    { index: 2, col: 2, row: 1 },   // Top
+    { index: 3, col: 3, row: 2 },   // Right perspective
+    { index: 4, col: 2, row: 3 },   // Bridge/bottom
+  ];
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-ananael-border/50 bg-ananael-surface p-6">
+      <div className="mx-auto md:min-w-[550px]">
+        <div
+          className="grid place-items-center gap-6"
+          style={{
+           gridTemplateColumns: 'repeat(3, 1fr)',
+           gridTemplateRows: 'repeat(3, auto)',
+          }}
+        >
+          {positionMap.map(({ index, col, row }) => (
+           <div
+             key={`diamond-${index}`}
+             style={{
+               gridColumn: `${col}`,
+               gridRow: `${row}`,
+             }}
+             className="flex flex-col items-center"
+           >
+             {dealt[index] && (
+               <TarotCard
+                 dealt={dealt[index]}
+                 onFlip={() => onFlip(index)}
+                 deckStyle={deckStyle}
+                 size="compact"
+                 hideMeaning
+               />
+             )}
+           </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
