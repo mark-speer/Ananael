@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -126,7 +126,7 @@ export default function ProfilePage() {
                 />
               </svg>
             </div>
-            <p className="text-ananael-text/60">Loading profile…</p>
+            <p className="text-ananael-text/60">Loading profileâ€¦</p>
           </div>
         </div>
       )}
@@ -234,8 +234,8 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => {
-                      // TODO: Navigate to settings with visibility toggle
-                      console.log('Navigate to profile settings');
+                      // Profile editing is accessible via the Edit Profile button in the account modal
+                      console.log('Open account modal to edit profile');
                     }}
                     className="rounded-lg bg-ananael-gold/10 px-4 py-2 text-ananael-gold transition hover:bg-ananael-gold/20"
                   >

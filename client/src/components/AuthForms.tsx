@@ -1,4 +1,5 @@
-import { FormEvent, useState } from 'react';
+﻿import { FormEvent, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 type Mode = 'login' | 'register' | 'settings';
@@ -14,6 +15,7 @@ interface AuthFormsProps {
  */
 export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
   const { login, register, logout, isAuthenticated, user, refetchUser } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('login');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -154,6 +156,16 @@ export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
         <button
           type="button"
           onClick={() => {
+            navigate(`/u/${user.username}`);
+            onSuccess?.();
+          }}
+          className="w-full rounded-md border border-ananael-border px-3 py-2 text-sm text-zinc-300 transition hover:border-ananael-violet hover:text-ananael-gold"
+        >
+          Edit Profile
+        </button>
+        <button
+          type="button"
+          onClick={() => {
             logout();
             onSuccess?.();
           }}
@@ -257,7 +269,7 @@ export default function AuthForms({ onSuccess, className }: AuthFormsProps) {
           disabled={submitting}
           className="w-full rounded-md bg-ananael-violet px-4 py-2 text-sm font-medium text-white transition hover:bg-ananael-violet-deep disabled:opacity-60"
         >
-          {submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
+          {submitting ? 'Please waitâ€¦' : mode === 'login' ? 'Sign in' : 'Create account'}
         </button>
       </form>
 
