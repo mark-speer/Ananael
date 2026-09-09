@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
+import ShareControl, { type ShareVisibility } from './ShareControl';
 import {
   ALLIES,
   DIRECTION_TRADITIONS,
@@ -64,6 +65,7 @@ type VesselRow = {
   name: string;
   date: string;
   config: Record<string, unknown>;
+  visibility?: ShareVisibility;
 };
 
 /**
@@ -99,6 +101,7 @@ export default function ShamanismModule({
   const [castSaving, setCastSaving] = useState(false);
 
   const [vesselName, setVesselName] = useState('Untitled journey vessel');
+  const [vesselVisibility, setVesselVisibility] = useState<ShareVisibility>('private');
   const [vesselIntent, setVesselIntent] = useState('');
   const [vesselWorldId, setVesselWorldId] = useState<WorldId>('middle');
   const [vesselAllyIds, setVesselAllyIds] = useState<string[]>([]);
@@ -920,6 +923,15 @@ export default function ShamanismModule({
           {vesselStatus && (
             <p className="text-xs text-ananael-muted">{vesselStatus}</p>
           )}
+          {isAuthenticated && savedVesselId && (
+            <ShareControl
+              type="practice"
+              id={savedVesselId}
+              endpoint={`/api/practice/vessels/${savedVesselId}`}
+              visibility={vesselVisibility}
+              onVisibilityChange={setVesselVisibility}
+            />
+          )}
           {vessels.length > 0 && (
             <ul className="space-y-1">
               {vessels.map((v) => (
@@ -929,6 +941,7 @@ export default function ShamanismModule({
                     onClick={() => {
                       setSavedVesselId(v._id);
                       setVesselName(v.name);
+                      setVesselVisibility((v.visibility ?? 'private') as ShareVisibility);
                       const c = v.config;
                       setVesselIntent(typeof c.intent === 'string' ? c.intent : '');
                       if (c.worldId === 'lower' || c.worldId === 'middle' || c.worldId === 'upper') {

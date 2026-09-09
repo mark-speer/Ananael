@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/api';
+import ShareControl, { type ShareVisibility } from './ShareControl';
 import { getChakra, type Chakra } from '../data/chakras';
 import type { Meridian } from '../data/meridians';
 import {
@@ -78,8 +79,9 @@ export default function SubtleBodyModule({
   const [riteId, setRiteId] = useState('');
   const [vesselNotes, setVesselNotes] = useState('');
   const [savedVesselId, setSavedVesselId] = useState<string | null>(null);
+  const [vesselVisibility, setVesselVisibility] = useState<ShareVisibility>('private');
   const [vessels, setVessels] = useState<
-    { _id: string; name: string; date: string; config: Record<string, unknown> }[]
+    { _id: string; name: string; date: string; config: Record<string, unknown>; visibility?: ShareVisibility }[]
   >([]);
   const [vesselSaving, setVesselSaving] = useState(false);
   const [vesselStatus, setVesselStatus] = useState<string | null>(null);
@@ -637,6 +639,7 @@ function PracticePane({
   const loadVessel = (v: (typeof vessels)[0]) => {
     setSavedVesselId(v._id);
     setVesselName(v.name);
+    setVesselVisibility((v.visibility ?? 'private') as ShareVisibility);
     const cfg = v.config ?? {};
     setIntent(typeof cfg.intent === 'string' ? cfg.intent : '');
     setNeidanStageId(
@@ -756,6 +759,15 @@ function PracticePane({
               </div>
               {vesselStatus && (
                 <p className="text-xs text-ananael-muted">{vesselStatus}</p>
+              )}
+              {savedVesselId && (
+                <ShareControl
+                  type="practice"
+                  id={savedVesselId}
+                  endpoint={`/api/practice/vessels/${savedVesselId}`}
+                  visibility={vesselVisibility}
+                  onVisibilityChange={setVesselVisibility}
+                />
               )}
               {vessels.length > 0 && (
                 <ul className="space-y-1 border-t border-ananael-border/40 pt-3">

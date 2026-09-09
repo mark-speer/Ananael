@@ -117,19 +117,33 @@ Do not add a sidebar module until a phase’s **Done when** criteria are met. So
 
 **Suggested order:** shareable designs → practitioner cards → lodges → (optional) follows / opt-in journal / comments.
 
-### S1 — Shareable designs
+### S1 — Shareable designs ✅
+
+**Status:** COMPLETE
 
 Highest value, lowest privacy blast radius. Reuse existing JSON export shapes.
 
 In scope:
 
-- Unlisted (and optionally public) share links for **Talisman**, **Solomonic Circles**, **Ritual Space**, **Tree notes**
-- `visibility` + public GET (token or id); owner PATCH to publish/unpublish
-- “Open shared…” entry in those modules; Magical OS does not become a feed
+- Unlisted (and optionally public) share links for **Talisman**, **Solomonic Circles**, **Ritual Space**, **Tree notes**, **Opus Vessels**, **Practice Vessels**
+- `visibility` + public GET (no auth needed); owner PATCH to publish/unpublish
+- "Share" control in those modules; Magical OS does not become a feed
+- SharePage component with cold-load support at `/s/{type}/{id}`
+- Creator attribution on shared artifacts
+- Guest access to unlisted/public links
 
 Out of scope: journal, natal charts, planetary location, comments.
 
-**Done when:** signed-in owner can mint an unlisted link; anyone with the link can view (not edit) the artifact; default remains private; PNG/JSON export unchanged.
+**Done when:** signed-in owner can mint an unlisted link; anyone with the link can view (not edit) the artifact; default remains private; PNG/JSON export unchanged. ✅ ALL COMPLETE
+
+**Implementation:**
+- Backend: Public GET endpoints implemented for all 6 models
+- Backend: Visibility PATCH endpoints for owner control
+- Backend: Public serializers with creator attribution
+- Frontend: ShareControl component with visibility toggle
+- Frontend: SharePage displays all 6 artifact types
+- Frontend: Module UI integration (TalismanModule, SolomonicCircleModule, RitualSpaceModule, TreeOfLifeModule, AlchemyModule, SubtleBodyModule, ShamanismModule)
+- Tests: Manual verification guide at server/PUBLIC-ENDPOINTS-VERIFICATION.md
 
 ### S2 — Opt-in practitioner cards
 

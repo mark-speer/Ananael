@@ -736,4 +736,4 @@ UX and Docker Compose / single-port serving are unchanged.
 - Prefer client-side calculation for deterministic tools; Express for auth-bound persistence only
 - Preserve existing gold/violet occult visual language
 - Keep Docker Compose / single-port SPA serving unchanged
-- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (not started; not part of Phases 1–50)
+- Social / lodge work is documented separately in [docs/SOCIAL-ROADMAP.md](docs/SOCIAL-ROADMAP.md) (**Phase S1: Shareable Designs ✅ COMPLETE**; S2–S6 planned)

@@ -8,6 +8,7 @@ import {
   type ClassicalMetal,
   type OpusStageId,
 } from '../data/alchemy';
+import ShareControl, { type ShareVisibility } from './ShareControl';
 import { useAuth } from '../context/AuthContext';
 import {
   getPrinciple,
@@ -44,6 +45,7 @@ interface SavedVessel {
   date: string;
   config: Record<string, unknown>;
   notes?: string;
+  visibility?: ShareVisibility;
 }
 
 const STAGE_IDS: OpusStageId[] = [
@@ -140,6 +142,7 @@ export default function AlchemyModule({
   const [saving, setSaving] = useState(false);
   const [vesselSaving, setVesselSaving] = useState(false);
   const [vesselName, setVesselName] = useState('Untitled vessel');
+  const [vesselVisibility, setVesselVisibility] = useState<ShareVisibility>('private');
   const [savedVesselId, setSavedVesselId] = useState<string | null>(null);
   const [vessels, setVessels] = useState<SavedVessel[]>([]);
   const [opusWorkings, setOpusWorkings] = useState<JournalEntry[]>([]);
@@ -286,6 +289,7 @@ export default function AlchemyModule({
     }
     setSavedVesselId(v._id);
     setVesselName(v.name);
+    setVesselVisibility((v.visibility ?? 'private') as ShareVisibility);
     setStatus(null);
     setPane('vessel');
   };
@@ -489,13 +493,23 @@ export default function AlchemyModule({
                       onClick={() => {
                         setSavedVesselId(null);
                         setVesselName('Untitled vessel');
-                      }}
-                      className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300"
-                    >
-                      New
-                    </button>
+                       setVesselVisibility('private');
+                     }}
+                     className="rounded-md border border-ananael-border/70 px-3 py-1.5 text-xs text-zinc-300"
+                   >
+                     New
+                   </button>
                   )}
                 </div>
+                {savedVesselId && (
+                  <ShareControl
+                    type="opus"
+                    id={savedVesselId}
+                    endpoint={`/api/opus/vessels/${savedVesselId}`}
+                    visibility={vesselVisibility}
+                    onVisibilityChange={setVesselVisibility}
+                  />
+                )}
                 {vessels.length > 0 && (
                   <ul className="space-y-1 pt-1">
                     {vessels.map((v) => (
