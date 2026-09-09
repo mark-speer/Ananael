@@ -6,6 +6,7 @@ import {
   formatPillar,
   formatPillarShort,
 } from '../lib/chineseAstrology';
+import { PLANET_GLYPHS } from '../lib/natalChart';
 import {
   buildSkySnapshot,
   formatBodyRow,
@@ -938,7 +939,7 @@ export default function CelestialTimingModule({
                 <li key={b.id} className="px-4 py-2.5 text-sm">
                   <div className="flex items-baseline justify-between gap-3">
                     <p className="font-medium text-zinc-100">
-                      {b.id}
+                      {PLANET_GLYPHS[b.id]} {b.id}
                       {b.retrograde && (
                         <span className="ml-1 text-ananael-muted">℞</span>
                       )}
@@ -989,7 +990,7 @@ export default function CelestialTimingModule({
                     className="border-b border-ananael-border/30 last:border-0"
                   >
                     <td className="px-4 py-2 font-medium text-zinc-100">
-                      {b.id}
+                      {PLANET_GLYPHS[b.id]} {b.id}
                     </td>
                     <td className="px-4 py-2">
                       {onNavigate ? (
