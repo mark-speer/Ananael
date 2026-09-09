@@ -751,6 +751,10 @@ export function aggregateTarotHistory(
     single: 0,
     three: 0,
     celtic: 0,
+    horseshoe: 0,
+    pyramid: 0,
+    wheel: 0,
+    diamond: 0,
   };
 
   for (const reading of readings) {
