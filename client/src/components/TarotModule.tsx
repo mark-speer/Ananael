@@ -24,7 +24,7 @@ const SUIT_LABELS: Record<MinorSuit, string> = {
   pentacles: 'Pentacles',
 };
 
-export type SpreadType = 'single' | 'three' | 'celtic';
+export type SpreadType = 'single' | 'three' | 'celtic' | 'horseshoe' | 'pyramid' | 'wheel' | 'diamond';
 
 interface SpreadConfig {
   id: SpreadType;
@@ -61,6 +61,60 @@ const SPREADS: SpreadConfig[] = [
       'Environment',
       'Hopes & Fears',
       'Outcome',
+    ],
+  },
+  {
+    id: 'horseshoe',
+    label: 'Horseshoe Spread',
+    description: '7-card V-shaped layout',
+    positions: [
+      'Situation',
+      'Obstacle',
+      'Foundation',
+      'Advice',
+      'External Influence',
+      'Near Future',
+      'Outcome',
+    ],
+  },
+  {
+    id: 'pyramid',
+    label: 'Pyramid Spread',
+    description: '6-card foundation to peak',
+    positions: [
+      'Foundation',
+      'Left Factor',
+      'Right Factor',
+      'Challenge',
+      'Crowning Influence',
+      'Outcome',
+    ],
+  },
+  {
+    id: 'wheel',
+    label: 'Wheel of Year',
+    description: '8-card seasonal cycle',
+    positions: [
+      'Spring',
+      'Summer',
+      'Autumn',
+      'Winter',
+      'Current Energy',
+      'Challenge',
+      'Gift',
+      'Resolution',
+    ],
+  },
+  {
+    id: 'diamond',
+    label: 'Diamond Spread',
+    description: '5-card focused reflection',
+    positions: [
+      'Heart of the Matter',
+      'Left perspective',
+      'Right perspective',
+      'Bridge',
+      'Resolution',
     ],
   },
 ];
