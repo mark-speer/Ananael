@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import AlchemyModule, { type OpusPaneId } from './AlchemyModule';
 import EnochianModule from './EnochianModule';
-import IChingModule from './IChingModule';
+import IChingReferencePanel from './IChingReferencePanel';
 import ShamanismModule from './ShamanismModule';
 import SubtleBodyModule from './SubtleBodyModule';
-import TarotModule from './TarotModule';
+import TarotReferencePanel from './TarotReferencePanel';
 import TreeOfLifeModule from './TreeOfLifeModule';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
@@ -86,17 +86,9 @@ export default function GrimoireModule({
           />
         );
       case 'tarot':
-        return (
-          <TarotModule
-            embedded={true}
-          />
-        );
+        return <TarotReferencePanel />;
       case 'iching':
-        return (
-          <IChingModule
-            embedded={true}
-          />
-        );
+        return <IChingReferencePanel />;
       default:
         return null;
     }
