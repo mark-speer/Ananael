@@ -7,7 +7,7 @@ export type ModuleId =
   | 'iching'
   | 'planetary'
   | 'gematria'
-  | 'tree'
+  | 'grimoire'
   | 'translator'
   | 'atelier'
   | 'ritual'
@@ -19,7 +19,8 @@ export type ModuleId =
   | 'liturgy'
   | 'opus'
   | 'subtleBody'
-  | 'shamanism';
+  | 'shamanism'
+  | 'tree';
 
 export type ModuleGroup = 'Home' | 'Practice' | 'Study';
 
@@ -29,6 +30,7 @@ const MODULE_GROUP_ORDER: ModuleGroup[] = ['Home', 'Practice', 'Study'];
 export function canonicalModuleId(id: ModuleId): ModuleId {
   if (id === 'tarot' || id === 'iching') return 'divination';
   if (id === 'ritual' || id === 'solomonic' || id === 'talisman') return 'atelier';
+  if (id === 'tree' || id === 'opus' || id === 'enochian' || id === 'subtleBody' || id === 'shamanism') return 'grimoire';
   return id;
 }
 
@@ -49,14 +51,10 @@ export const MODULES: ModuleDef[] = [
   { id: 'gematria', label: 'Gematria', group: 'Study' },
   { id: 'planetary', label: 'Celestial Timing', shortLabel: 'Timing', group: 'Practice' },
   { id: 'translator', label: 'Script Translator', shortLabel: 'Translator', group: 'Study' },
-  { id: 'tree', label: 'Tree of Life', group: 'Study' },
+  { id: 'grimoire', label: 'Grimoire', group: 'Study' },
   { id: 'correspondences', label: 'Correspondences', group: 'Study' },
-  { id: 'opus', label: 'Athanor', group: 'Study' },
   { id: 'atelier', label: 'Atelier', group: 'Practice' },
-  { id: 'enochian', label: 'Enochian', group: 'Study' },
   { id: 'liturgy', label: 'Ritual Library', shortLabel: 'Library', group: 'Practice' },
-  { id: 'subtleBody', label: 'Subtle Body', shortLabel: 'Body', group: 'Practice' },
-  { id: 'shamanism', label: 'Shamanism', group: 'Practice' },
 ];
 
 function modulesByGroup(): { group: ModuleGroup; modules: ModuleDef[] }[] {

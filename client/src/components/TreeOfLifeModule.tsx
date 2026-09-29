@@ -56,6 +56,8 @@ export interface TreeNavigateOptions {
   translatorTarget?: ScriptId;
   opusPane?: 'stages' | 'vessel' | 'emblem';
   stageId?: string;
+  metal?: string;
+  runEntryId?: string;
   enochianTab?: 'tablets' | 'calls' | 'hierarchy';
   enochianFocus?: string;
 }

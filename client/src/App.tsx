@@ -1,9 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AccountMenu from './components/AccountMenu';
-import AlchemyModule, {
-  type OpusPaneId,
-} from './components/AlchemyModule';
 import AtelierModule, {
   type AtelierTab,
 } from './components/AtelierModule';
@@ -13,10 +10,10 @@ import DashboardModule from './components/DashboardModule';
 import DivinationModule, {
   type DivinationTab,
 } from './components/DivinationModule';
-import EnochianModule, {
-  type EnochianTabId,
-} from './components/EnochianModule';
 import GematriaModule from './components/GematriaModule';
+import GrimoireModule, {
+  type GrimoireTab,
+} from './components/GrimoireModule';
 import JournalModule from './components/JournalModule';
 import LiturgyModule from './components/LiturgyModule';
 import ScriptTranslatorModule from './components/ScriptTranslatorModule';
@@ -24,14 +21,7 @@ import Sidebar, { type ModuleId } from './components/Sidebar';
 import SplashPage from './components/SplashPage';
 import SharePage from './components/SharePage';
 import ProfilePage from './components/ProfilePage';
-import SubtleBodyModule from './components/SubtleBodyModule';
-import ShamanismModule from './components/ShamanismModule';
-import type { SubtleBodyPane } from './lib/subtleBody';
-import type { ShamanismPane } from './lib/shamanism';
-import TreeOfLifeModule, {
-  type TreeNavigateOptions,
-} from './components/TreeOfLifeModule';
-import type { OpusStageId } from './data/alchemy';
+import type { TreeNavigateOptions } from './components/TreeOfLifeModule';
 import type { TemplateId } from './data/ritualTools';
 import type { JournalEntryType } from './lib/journal';
 import type { LiturgyMode } from './lib/ritualRunner';
@@ -43,6 +33,7 @@ export type AppNavigateOptions = TreeNavigateOptions & {
   entryId?: string;
   divinationTab?: DivinationTab;
   atelierTab?: AtelierTab;
+  grimoireTab?: GrimoireTab;
   planetaryPanel?:
     | 'hours'
     | 'planets'
@@ -51,10 +42,7 @@ export type AppNavigateOptions = TreeNavigateOptions & {
     | 'almanac'
     | 'natal';
   ritualTemplate?: TemplateId;
-  opusPane?: OpusPaneId;
-  metal?: string;
   riteId?: string;
-  runEntryId?: string;
   liturgyMode?: LiturgyMode;
 };
 
@@ -62,6 +50,7 @@ function resolveModule(module: ModuleId): {
   module: ModuleId;
   divinationTab?: DivinationTab;
   atelierTab?: AtelierTab;
+  grimoireTab?: GrimoireTab;
 } {
   if (module === 'tarot') return { module: 'divination', divinationTab: 'tarot' };
   if (module === 'iching')
@@ -71,6 +60,11 @@ function resolveModule(module: ModuleId): {
     return { module: 'atelier', atelierTab: 'solomonic' };
   if (module === 'talisman')
     return { module: 'atelier', atelierTab: 'talisman' };
+  if (module === 'tree') return { module: 'grimoire', grimoireTab: 'tree' };
+  if (module === 'opus') return { module: 'grimoire', grimoireTab: 'athanor' };
+  if (module === 'enochian') return { module: 'grimoire', grimoireTab: 'enochian' };
+  if (module === 'subtleBody') return { module: 'grimoire', grimoireTab: 'subtleBody' };
+  if (module === 'shamanism') return { module: 'grimoire', grimoireTab: 'shamanism' };
   return { module };
 }
 
@@ -94,6 +88,7 @@ export default function App() {
   const [journalEntryId, setJournalEntryId] = useState<string | undefined>();
   const [divinationTab, setDivinationTab] = useState<DivinationTab>('tarot');
   const [atelierTab, setAtelierTab] = useState<AtelierTab>('ritual');
+  const [grimoireTab, setGrimoireTab] = useState<GrimoireTab>('tree');
   const [planetaryPanel, setPlanetaryPanel] = useState<
     'hours' | 'planets' | 'zodiac' | 'elections' | 'almanac' | 'natal'
   >('hours');
@@ -101,26 +96,14 @@ export default function App() {
     TemplateId | undefined
   >();
   const [talismanPrefill, setTalismanPrefill] = useState<string | undefined>();
-  const [opusPane, setOpusPane] = useState<OpusPaneId>('stages');
-  const [opusStageId, setOpusStageId] = useState<OpusStageId | undefined>();
-  const [opusMetal, setOpusMetal] = useState<string | undefined>();
   const [liturgyMode, setLiturgyMode] = useState<LiturgyMode>('browse');
   const [liturgyRiteId, setLiturgyRiteId] = useState<string | undefined>();
   const [liturgyRunEntryId, setLiturgyRunEntryId] = useState<
     string | undefined
   >();
-  const [subtleBodyPane, setSubtleBodyPane] = useState<SubtleBodyPane>('chakras');
-  const [subtleBodyFocus, setSubtleBodyFocus] = useState<string | undefined>();
-  const [shamanismPane, setShamanismPane] = useState<ShamanismPane>('worlds');
-  const [shamanismFocus, setShamanismFocus] = useState<string | undefined>();
-  const [shamanismRunEntryId, setShamanismRunEntryId] = useState<
-    string | undefined
-  >();
   const [translatorPrefill, setTranslatorPrefill] = useState<string | undefined>();
   const [translatorSource, setTranslatorSource] = useState<ScriptId | undefined>();
   const [translatorTarget, setTranslatorTarget] = useState<ScriptId | undefined>();
-  const [enochianTab, setEnochianTab] = useState<EnochianTabId>('tablets');
-  const [enochianFocus, setEnochianFocus] = useState<string | undefined>();
   const [navOpen, setNavOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -233,14 +216,6 @@ export default function App() {
       setRitualTemplate(undefined);
       setTalismanPrefill(undefined);
     }
-    if (target === 'opus') {
-      setOpusPane(opts?.opusPane ?? 'stages');
-      setOpusStageId(opts?.stageId as OpusStageId | undefined);
-      setOpusMetal(opts?.metal);
-    } else {
-      setOpusStageId(undefined);
-      setOpusMetal(undefined);
-    }
     if (target === 'liturgy') {
       setLiturgyMode(opts?.liturgyMode ?? 'browse');
       setLiturgyRiteId(opts?.riteId);
@@ -250,19 +225,10 @@ export default function App() {
       setLiturgyRiteId(undefined);
       setLiturgyRunEntryId(undefined);
     }
-    if (target === 'subtleBody') {
-      setSubtleBodyPane(opts?.subtleBodyPane ?? 'chakras');
-      setSubtleBodyFocus(opts?.subtleBodyFocus);
-    } else {
-      setSubtleBodyFocus(undefined);
-    }
-    if (target === 'shamanism') {
-      setShamanismPane(opts?.shamanismPane ?? 'worlds');
-      setShamanismFocus(opts?.shamanismFocus);
-      setShamanismRunEntryId(opts?.runEntryId);
-    } else {
-      setShamanismFocus(undefined);
-      setShamanismRunEntryId(undefined);
+    if (target === 'grimoire') {
+      setGrimoireTab(
+        opts?.grimoireTab ?? resolved.grimoireTab ?? 'tree'
+      );
     }
     if (target === 'translator') {
       setTranslatorPrefill(opts?.translatorPrefill);
@@ -272,12 +238,6 @@ export default function App() {
       setTranslatorPrefill(undefined);
       setTranslatorSource(undefined);
       setTranslatorTarget(undefined);
-    }
-    if (target === 'enochian') {
-      setEnochianTab(opts?.enochianTab ?? 'tablets');
-      setEnochianFocus(opts?.enochianFocus);
-    } else {
-      setEnochianFocus(undefined);
     }
     setActiveModule(target);
     setNavOpen(false);
@@ -332,8 +292,6 @@ export default function App() {
             initialTarget={translatorTarget}
           />
         );
-      case 'tree':
-        return <TreeOfLifeModule onNavigate={navigateToModule} />;
       case 'correspondences':
         return (
           <CorrespondencesModule
@@ -353,14 +311,6 @@ export default function App() {
             onNavigate={navigateToModule}
           />
         );
-      case 'enochian':
-        return (
-          <EnochianModule
-            onNavigate={navigateToModule}
-            initialTab={enochianTab}
-            initialFocus={enochianFocus}
-          />
-        );
       case 'liturgy':
         return (
           <LiturgyModule
@@ -370,30 +320,16 @@ export default function App() {
             initialMode={liturgyMode}
           />
         );
+      case 'grimoire':
+      case 'tree':
       case 'opus':
-        return (
-          <AlchemyModule
-            onNavigate={navigateToModule}
-            initialPane={opusPane}
-            initialStageId={opusStageId}
-            initialMetal={opusMetal}
-          />
-        );
+      case 'enochian':
       case 'subtleBody':
-        return (
-          <SubtleBodyModule
-            onNavigate={navigateToModule}
-            initialPane={subtleBodyPane}
-            initialFocus={subtleBodyFocus}
-          />
-        );
       case 'shamanism':
         return (
-          <ShamanismModule
+          <GrimoireModule
             onNavigate={navigateToModule}
-            initialPane={shamanismPane}
-            initialFocus={shamanismFocus}
-            initialRunEntryId={shamanismRunEntryId}
+            initialTab={grimoireTab}
           />
         );
       default:
