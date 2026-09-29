@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import AlchemyModule, { type OpusPaneId } from './AlchemyModule';
 import EnochianModule from './EnochianModule';
+import IChingModule from './IChingModule';
 import ShamanismModule from './ShamanismModule';
 import SubtleBodyModule from './SubtleBodyModule';
+import TarotModule from './TarotModule';
 import TreeOfLifeModule from './TreeOfLifeModule';
 import type { ModuleId } from './Sidebar';
 import type { TreeNavigateOptions } from './TreeOfLifeModule';
@@ -10,7 +12,7 @@ import type { OpusStageId } from '../data/alchemy';
 import type { SubtleBodyPane } from '../lib/subtleBody';
 import type { ShamanismPane } from '../lib/shamanism';
 
-export type GrimoireTab = 'tree' | 'athanor' | 'enochian' | 'subtleBody' | 'shamanism';
+export type GrimoireTab = 'tree' | 'athanor' | 'enochian' | 'subtleBody' | 'shamanism' | 'tarot' | 'iching';
 
 interface GrimoireModuleProps {
   onNavigate: (module: ModuleId, opts?: TreeNavigateOptions) => void;
@@ -24,12 +26,14 @@ const TABS: { id: GrimoireTab; label: string }[] = [
   { id: 'enochian', label: 'Enochian' },
   { id: 'subtleBody', label: 'Subtle Body' },
   { id: 'shamanism', label: 'Shamanism' },
+  { id: 'tarot', label: 'Tarot' },
+  { id: 'iching', label: 'I Ching' },
 ];
 
 /**
  * Grimoire: A unified reference container for esoteric study materials.
- * Combines Tree of Life, Athanor, Enochian, Subtle Body, and Shamanism
- * into separate tabs for streamlined navigation and thematic organization.
+ * Combines Tree of Life, Athanor, Enochian, Subtle Body, Shamanism,
+ * Tarot, and I Ching into separate tabs for streamlined navigation and thematic organization.
  */
 export default function GrimoireModule({
   onNavigate,
@@ -79,6 +83,18 @@ export default function GrimoireModule({
             initialPane={initialTreeNavigateOptions?.shamanismPane as ShamanismPane | undefined ?? 'worlds'}
             initialFocus={initialTreeNavigateOptions?.shamanismFocus}
             initialRunEntryId={initialTreeNavigateOptions?.runEntryId}
+          />
+        );
+      case 'tarot':
+        return (
+          <TarotModule
+            embedded={true}
+          />
+        );
+      case 'iching':
+        return (
+          <IChingModule
+            embedded={true}
           />
         );
       default:
